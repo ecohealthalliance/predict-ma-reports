@@ -1,0 +1,49 @@
+---
+params:
+  country: "Thailand"
+title: 'PREDICT M&A Report: `r params$country`'
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    keep_md: false
+---
+
+```{r setup, include = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(tidyverse)
+h <- here::here
+walk(list.files(h("R/"), full.names = TRUE),
+     source, echo = FALSE, verbose = FALSE)
+country <- params$country
+```
+
+![](./media/predict-logos.png){width="100%"}
+
+#### _Click on the_ ▶ _︎arrows to expand sections._
+
+```{r read-data}
+# THIS IS AN EXAMPLE ROUTINE FOR READING IN DATA--FEEL FREE TO DELETE
+
+# all tables
+table_names <- c("Event", "Animal",  "Specimen", "Test", "Human", "HumanAnimalProduction", "HumanCropProduction", "HumanExtractiveIndustry", "HumanHospitalWorker", "HumanHunter", "HumanMarket", "HumanRestaurant", "HumanSickPerson", "HumanTemporarySettlements", "HumanZoo", "AnimalProduction", "CropProduction", "Dwellings", "ExtractiveIndustry", "MarketValueChain", "NaturalAreas", "WildlifeRestaurant",  "ZooSanctuary")
+
+# read in tables
+tables <- map(table_names, function(x){
+  
+  # try reading in data
+  out <- try(read_tsv(h("raw-eidith-data", paste0(x, "-", country, ".tsv.gz")),  col_types = get(paste(tolower(x), "specs", sep="_"))), silent=TRUE)
+  
+  # if data does not exist, make null object
+  if(class(out)[1] == "try-error"){out <- NULL}
+  
+  return(out)
+})
+
+# give list names
+names(tables) <- tolower(table_names)
+
+# make an object for each table in list
+for(i in seq_along(tables)){
+  assign(names(tables[i]), tables[[i]])
+}
+```
