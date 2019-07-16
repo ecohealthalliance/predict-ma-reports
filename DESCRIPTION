@@ -1,0 +1,13 @@
+Package: predict-ma-reportss
+Version: 0.0.0.1
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+ByteCompile: true
+URL: https://github.com/ecohealthalliance/predict-ma-reports
+Depends:
+    eidith,
+    tidyverse,
+    here
+Remotes:
+    ecohealthalliance/eidith
