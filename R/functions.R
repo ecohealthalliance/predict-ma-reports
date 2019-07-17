@@ -1,5 +1,123 @@
 
 
+datatable_ <- function(x, caption = NULL) {
+
+  datatable(x,
+            options = list(
+              pageLength = 1000,
+              initComplete = JS(
+                "function(settings, json) {",
+                "$('body').css({'font-family': 'Futura'});",
+                "}"
+              )
+            ),
+            class = "hover row-border compact",
+            caption = caption,
+            autoHideNavigation = TRUE
+  )
+}
+
+
+get_virus_summary <- function(x, view = FALSE) {
+
+  tmp <- animal_virus_summary %>%
+    filter(viral_species == x) %>%
+    distinct(country, taxa_group, species_scientific_name) %>%
+    arrange(country, taxa_group, species_scientific_name)
+
+  ifelse(view == TRUE,
+         return(datatable_(tmp, x)),
+         return(tmp)
+  )
+}
+
+
+get_virus_summary2 <- function(x, view = FALSE) {
+
+  tmp <- animal_virus_summary %>%
+    filter(viral_species == x) %>%
+    arrange(country, taxa_group, species_scientific_name) %>%
+    group_by(country) %>%
+    summarize(
+      n_taxa_groups = length(unique(taxa_group)),
+      taxa_groups = paste(unique(taxa_group), collapse = "<br>"),
+      n_species = length(unique(species_scientific_name)),
+      species = paste(unique(species_scientific_name), collapse = "<br>")
+    ) %>%
+    ungroup()
+
+  ifelse(view == TRUE,
+         return(datatable_(tmp, x)),
+         return(tmp)
+  )
+}
+
+
+get_host_viruses <- function(x, view = FALSE) {
+
+  tmp <- animal_virus_summary %>%
+    filter(species_scientific_name == x) %>%
+    distinct(country, viral_species) %>%
+    arrange(country, viral_species)
+
+  ifelse(view == TRUE,
+         return(datatable_(tmp, x)),
+         return(tmp)
+  )
+}
+
+
+get_country_viruses <- function(view = FALSE) {
+
+  tmp <- animal_virus_summary %>%
+    distinct(viral_species) %>%
+    arrange(viral_species)
+
+  ifelse(view == TRUE,
+         return(datatable_(tmp)),
+         return(tmp)
+  )
+}
+
+
+get_country_site_viruses <- function(view = FALSE) {
+
+  tmp <- animal_virus_summary %>%
+    distinct(site_name, concurrent_sampling_site, viral_species) %>%
+    arrange(site_name, viral_species) %>%
+    filter(!is.na(site_name))
+
+  ifelse(view == TRUE,
+         return(datatable_(tmp)),
+         return(tmp)
+  )
+}
+
+
+get_country_site_viruses2 <- function(view = FALSE) {
+
+  tmp <- animal_virus_summary %>%
+    arrange(site_name, viral_species, taxa_group, species_scientific_name) %>%
+    filter(!is.na(site_name)) %>%
+    group_by(site_name, concurrent_sampling_site, human_density_impact) %>%
+    summarize(
+      n_viruses = length(unique(viral_species)),
+      viruses = paste(unique(viral_species), collapse = "<br>"),
+      n_detections = sum(n_positives),
+      n_taxa_groups = length(unique(taxa_group)),
+      taxa_groups = paste(unique(taxa_group), collapse = "<br>"),
+      n_species = length(unique(species_scientific_name)),
+      species = paste(unique(species_scientific_name), collapse = "<br>")
+    ) %>%
+    ungroup()
+
+  ifelse(view == TRUE,
+         return(datatable_(tmp)),
+         return(tmp)
+  )
+}
+
+
 # Convert a dataframe with host species and viral observation data into an
 # incidence matrix representing viral observation data
 # All arguments besides the dataframe must be given as strings

@@ -10,7 +10,13 @@ output:
 
 ```{r setup, include = FALSE, message = FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(DT)
+library(eidith)
+library(glue)
+library(iNEXT)
+library(kableExtra)
 library(tidyverse)
+library(wesanderson)
 h <- here::here
 walk(list.files(h("R/"), full.names = TRUE),
      source, echo = FALSE, verbose = FALSE)
@@ -22,8 +28,6 @@ country <- params$country
 #### _Click on the_ ▶ _︎arrows to expand sections._
 
 ```{r read-data}
-
-library(eidith)
 
 # Load EIDITH data tables
 
@@ -68,17 +72,22 @@ t2 <- t2 %>%
 
 t2 <- separate_rows(t2, virus, sequence, sep = "\\|")
 
-# Synonymize viral names
+# Modify viral names and detection data
 
 v <- v %>%
   mutate(viral_species = stringi::stri_replace_first_regex(
     virus_name, "(new\\s)?strain\\sof\\s", ""))
 
 t2 <- t2 %>%
-  mutate(viral_species = stringi::stri_replace_first_regex(
-    virus, "(new\\s)?strain\\sof\\s", ""))
+  mutate(
+    viral_species = stringi::stri_replace_first_regex(virus, "(new\\s)?strain\\sof\\s", ""),
+    viral_species = str_replace(viral_species, "Alpha coronavirus", "Alphacoronavirus"),
+    viral_species = str_replace(viral_species, "bat coronavirus", "Bat coronavirus"),
+    viral_species = str_replace(viral_species, "Bat Coronavirus", "Bat coronavirus")
+  ) %>%
+  mutate(virus_detected = ifelse(confirmation_result == "Positive", 1, 0))
 
-# Join across all tables to get complete data tables
+# Join across all tables to get complete data
 
 d <- left_join(e, a, by = "event_id") %>%
   left_join(s, by = "animal_id") %>%
@@ -91,12 +100,28 @@ d2 <- full_join(e2, a2, by = c("event_name", "project")) %>%
   left_join(t2, by = c("specimen_id", "project"))
 ```
 
-```{r viral-curves-prep, include = FALSE}
+<details>
+<summary>Summary Tables</summary>
+``` {r tables}
 
-library(eidith)
-library(glue)
-library(iNEXT)
-library(wesanderson)
+animal.grouping.vars <-
+  c("country", "concurrent_sampling_site", "site_name",
+    "human_density_impact", "taxa_group", "species_scientific_name", "viral_species")
+
+animal_virus_summary <- d2 %>%
+  filter(!is.na(viral_species)) %>%
+  group_by_at(vars(one_of(animal.grouping.vars))) %>%
+  summarize(n_positives = sum(virus_detected)) %>%
+  ungroup() %>%
+  arrange(country, site_name, taxa_group, species_scientific_name, viral_species, n_positives)
+
+get_country_site_viruses2() %>% 
+  kable(format = "html", escape = FALSE) %>%
+  kable_styling()
+```
+</details>
+
+```{r viral-curves-prep, include = FALSE}
 
 axis.title.size <- 28
 axis.text.size <- 22
