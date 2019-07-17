@@ -8,5 +8,3 @@ download_raw_p2_data(endpoints = eidith::p2_api_endpoints()[!eidith::p2_api_endp
                      output_dir = "raw-eidith-data",
                      verbose = FALSE,
                      country = NULL)
-
-

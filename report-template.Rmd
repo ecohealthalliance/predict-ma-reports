@@ -90,3 +90,74 @@ d2 <- full_join(e2, a2, by = c("event_name", "project")) %>%
   left_join(s2, by = c("animal_id" = "animal_human_id", "project")) %>%
   left_join(t2, by = c("specimen_id", "project"))
 ```
+
+```{r viral-curves-prep, include = FALSE}
+
+library(eidith)
+library(glue)
+library(iNEXT)
+library(wesanderson)
+
+axis.title.size <- 28
+axis.text.size <- 22
+legend.text.size <- 22
+template.colors <- wes_palette("Darjeeling1")[1:5]
+
+tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
+                       "Influenzas", "Paramyxoviruses")
+protocols.of.interest <- c(
+  "Modified Watanabe et al, RdRp gene",
+  "Unpublished, UCD",
+  "Moureau et al, NS5 gene",
+  "Anthony et al, M gene",
+  "Tong et al, PAR"
+)
+
+specimens <- d2 %>%
+  filter(
+    test_requested %in% tests.of.interest,
+    test_requested_protocol %in% protocols.of.interest
+  ) %>%
+  group_by(specimen_id, test_requested) %>%
+  summarize(
+    n = n(),
+    n_tests = n_distinct(gains4_test_id),
+    tests = glue_collapse(unique(test_requested), sep = ","),
+    test_protocols = glue_collapse(unique(test_requested_protocol, sep = ","))
+  ) %>%
+  filter(
+    n_tests == 1
+  ) %>%
+  pull(specimen_id)
+
+d.subset <- d2 %>%
+  filter(
+    test_requested %in% tests.of.interest,
+    test_requested_protocol %in% protocols.of.interest,
+    specimen_id %in% specimens
+  )
+
+assertthat::assert_that(n_distinct(d.subset$specimen_id) == length(unique(specimens)))
+
+i.list <- create_ilist(d.subset, "test_requested", "specimen_id")
+
+i.out <- iNEXT(i.list, q = 0, datatype = "incidence_raw")
+
+plot.colors <- template.colors[tests.of.interest %in% unique(i.out$AsyEst$Site)]
+```
+
+``` {r, viral-curves-plot}
+
+ggiNEXT(i.out) +
+  scale_color_manual(values = plot.colors) +
+  scale_fill_manual(values = plot.colors) +
+  xlab("Number of specimens") + ylab("Viral diversity") +
+  scale_shape_manual(values = rep(19, length(i.list))) +
+  guides(linetype = F) +
+  theme_minimal() +
+  theme(axis.title = element_text(size = axis.title.size),
+        axis.text = element_text(size = axis.text.size),
+        legend.title = element_blank(),
+        legend.text = element_text(size = legend.text.size),
+        legend.position = "bottom")
+```
