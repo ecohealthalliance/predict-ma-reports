@@ -63,8 +63,12 @@ ti <- ed2_test_interpreted() %>%
 
 a2 <- a2 %>%
   mutate(
+    order = stringr::str_to_sentence(order),
     family = stringr::str_to_sentence(family),
-    taxa_group = case_when(
+    taxa_group_mod = case_when(
+      taxa_group == "cats" ~ "carnivores",
+      taxa_group == "dogs" ~ "carnivores",
+      taxa_group == "poultry/other fowl" ~ "birds",
       family == "Sciuridae" ~ "rodents/shrews",
       TRUE ~ taxa_group
     )
@@ -111,36 +115,52 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
   left_join(t2, by = c("specimen_id", "project"))
 ```
 
+### Section 1: Summary of Viral Findings
+
 <details>
-<summary>Summary Tables</summary>
-``` {r tables}
+<summary>Virus-Level Summary Table</summary>
+```{r tables-1}
 
 animal.grouping.vars <-
   c("country", "concurrent_sampling_site", "site_name",
-    "human_density_impact", "taxa_group", "species_scientific_name", "viral_species")
+    "human_density_impact", "taxa_group_mod", 
+    "species_scientific_name", "viral_species")
 
 animal_virus_summary <- d2 %>%
   filter(!is.na(viral_species)) %>%
+  mutate(
+    species_scientific_name = case_when(
+      str_detect(species_scientific_name, " cf. ") ~ 
+        str_replace(species_scientific_name, " cf. ", " "),
+      TRUE ~ species_scientific_name
+    )
+  ) %>%
   group_by_at(vars(one_of(animal.grouping.vars))) %>%
   summarize(n_positives = sum(virus_detected)) %>%
   ungroup() %>%
-  arrange(country, site_name, taxa_group, species_scientific_name, viral_species, n_positives)
+  arrange(country, site_name, taxa_group_mod, 
+          species_scientific_name, viral_species, n_positives)
 
-get_country_site_viruses2() %>% 
-  kable(format = "html", escape = FALSE) %>%
-  kable_styling()
+text.color <- "#787272"
+
+get_country_viruses() %>%
+  mutate_all(
+    cell_spec, format = "html", 
+    bold = TRUE, color = text.color
+  ) %>%
+  kable(escape = FALSE, align = "c") %>%
+  kable_styling(fixed_thead = TRUE)
 ```
 </details>
 
 <details>
 <summary>Viral Testing Heatmap</summary>
-``` {r heatmap}
+```{r heatmap, fig.align = "center", fig.width = 8}
 
 # Plot country-level heat maps of viral detections in specimens
 
 tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
                        "Influenzas", "Paramyxoviruses")
-taxa.of.interest <- c("bats", "birds", "non-human primates", "rodents/shrews")
 
 tmp <- d2 %>%
   mutate(
@@ -153,13 +173,10 @@ tmp <- d2 %>%
       TRUE ~ genus
     )
   ) %>%
-  filter(
-    test_requested %in% tests.of.interest,
-    taxa_group %in% taxa.of.interest
-  ) %>%
+  filter(test_requested %in% tests.of.interest) %>%
   arrange(gains4_test_id, desc(virus_detected)) %>%
   distinct(gains4_test_id, .keep_all = TRUE) %>%
-  group_by(taxa_group, genus, test_requested) %>%
+  group_by(taxa_group_mod, genus, test_requested) %>%
   summarize(
     n_tests = n_distinct(gains4_test_id),
     n_positives = sum(virus_detected, na.rm = TRUE),
@@ -169,20 +186,23 @@ tmp <- d2 %>%
   ) %>%
   ungroup() %>%
   filter(
-    !is.na(taxa_group),
+    !is.na(taxa_group_mod),
     !is.na(test_requested)
   ) %>%
-  arrange(taxa_group, genus) %>%
-  mutate(genus = factor(genus, rev(unique(genus))))
+  arrange(taxa_group_mod, genus) %>%
+  mutate(
+    genus = paste0(genus, " (", taxa_group_mod, ")"),
+    genus = factor(genus, rev(unique(genus)))
+  )
 
-tmp2 <- distinct(tmp, genus, taxa_group)
+tmp2 <- distinct(tmp, genus, taxa_group_mod)
 
 horizontal.breaks <- c()
 
-for(i in unique(tmp2$taxa_group)) {
+for(i in unique(tmp2$taxa_group_mod)) {
   
   horizontal.breaks <- 
-    c(horizontal.breaks, max(which(tmp2$taxa_group == i)))
+    c(horizontal.breaks, max(which(tmp2$taxa_group_mod == i)))
 }
 
 horizontal.breaks <- horizontal.breaks[horizontal.breaks != nrow(tmp2)]
@@ -209,6 +229,20 @@ tmp %>%
     text = element_text(size = 13),
     axis.title.y = element_blank()
   )
+```
+</details>
+
+<details>
+<summary>Site-Level Summary Table</summary>
+```{r tables-2}
+
+get_country_site_viruses2() %>% 
+  mutate_all(
+    cell_spec, format = "html", 
+    bold = TRUE, color = text.color
+  ) %>%
+  kable(escape = FALSE, align = "c") %>%
+  kable_styling(fixed_thead = TRUE)
 ```
 </details>
 
@@ -266,7 +300,7 @@ i.out <- iNEXT(i.list, q = 0, datatype = "incidence_raw")
 
 <details>
 <summary>Viral Curves Plot</summary>
-``` {r, viral-curves-plot}
+``` {r, viral-curves-plot, fig.align = "center", fig.height = 4, fig.width = 8}
 
 # Set plot characteristics and plot the iNEXT results
 
@@ -290,3 +324,7 @@ ggiNEXT(i.out) +
         legend.position = "bottom")
 ```
 </details>
+
+### Section 2: Current-State-of-Knowledge Risk Maps
+
+### Section 3: Prioritization of Future Viral Discovery and Zoonotic Surveillance
