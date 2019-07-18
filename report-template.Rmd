@@ -59,6 +59,17 @@ t2 <- ed2_tests() %>%
 ti <- ed2_test_interpreted() %>%
   select(-c(integer_id))
 
+# Modify animal taxonomy information
+
+a2 <- a2 %>%
+  mutate(
+    family = stringr::str_to_sentence(family),
+    taxa_group = case_when(
+      family == "Sciuridae" ~ "rodents/shrews",
+      TRUE ~ taxa_group
+    )
+  )
+
 # Split out P2 viral co-infection data
 
 t2 <- t2 %>%
@@ -72,7 +83,7 @@ t2 <- t2 %>%
 
 t2 <- separate_rows(t2, virus, sequence, sep = "\\|")
 
-# Modify viral names and detection data
+# Modify virus name and detection data
 
 v <- v %>%
   mutate(viral_species = stringi::stri_replace_first_regex(
@@ -95,7 +106,7 @@ d <- left_join(e, a, by = "event_id") %>%
   left_join(t, by = "test_id") %>%
   left_join(v, by = "test_id")
 
-d2 <- full_join(e2, a2, by = c("event_name", "project")) %>%
+d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
   left_join(s2, by = c("animal_id" = "animal_human_id", "project")) %>%
   left_join(t2, by = c("specimen_id", "project"))
 ```
@@ -121,12 +132,89 @@ get_country_site_viruses2() %>%
 ```
 </details>
 
+<details>
+<summary>Viral Testing Heatmap</summary>
+``` {r heatmap}
+
+# Plot country-level heat maps of viral detections in specimens
+
+tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
+                       "Influenzas", "Paramyxoviruses")
+taxa.of.interest <- c("bats", "birds", "non-human primates", "rodents/shrews")
+
+tmp <- d2 %>%
+  mutate(
+    family = case_when(
+      is.na(family) ~ "Unknown",
+      TRUE ~ family
+    ),
+    genus = case_when(
+      is.na(genus) ~ "Unknown",
+      TRUE ~ genus
+    )
+  ) %>%
+  filter(
+    test_requested %in% tests.of.interest,
+    taxa_group %in% taxa.of.interest
+  ) %>%
+  arrange(gains4_test_id, desc(virus_detected)) %>%
+  distinct(gains4_test_id, .keep_all = TRUE) %>%
+  group_by(taxa_group, genus, test_requested) %>%
+  summarize(
+    n_tests = n_distinct(gains4_test_id),
+    n_positives = sum(virus_detected, na.rm = TRUE),
+    prop = n_positives/n_tests,
+    percent = round(n_positives/n_tests*100, digits = 1),
+    percent_mod = paste0(percent, "% (", n_tests, ")")
+  ) %>%
+  ungroup() %>%
+  filter(
+    !is.na(taxa_group),
+    !is.na(test_requested)
+  ) %>%
+  arrange(taxa_group, genus) %>%
+  mutate(genus = factor(genus, rev(unique(genus))))
+
+tmp2 <- distinct(tmp, genus, taxa_group)
+
+horizontal.breaks <- c()
+
+for(i in unique(tmp2$taxa_group)) {
+  
+  horizontal.breaks <- 
+    c(horizontal.breaks, max(which(tmp2$taxa_group == i)))
+}
+
+horizontal.breaks <- horizontal.breaks[horizontal.breaks != nrow(tmp2)]
+horizontal.breaks <- nrow(tmp2) - horizontal.breaks
+horizontal.breaks <- horizontal.breaks + 0.5
+
+tmp %>%
+  ggplot(aes(
+    x = test_requested, 
+    y = genus
+  )) +
+  xlab("Viral Test Type") +
+  scale_x_discrete(position = "top") +
+  geom_tile(aes(fill = log(1 + prop)), color = "lightgray") +
+  geom_text(aes(label = percent_mod)) +
+  geom_hline(yintercept = horizontal.breaks, size = 0.4) +
+  scale_fill_gradientn(colors = c("white", "firebrick"), limits = c(0, 0.7)) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = "none",
+    axis.text.x = element_text(size = 14),
+    axis.title.x = element_text(size = 20),
+    text = element_text(size = 13),
+    axis.title.y = element_blank()
+  )
+```
+</details>
+
 ```{r viral-curves-prep, include = FALSE}
 
-axis.title.size <- 28
-axis.text.size <- 22
-legend.text.size <- 22
-template.colors <- wes_palette("Darjeeling1")[1:5]
+# Define the viral test types and specific protocols of interest
 
 tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
                        "Influenzas", "Paramyxoviruses")
@@ -137,6 +225,9 @@ protocols.of.interest <- c(
   "Anthony et al, M gene",
   "Tong et al, PAR"
 )
+
+# Recover all specimens for which a viral test type of interest was conducted
+# using the specified protocol of interest
 
 specimens <- d2 %>%
   filter(
@@ -155,6 +246,9 @@ specimens <- d2 %>%
   ) %>%
   pull(specimen_id)
 
+# Create a data subset for viral curves plotting that contains only the
+# specimens of interest for the viral test types of interest
+
 d.subset <- d2 %>%
   filter(
     test_requested %in% tests.of.interest,
@@ -164,14 +258,23 @@ d.subset <- d2 %>%
 
 assertthat::assert_that(n_distinct(d.subset$specimen_id) == length(unique(specimens)))
 
+# Create iNEXT objects
+
 i.list <- create_ilist(d.subset, "test_requested", "specimen_id")
-
 i.out <- iNEXT(i.list, q = 0, datatype = "incidence_raw")
-
-plot.colors <- template.colors[tests.of.interest %in% unique(i.out$AsyEst$Site)]
 ```
 
+<details>
+<summary>Viral Curves Plot</summary>
 ``` {r, viral-curves-plot}
+
+# Set plot characteristics and plot the iNEXT results
+
+axis.title.size <- 28
+axis.text.size <- 22
+legend.text.size <- 22
+template.colors <- wes_palette("Darjeeling1")[1:5]
+plot.colors <- template.colors[tests.of.interest %in% unique(i.out$AsyEst$Site)]
 
 ggiNEXT(i.out) +
   scale_color_manual(values = plot.colors) +
@@ -186,3 +289,4 @@ ggiNEXT(i.out) +
         legend.text = element_text(size = legend.text.size),
         legend.position = "bottom")
 ```
+</details>
