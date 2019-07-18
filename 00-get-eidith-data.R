@@ -1,10 +1,14 @@
 #!/usr/bin/env Rscript
+library(eidith)
+h <- here::here
 
-source("R/functions.R")
-# To limit the countries you are downloading data for, set the `country`
-# variable, e.g., `country = "Thailand"`, or `country = c("Thailand", China")`
-# `country = NULL`` will download data for all countries you have access to.
-download_raw_p2_data(endpoints = eidith::p2_api_endpoints()[!eidith::p2_api_endpoints() %in% "Training"],
-                     output_dir = "raw-eidith-data",
-                     verbose = FALSE,
-                     country = NULL)
+# Set EIDITH path options
+# (will download into the working directory but delete later)
+if(file.exists(h("db", "eidith.sqlite")) &&
+   file.exists(h("db", "last_dl_date.txt")) &&
+   readLines(h("db", "last_dl_date.txt"), warn = FALSE)[1] == as.character(Sys.Date())) {
+  cat("Database is current")
+} else {
+  ed_db_download(verbose = TRUE)
+  cat(as.character(Sys.Date()), file = h("db", "last_dl_date.txt"))
+}
