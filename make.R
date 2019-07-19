@@ -2,15 +2,15 @@
 h <- here::here
 
 countries <- c(
-  "Bangladesh",
-  "China",
-  "Egypt",
-  "India",
-  "Indonesia",
-  "Ivory Coast",
-  "Jordan",
-  "Liberia",
-  "Republic of Congo",
+  # "Bangladesh",
+  # "China",
+  # "Egypt",
+  # "India",
+  # "Indonesia",
+  # "Ivory Coast",
+  # "Jordan",
+  # "Liberia",
+  # "Republic of Congo",
  # "South Sudan",
   "Thailand"
 )

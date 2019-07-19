@@ -8,6 +8,12 @@ URL: https://github.com/ecohealthalliance/predict-ma-reports
 Depends:
     eidith,
     tidyverse,
-    here
+    here,
+    DT,
+    glue,
+    iNEXT,
+    kableExtra,
+    tidyverse,
+    wesanderson
 Remotes:
     ecohealthalliance/eidith
