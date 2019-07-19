@@ -9,6 +9,7 @@ cache:
   key: common-cache
   paths:
     - .cache/
+    - db/
 
 build:
   only:
