@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
 
-library(rdrop2)
-library(cyphr)
-library(sodium)
-library(base64enc)
+# library(rdrop2)
+# library(cyphr)
+# library(sodium)
+# library(base64enc)
 #
 #
 # token <- decrypt(readRDS("token.rds.encrypted"), key = key_sodium(base64decode(Sys.getenv("SODIUM_KEY"))))
