@@ -1,4 +1,5 @@
 #!/usr/bin/env Rscript
+remotes::install_github("ecohealthalliance/eidith", ref = "db-download-testing")
 library(eidith)
 h <- here::here
 
