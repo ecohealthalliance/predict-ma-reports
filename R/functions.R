@@ -70,8 +70,19 @@ get_host_viruses <- function(x, view = FALSE) {
 get_country_viruses <- function(view = FALSE) {
 
   tmp <- animal_virus_summary %>%
-    distinct(viral_species) %>%
-    arrange(viral_species)
+    arrange(viral_species, taxa_group_mod, species_scientific_name, site_name) %>%
+    filter(!is.na(viral_species)) %>%
+    group_by(viral_species) %>%
+    summarize(
+      n_detections = sum(n_positives),
+      taxa_groups = paste(unique(taxa_group_mod), collapse = "\n"),
+      species = paste(unique(species_scientific_name), collapse = "\n"),
+      site_names = paste(unique(site_name), collapse = "\n")
+    ) %>%
+    ungroup()
+
+  colnames(tmp) <- c("Virus Name", "Number of Detections", "Taxa Groups",
+                     "Species Names", "Site Names")
 
   ifelse(view == TRUE,
          return(datatable_(tmp)),
