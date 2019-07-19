@@ -40,29 +40,30 @@ v <- ed_viruses()
 ts <- ed_testspecimen()
 
 e2 <- ed2_events() %>%
-  filter(country == !!country)
-a2 <- ed2_animals() %>% 
-  select(-c(integer_id, gains4_event_id, gains4_sample_unit_id)) %>%
-  mutate(class = stringr::str_to_sentence(class))
-s2 <- ed2_specimens() %>% 
+  filter(country == !!country) %>%
   arrange(desc(integer_id)) %>%
-  distinct(specimen_id, .keep_all = TRUE) %>%
-  select(-c(integer_id, gains4_sample_unit_id, gains4_specimen_id))
+  distinct(event_name, .keep_all = TRUE)
+a2 <- ed2_animals() %>% 
+  select(-c(integer_id, gains4_event_id, gains4_sample_unit_id))
+s2 <- ed2_specimens() %>% 
+  select(-c(integer_id, gains4_sample_unit_id))
 t2 <- ed2_tests() %>%
-  select(-c(integer_id, gains4_specimen_id)) %>%
-  mutate(
-    virus = case_when(
-      virus == "" ~ NA_character_,
-      TRUE ~ virus
-    )
-  )
-ti <- ed2_test_interpreted() %>%
   select(-c(integer_id))
+ti <- ed2_test_interpreted() %>%
+  arrange(desc(integer_id)) %>%
+  distinct(gains4_test_id, .keep_all = TRUE) %>%
+  select(
+    -c(integer_id, is_outbreak_testing, season,
+       lab_name, real_time_positive_control_value_1, real_time_positive_control_value_2,
+       real_time_internal_control_value, real_time_ct_value, lab_name_confirmation,
+       test_status, date_govt_approved_release)
+  )
 
 # Modify animal taxonomy information
 
 a2 <- a2 %>%
   mutate(
+    class = stringr::str_to_sentence(class),
     order = stringr::str_to_sentence(order),
     family = stringr::str_to_sentence(family),
     taxa_group_mod = case_when(
@@ -81,6 +82,8 @@ t2 <- t2 %>%
     sequence = case_when(
       str_detect(sequence, "\\|") & !(str_detect(virus, "\\|")) ~ 
         str_replace(sequence, "\\|", ";"),
+      str_detect(sequence, "\\|") & is.na(virus) ~ 
+        str_replace(sequence, "\\|", ";"),
       TRUE ~ sequence
     )
   )
@@ -95,12 +98,16 @@ v <- v %>%
 
 t2 <- t2 %>%
   mutate(
+    virus = case_when(
+      virus == "" ~ NA_character_,
+      TRUE ~ virus
+    ),
     viral_species = stringi::stri_replace_first_regex(virus, "(new\\s)?strain\\sof\\s", ""),
     viral_species = str_replace(viral_species, "Alpha coronavirus", "Alphacoronavirus"),
     viral_species = str_replace(viral_species, "bat coronavirus", "Bat coronavirus"),
-    viral_species = str_replace(viral_species, "Bat Coronavirus", "Bat coronavirus")
-  ) %>%
-  mutate(virus_detected = ifelse(confirmation_result == "Positive", 1, 0))
+    viral_species = str_replace(viral_species, "Bat Coronavirus", "Bat coronavirus"),
+    virus_detected = ifelse(confirmation_result == "Positive", 1, 0)
+  )
 
 # Join across all tables to get complete data
 
@@ -112,7 +119,8 @@ d <- left_join(e, a, by = "event_id") %>%
 
 d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
   left_join(s2, by = c("animal_id" = "animal_human_id", "project")) %>%
-  left_join(t2, by = c("specimen_id", "project"))
+  left_join(t2, by = c("specimen_id", "gains4_specimen_id", "project")) %>%
+  left_join(ti, by = c("gains4_specimen_id", "gains4_test_id", "project"))
 ```
 
 ### Section 1: Summary of Viral Findings
@@ -155,7 +163,7 @@ get_country_viruses() %>%
 
 <details>
 <summary>Viral Testing Heatmap</summary>
-```{r heatmap, fig.align = "center", fig.width = 8}
+```{r heatmap, fig.align = "center", fig.width = 10}
 
 # Plot country-level heat maps of viral detections in specimens
 
@@ -299,8 +307,8 @@ i.out <- iNEXT(i.list, q = 0, datatype = "incidence_raw")
 ```
 
 <details>
-<summary>Viral Curves Plot</summary>
-``` {r, viral-curves-plot, fig.align = "center", fig.height = 4, fig.width = 8}
+<summary>Viral Discovery Curves</summary>
+```{r, viral-curves-plot, fig.align = "center", fig.height = 6, fig.width = 8}
 
 # Set plot characteristics and plot the iNEXT results
 
