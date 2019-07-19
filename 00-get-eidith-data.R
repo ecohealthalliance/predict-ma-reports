@@ -9,6 +9,6 @@ if(file.exists(h("db", "eidith.sqlite")) &&
    readLines(h("db", "last_dl_date.txt"), warn = FALSE)[1] == as.character(Sys.Date())) {
   cat("Database is current")
 } else {
-  ed_db_download(verbose = TRUE)
+  ed_db_download(verbose = FALSE)
   cat(as.character(Sys.Date()), file = h("db", "last_dl_date.txt"))
 }
