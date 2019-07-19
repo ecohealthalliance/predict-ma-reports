@@ -10,4 +10,4 @@ Depends:
     tidyverse,
     here
 Remotes:
-    ecohealthalliance/eidith
+    ecohealthalliance/eidith@db-download-testing
