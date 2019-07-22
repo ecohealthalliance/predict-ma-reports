@@ -44,7 +44,8 @@ t2 <- t2 %>%
 
 d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
   left_join(s2, by = c("animal_id" = "animal_human_id", "project")) %>%
-  left_join(t2, by = c("specimen_id", "gains4_specimen_id", "project"))
+  left_join(t2, by = c("specimen_id", "gains4_specimen_id", "project")) %>%
+  filter(!is.na(date_govt_approved_release))
 
 distinct(d2, viral_species, country) %>%
   filter(!is.na(viral_species)) %>%
