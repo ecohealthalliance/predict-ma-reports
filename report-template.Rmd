@@ -32,7 +32,7 @@ country <- params$country
 # Load EIDITH data tables
 
 e <- ed_events() %>% 
-  filter(country == !!country)
+  filter(country == !!country) # events filtered to country
 a <- ed_animals()
 s <- ed_specimens()
 t <- ed_tests()
@@ -40,7 +40,7 @@ v <- ed_viruses()
 ts <- ed_testspecimen()
 
 e2 <- ed2_events() %>%
-  filter(country == !!country) %>%
+  filter(country == !!country) %>% # events filtered to country
   arrange(desc(integer_id)) %>%
   distinct(event_name, .keep_all = TRUE)
 a2 <- ed2_animals() %>% 
@@ -90,7 +90,7 @@ t2 <- t2 %>%
 
 t2 <- separate_rows(t2, virus, sequence, sep = "\\|")
 
-# Modify virus name and detection data
+# Modify virus name (in new "viral_species" column) and detection data
 
 v <- v %>%
   mutate(viral_species = stringi::stri_replace_first_regex(
@@ -103,11 +103,15 @@ t2 <- t2 %>%
       TRUE ~ virus
     ),
     viral_species = stringi::stri_replace_first_regex(virus, "(new\\s)?strain\\sof\\s", ""),
-    viral_species = str_replace(viral_species, "Alpha coronavirus", "Alphacoronavirus"),
-    viral_species = str_replace(viral_species, "bat coronavirus", "Bat coronavirus"),
+    viral_species = ifelse(str_detect(viral_species, "(OC43)"), "Betacoronavirus 1 (OC43)", viral_species),
+    viral_species = ifelse(str_detect(viral_species, "MJ/67C"), "Hipposideros bat alphacoronavirus MJ/67C", viral_species),
     viral_species = str_replace(viral_species, "Bat Coronavirus", "Bat coronavirus"),
+    viral_species = str_replace(viral_species, " Bat ", " bat "),
     virus_detected = ifelse(confirmation_result == "Positive", 1, 0)
-  )
+  ) %>%
+  left_join(., read_csv(h("data", "viral_species_modifications.csv")), by = "viral_species") %>%
+  mutate(viral_species = ifelse(!is.na(viral_species_mod), viral_species_mod, viral_species)) %>%
+  select(-viral_species_mod)
 
 # Join across all tables to get complete data
 
