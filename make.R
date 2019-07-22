@@ -16,7 +16,7 @@ countries <- c(
   "Thailand"
 )
 
-reports <- map(countries, funcction(country) {
+reports <- map(countries, function(country) {
   safely(rmarkdown::render)("report-template.Rmd",
                             output_file = paste0(country, "-ma-report.html"),
                             output_dir = h("outputs"),
