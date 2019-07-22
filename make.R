@@ -1,7 +1,6 @@
 #!/usr/bin/env Rscript
 h <- here::here
 library(purrr)
-library(future)
 
 countries <- c(
   "Bangladesh",
