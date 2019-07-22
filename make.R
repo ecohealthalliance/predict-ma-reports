@@ -25,4 +25,4 @@ reports <- map(countries, function(country) {
 
 errors <- map_lgl(reports, ~!is.null(.$error))
 
-if (any(errors)) stop(paste("Error building", paste(counties[errors], collapse = ", ")))
+if (any(errors)) stop(paste("Error building", paste(countries[errors], collapse = ", ")))
