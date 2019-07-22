@@ -17,7 +17,7 @@ countries <- c(
 )
 
 reports <- map(countries, function(country) {
-  safely(rmarkdown::render)("report-template.Rmd",
+  safely(rmarkdown::render, quiet = FALSE)("report-template.Rmd",
                             output_file = paste0(country, "-ma-report.html"),
                             output_dir = h("outputs"),
                             params = list(country = country))
@@ -25,4 +25,7 @@ reports <- map(countries, function(country) {
 
 errors <- map_lgl(reports, ~!is.null(.$error))
 
-if (any(errors)) stop(paste("Error building", paste(countries[errors], collapse = ", ")))
+if (any(errors)) {
+  walk(reports[errors], ~print(.$error))
+  stop(paste("Error building", paste(countries[errors], collapse = ", ")))
+}
