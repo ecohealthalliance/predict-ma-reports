@@ -154,8 +154,19 @@ animal_virus_summary <- d2 %>%
           species_scientific_name, viral_species, n_positives)
 
 text.color <- "#787272"
+focal.country <- country
 
 get_country_viruses() %>%
+  left_join(., read_csv(h("data", "viral_species_country_lookup.csv")), 
+            by = c(`Virus Name` = "viral_species")) %>%
+  mutate(country = ifelse(country == focal.country, NA_character_, country)) %>%
+  group_by_at(vars(-country)) %>%
+  summarize("Concurrent Detections" = paste(unique(country), collapse = "\n")) %>%
+  ungroup() %>%
+  mutate(
+    `Concurrent Detections` = str_replace(`Concurrent Detections`, "NA\n", ""),
+    `Concurrent Detections` = str_replace(`Concurrent Detections`, "\nNA", "")
+  ) %>%
   mutate_all(
     cell_spec, format = "html", 
     bold = TRUE, color = text.color
