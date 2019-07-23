@@ -160,7 +160,11 @@ data("wrld_simpl")
 admin <- wrld_simpl[wrld_simpl@data$NAME %in% country_wrld, ] 
 
 # human population density
-human_dens <- raster(unzip(h("map-layers/gpw-v4-population-density_2015.tif.zip"))) %>%
+if(!file.exists(h("map-layers/gpw-v4-population-density_2015.tif"))){
+  download.file("https://s3.amazonaws.com/country-maps/gpw-v4-population-density_2015.tif", h("map-layers/gpw-v4-population-density_2015.tif"))
+}
+
+human_dens <- raster(h("map-layers/gpw-v4-population-density_2015.tif")) %>%
   crop(., admin) %>%
   mask(., admin)
 
@@ -168,8 +172,11 @@ values(human_dens)[values(human_dens)==0] <- 1
 values(human_dens) <- log10(values(human_dens))
 
 # mammal livestock density
+if(!file.exists(h("map-layers/summed_mammal_livestock.tif"))){
+  download.file("https://s3.amazonaws.com/country-maps/mammal_livestock/summed_mammal_livestock.tif", h("map-layers/summed_mammal_livestock.tif"))
+}
 
-mammal_dens <- raster(unzip(h("map-layers/summed_mammal_livestock.tif.zip"))) %>%
+mammal_dens <- raster(h("map-layers/summed_mammal_livestock.tif")) %>%
   crop(., admin) %>%
   mask(., admin)
 
