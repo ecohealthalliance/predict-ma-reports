@@ -1,4 +1,6 @@
 */.DS_Store
 .Rhistory
 .Rproj.user
+
+outputs/*
 report-template.html

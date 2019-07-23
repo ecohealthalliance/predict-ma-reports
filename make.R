@@ -1,23 +1,33 @@
 #!/usr/bin/env Rscript
 h <- here::here
+library(purrr)
 
 countries <- c(
-  # "Bangladesh",
-  # "China",
-  # "Egypt",
-  # "India",
-  # "Indonesia",
-  # "Ivory Coast",
-  # "Jordan",
-  # "Liberia",
-  # "Republic of Congo",
- # "South Sudan",
+  "Bangladesh",
+  "China",
+  "Egypt",
+  "India",
+  "Indonesia",
+  "Ivory Coast",
+  "Jordan",
+  "Liberia",
+  "Republic of Congo",
+  "South Sudan",
   "Thailand"
 )
 
-for (country in countries) {
-  rmarkdown::render("report-template.Rmd",
-                    output_file = paste0(country, "-ma-report.html"),
-                    output_dir = h("outputs"),
-                    params = list(country = country))
+reports <- for(country in countries) {
+
+  safely(rmarkdown::render, quiet = FALSE)("report-template.Rmd",
+                            output_file = paste0(country, "-ma-report.html"),
+                            output_dir = h("outputs"),
+                            params = list(country = country))
+}
+
+errors <- map_lgl(reports, ~!is.null(.$error))
+
+if (any(errors)) {
+
+  walk(reports[errors], ~print(.$error))
+  stop(paste("Error building", paste(countries[errors], collapse = ", ")))
 }
