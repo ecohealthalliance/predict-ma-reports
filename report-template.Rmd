@@ -134,11 +134,9 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
   left_join(ti, by = c("gains4_specimen_id", "gains4_test_id", "project"))
 ```
 
+
 ### Section 2: Current-State-of-Knowledge Risk Maps
 ```{r get-map-data, include=FALSE}
-# library(sf)
-# library(GADMTools)
-
 # Get site locations
 sites <- e2 %>% 
   dplyr::select(country, site_latitude, site_longitude, concurrent_sampling_site) %>% 
@@ -162,17 +160,28 @@ data("wrld_simpl")
 admin <- wrld_simpl[wrld_simpl@data$NAME %in% country_wrld, ] 
 
 # human population density
-human_dens <- raster(h("map-layers/gpw-v4-population-density_2015.tif")) %>%
+human_dens <- raster(unzip(h("map-layers/gpw-v4-population-density_2015.tif.zip"))) %>%
   crop(., admin) %>%
   mask(., admin)
 
 values(human_dens)[values(human_dens)==0] <- 1
 values(human_dens) <- log10(values(human_dens))
+
+# mammal livestock density
+
+mammal_dens <- raster(unzip(h("map-layers/summed_mammal_livestock.tif.zip"))) %>%
+  crop(., admin) %>%
+  mask(., admin)
+
+values(mammal_dens)[values(mammal_dens)==0] <- 1
+values(mammal_dens) <- log10(values(mammal_dens))
+
 ```
 
 ```{r human-dens-map}
-pal <- colorNumeric(c("azure4", "yellow", "coral2"), values(human_dens),
-                    na.color = "transparent")
+min_val <- floor(minValue(human_dens))
+max_val <- ceiling(maxValue(human_dens))
+pal <- colorBin(palette = c("azure4", "yellow", "coral2"), domain = -1:max_val, na.color = "transparent")
 
 leaflet() %>% 
   # Base
