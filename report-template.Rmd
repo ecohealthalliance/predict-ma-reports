@@ -1,6 +1,6 @@
 ---
 params:
-  country: "Thailand"
+  country: "Liberia"
 title: 'PREDICT M&A Report: `r params$country`'
 date: "`r Sys.Date()`"
 output:
@@ -320,26 +320,30 @@ assertthat::assert_that(n_distinct(d.subset$specimen_id) == length(unique(specim
 # Create iNEXT objects
 
 i.list <- create_ilist(d.subset, "test_requested", "specimen_id")
-i.out <- iNEXT(i.list, q = 0, datatype = "incidence_raw")
+if(length(i.list) == 1) {x <- as.matrix(i.list[[1]])}
+if(length(i.list) > 1) {x <- i.list}
+i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")
 ```
 
 <details>
 <summary>Viral Discovery Curves</summary>
 ```{r, viral-curves-plot, fig.align = "center", fig.height = 6, fig.width = 8}
 
+if(length(i.list) > 0) {
+  
 # Set plot characteristics and plot the iNEXT results
 
 axis.title.size <- 28
 axis.text.size <- 22
 legend.text.size <- 22
 template.colors <- wes_palette("Darjeeling1")[1:5]
-plot.colors <- template.colors[tests.of.interest %in% unique(i.out$AsyEst$Site)]
+plot.colors <- template.colors[tests.of.interest %in% names(i.list)]
 
 ggiNEXT(i.out) +
-  scale_color_manual(values = plot.colors) +
-  scale_fill_manual(values = plot.colors) +
   xlab("Number of specimens") + ylab("Viral diversity") +
-  scale_shape_manual(values = rep(19, length(i.list))) +
+  scale_color_manual(values = plot.colors, labels = names(i.list)) +
+  scale_fill_manual(values = plot.colors, labels = names(i.list)) +
+  scale_shape_manual(values = rep(19, length(i.list)), labels = names(i.list)) +
   guides(linetype = F) +
   theme_minimal() +
   theme(axis.title = element_text(size = axis.title.size),
@@ -347,6 +351,7 @@ ggiNEXT(i.out) +
         legend.title = element_blank(),
         legend.text = element_text(size = legend.text.size),
         legend.position = "bottom")
+}
 ```
 </details>
 
