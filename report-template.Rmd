@@ -365,7 +365,12 @@ ggiNEXT(i.out) +
 ```{r, missing-zoonoses-analysis}
 
 mz <- read_csv(h("data", "hp3_zoo_predictions.csv")) %>%
-  mutate(species = str_replace(species, "_", " ")) %>%
+  mutate(
+    species = case_when(
+      species == "Rattus_arfakienis" ~ "Rattus arfakiensis",
+      TRUE ~ str_replace(species, "_", " ")
+    )
+  ) %>%
   mutate_if(is.numeric, round, 2) %>%
   filter(species != "Pteropus pelewensis ssp. yapensis") %>%
   left_join(., read_csv(h("data", "hp3_taxonomy_harmonization.csv")), by = "species") %>%
