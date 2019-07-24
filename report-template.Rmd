@@ -159,50 +159,36 @@ country_wrld <-  str_replace_all(country,
 data("wrld_simpl")
 admin <- wrld_simpl[wrld_simpl@data$NAME %in% country_wrld, ] 
 
+
 # human population density
-if(!file.exists(h("map-layers/gpw-v4-population-density_2015.tif"))){
-  download.file("https://s3.amazonaws.com/country-maps/gpw-v4-population-density_2015.tif", h("map-layers/gpw-v4-population-density_2015.tif"))
-}
-
-human_dens <- raster(h("map-layers/gpw-v4-population-density_2015.tif")) %>%
-  crop(., admin) %>%
-  mask(., admin)
-
-values(human_dens)[values(human_dens)==0] <- 1
-values(human_dens) <- log10(values(human_dens))
-
-# mammal livestock density
-if(!file.exists(h("map-layers/summed_mammal_livestock.tif"))){
-  download.file("https://s3.amazonaws.com/country-maps/mammal_livestock/summed_mammal_livestock.tif", h("map-layers/summed_mammal_livestock.tif"))
-}
-
-mammal_dens <- raster(h("map-layers/summed_mammal_livestock.tif")) %>%
-  crop(., admin) %>%
-  mask(., admin)
-
-values(mammal_dens)[values(mammal_dens)==0] <- 1
-values(mammal_dens) <- log10(values(mammal_dens))
+human_dens <- get_layers("gpw-v4-population-density_2015.tif", admin)
+mammal_dens <- get_layers("summed_mammal_livestock.tif", admin)
 
 ```
 
-```{r human-dens-map}
-min_val <- floor(minValue(human_dens))
-max_val <- ceiling(maxValue(human_dens))
-pal <- colorBin(palette = c("azure4", "yellow", "coral2"), domain = -1:max_val, na.color = "transparent")
+```{r iucn-map}
+max_val_human <- ceiling(maxValue(human_dens))
+pal_human <- colorBin(palette = c("azure4", "yellow", "coral2"), domain = -1:max_val_human, na.color = "transparent")
+
+max_val_mammal <- ceiling(maxValue(mammal_dens))
+pal_mammal <- colorBin(palette = c("azure4", "yellow", "coral2"), domain = -1:max_val_mammal, na.color = "transparent")
 
 leaflet() %>% 
   # Base
   addProviderTiles("CartoDB.Positron", group = "Base") %>%
-  #Overlay
-  addRasterImage(x = human_dens, colors = pal, opacity = 0.8, group = "Human") %>%
-  #Legend
-  addLegend(pal = pal, values = values(human_dens), group = "Human", position = "bottomright",
+  # Human
+  addRasterImage(x = human_dens, colors = pal_human, opacity = 0.8, group = "Human") %>%
+  addLegend(pal = pal_human, values = values(human_dens), group = "Human", position = "bottomright",
             title = "Human Population Density" , labFormat = labelFormat(digits = 0 ,transform = function(x) 10 ^ x)) %>%
-  addLayersControl(
-    overlayGroups = c("Human"),
+  # Mammals
+  addRasterImage(x = mammal_dens, colors = pal_mammal, opacity = 0.8, group = "Mammal") %>%
+  addLegend(pal = pal_mammal, values = values(mammal_dens), group = "Mammal", position = "bottomright",
+            title = "Mammal Population Density" , labFormat = labelFormat(digits = 0 ,transform = function(x) 10 ^ x)) %>%
+  # User controlled layers
+  addLayersControl(overlayGroups  = c("Human", "Mammal"),
     options = layersControlOptions(collapsed = FALSE),
     position = "bottomleft"
   ) 
-  
-```
+
+ ```
 
