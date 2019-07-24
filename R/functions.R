@@ -236,7 +236,7 @@ get_layers <- function(filename, admin){
 
   local_file <- h(glue("map-layers/", filename))
   aws_folder <- switch(filename, "gpw-v4-population-density_2015.tif" = "country-maps",
-                       "summed_mammal_livestock.tif" = "mammal_livestock")
+                       "summed_mammal_livestock.tif" = "country-maps/mammal_livestock")
 
   if(!file.exists(local_file)){
     download.file(glue("https://s3.amazonaws.com/", aws_folder, "/", filename), local_file)
@@ -247,7 +247,9 @@ get_layers <- function(filename, admin){
     mask(., admin)
 
   values(r)[values(r)==0] <- 1
-  values(r) <- log10(values(r))
+  if(filename == "gpw-v4-population-density_2015.tif"){
+    values(r) <- log10(values(r))
+  }
 
   return(r)
 }
