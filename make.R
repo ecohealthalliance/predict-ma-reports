@@ -1,20 +1,8 @@
 #!/usr/bin/env Rscript
-h <- here::here
 library(purrr)
+h <- here::here
 
-countries <- c(
-  "Bangladesh",
-  "China",
-  "Egypt",
-  "India",
-  "Indonesia",
-  "Ivory Coast",
-  "Jordan",
-  "Liberia",
-  "Republic of Congo",
-  "South Sudan",
-  "Thailand"
-)
+countries <- eidith::eha_countries()[-c(10, 11)]
 
 reports <- for(country in countries) {
 
