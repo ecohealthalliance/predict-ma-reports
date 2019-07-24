@@ -17,7 +17,8 @@ Depends:
     wesanderson,
     leaflet,
     raster,
-    maptools
+    maptools,
+    sf
 
 Remotes:
     ecohealthalliance/eidith

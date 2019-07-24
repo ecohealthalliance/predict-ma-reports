@@ -234,7 +234,7 @@ create_ilist <- function(dataframe, matrix.of, column.var) {
 # get layers
 get_layers <- function(filename, admin){
 
-  local_file <- h(glue("map-layers/", filename))
+  local_file <- h(glue("data/map-layers/", filename))
   aws_folder <- switch(filename, "gpw-v4-population-density_2015.tif" = "country-maps",
                        "summed_mammal_livestock.tif" = "country-maps/mammal_livestock")
 
@@ -252,4 +252,20 @@ get_layers <- function(filename, admin){
   }
 
   return(r)
+}
+
+mod_country <- function(country){
+  str_replace_all(country,
+                  c("\\-.*" = "",
+                    "^DR" = "Democratic Republic of the",
+                    "PDR" = "People's Democratic Republic",
+                    "Myanmar" = "Burma",
+                    "Vietnam" = "Viet Nam",
+                    "Tanzania" = "United Republic of Tanzania",
+                    "Ivory Coast" = "Cote d'Ivoire",
+                    "Republic of Congo" = "Congo",
+                    "South Sudan"= "Sudan",
+                    ", Peninsular" = "",
+                    ", Sabah" = ""
+                  ))
 }
