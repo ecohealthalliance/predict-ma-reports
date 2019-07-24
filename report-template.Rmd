@@ -1,6 +1,6 @@
 ---
 params:
-  country: "Liberia"
+  country: "Thailand"
 title: 'PREDICT M&A Report: `r params$country`'
 date: "`r Sys.Date()`"
 output:
@@ -39,6 +39,7 @@ v <- ed_viruses()
 ts <- ed_testspecimen()
 
 e2 <- ed2_events() %>%
+  mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
   filter(country == !!params$country) %>% # events filtered to country
   arrange(desc(integer_id)) %>%
   distinct(event_name, .keep_all = TRUE)
@@ -364,13 +365,9 @@ ggiNEXT(i.out) +
 ```{r, missing-zoonoses-analysis}
 
 mz <- read_csv(h("data", "hp3_zoo_predictions.csv")) %>%
-  mutate(
-    species = case_when(
-      species == "Pipistrellus_pulveratus" ~ "Hypsugo pulveratus",
-      TRUE ~ str_replace(species, "_", " ")
-    )
-  ) %>%
+  mutate(species = str_replace(species, "_", " ")) %>%
   mutate_if(is.numeric, round, 2) %>%
+  filter(species != "Pteropus pelewensis ssp. yapensis") %>%
   left_join(., read_csv(h("data", "hp3_taxonomy_harmonization.csv")), by = "species") %>%
   mutate(species = 
            ifelse(!is.na(species_alt), 
@@ -381,6 +378,12 @@ mz <- read_csv(h("data", "hp3_zoo_predictions.csv")) %>%
   select(-species_alt) %>%
   arrange(desc(pred_mean))
 
+mammals.in.country <- read_csv(h("data", "mammal_country_lookup.csv")) %>%
+  filter(country == params$country) %>%
+  pull(binomial)
+
+mz.subset <- filter(mz, species %in% mammals.in.country)
+
 species.sampled.in.country <- d2 %>%
   mutate(
     species_scientific_name = str_replace(species_scientific_name, "cf. ", ""),
@@ -389,9 +392,9 @@ species.sampled.in.country <- d2 %>%
   pull(species_scientific_name) %>%
   unique()
 
-text.color <- ifelse(mz$species %in% species.sampled.in.country, "#1B8925", "#BD0505")
+text.color <- ifelse(mz.subset$species %in% species.sampled.in.country, "#1B8925", "#BD0505")
 
-mz %>% 
+mz.subset %>% 
   select(1:2) %>%
   rename(
     `Host Species` = species,
