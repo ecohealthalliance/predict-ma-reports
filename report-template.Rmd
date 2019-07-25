@@ -12,15 +12,15 @@ editor_options:
 
 ```{r setup, include = FALSE, message = FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
-library(leaflet)
-library(raster)
-library(maptools)
-library(sf)
 library(DT)
 library(eidith)
 library(glue)
 library(iNEXT)
 library(kableExtra)
+library(leaflet)
+library(maptools)
+library(raster)
+library(sf)
 library(tidyverse)
 library(wesanderson)
 h <- here::here
@@ -337,14 +337,17 @@ i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")
 <details>
 <summary>Viral Discovery Curves</summary>
 ```{r, viral-curves-plot, fig.align = "center", fig.height = 6, fig.width = 8}
+
 if(length(i.list) > 0) {
   
   # Set plot characteristics and plot the iNEXT results
+  
   axis.title.size <- 28
   axis.text.size <- 22
   legend.text.size <- 22
   template.colors <- wes_palette("Darjeeling1")[1:5]
   plot.colors <- template.colors[tests.of.interest %in% names(i.list)]
+  
   ggiNEXT(i.out) +
     xlab("Number of specimens") + ylab("Viral diversity") +
     scale_color_manual(values = plot.colors, labels = names(i.list)) +
@@ -383,7 +386,7 @@ human_dens <- get_layers("gpw-v4-population-density_2015.tif", admin)
 mammal_dens <- get_layers("summed_mammal_livestock.tif", admin)
 
 # iucn ranges
-iucn <- st_read(h("data", "map-layers", "TERRESTRIAL_MAMMALS")) %>% # downloaded: https://www.iucnredlist.org/resources/spatial-data-download
+iucn <- st_read(h("data", "TERRESTRIAL_MAMMALS")) %>% # downloaded: https://www.iucnredlist.org/resources/spatial-data-download
   filter(presence == 1) %>%
   mutate(
     binomial = case_when(

@@ -19,6 +19,5 @@ Depends:
     raster,
     maptools,
     sf
-
 Remotes:
     ecohealthalliance/eidith
