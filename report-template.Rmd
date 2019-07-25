@@ -6,10 +6,16 @@ date: "`r Sys.Date()`"
 output:
   html_document:
     keep_md: false
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include = FALSE, message = FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(leaflet)
+library(raster)
+library(maptools)
+library(sf)
 library(DT)
 library(eidith)
 library(glue)
@@ -20,6 +26,7 @@ library(wesanderson)
 h <- here::here
 walk(list.files(h("R/"), full.names = TRUE),
      source, echo = FALSE, verbose = FALSE)
+country <- params$country
 ```
 
 ![](./media/predict-logos.png){width="100%"}
@@ -27,9 +34,7 @@ walk(list.files(h("R/"), full.names = TRUE),
 #### _Click on the_ ▶ _︎arrows to expand sections._
 
 ```{r read-data, include = FALSE}
-
 # Load EIDITH data tables
-
 e <- ed_events() %>% 
   filter(country == !!params$country) # events filtered to country
 a <- ed_animals()
@@ -37,7 +42,6 @@ s <- ed_specimens()
 t <- ed_tests()
 v <- ed_viruses()
 ts <- ed_testspecimen()
-
 e2 <- ed2_events() %>%
   mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
   filter(country == !!params$country) %>% # events filtered to country
@@ -58,9 +62,7 @@ ti <- ed2_test_interpreted() %>%
        real_time_internal_control_value, real_time_ct_value, lab_name_confirmation,
        test_status, date_govt_approved_release)
   )
-
 # Modify animal taxonomy information
-
 a2 <- a2 %>%
   mutate(
     class = stringr::str_to_sentence(class),
@@ -78,9 +80,7 @@ a2 <- a2 %>%
       TRUE ~ species_scientific_name
     )
   )
-
 # Split out P2 viral co-infection data
-
 t2 <- t2 %>%
   mutate(
     sequence = case_when(
@@ -91,15 +91,11 @@ t2 <- t2 %>%
       TRUE ~ sequence
     )
   )
-
 t2 <- separate_rows(t2, virus, sequence, sep = "\\|")
-
 # Modify virus name (in new "viral_species" column) and detection data
-
 v <- v %>%
   mutate(viral_species = stringi::stri_replace_first_regex(
     virus_name, "(new\\s)?strain\\sof\\s", ""))
-
 t2 <- t2 %>%
   mutate(
     virus = case_when(
@@ -116,15 +112,12 @@ t2 <- t2 %>%
   left_join(., read_csv(h("data", "viral_species_modifications.csv")), by = "viral_species") %>%
   mutate(viral_species = ifelse(!is.na(viral_species_mod), viral_species_mod, viral_species)) %>%
   select(-viral_species_mod)
-
 # Join across all tables to get complete data
-
 d <- left_join(e, a, by = "event_id") %>%
   left_join(s, by = "animal_id") %>%
   left_join(ts, by = "specimen_id") %>%
   left_join(t, by = "test_id") %>%
   left_join(v, by = "test_id")
-
 d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
   left_join(s2, by = c("animal_id" = "animal_human_id", "project")) %>%
   left_join(t2, by = c("specimen_id", "gains4_specimen_id", "project")) %>%
@@ -136,12 +129,10 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
 <details>
 <summary>Virus-Level Summary Table</summary>
 ```{r tables-1}
-
 animal.grouping.vars <-
   c("country", "concurrent_sampling_site", "site_name",
     "human_density_impact", "taxa_group_mod", 
     "species_scientific_name", "viral_species")
-
 animal_virus_summary <- d2 %>%
   filter(!is.na(viral_species)) %>%
   mutate(
@@ -156,9 +147,7 @@ animal_virus_summary <- d2 %>%
   ungroup() %>%
   arrange(country, site_name, taxa_group_mod, 
           species_scientific_name, viral_species, n_positives)
-
 text.color <- "#787272"
-
 get_country_viruses() %>%
   left_join(., read_csv(h("data", "viral_species_country_lookup.csv")), 
             by = c(`Virus Name` = "viral_species")) %>%
@@ -182,12 +171,9 @@ get_country_viruses() %>%
 <details>
 <summary>Viral Testing Heatmap</summary>
 ```{r heatmap, fig.align = "center", fig.width = 10}
-
 # Plot country-level heat maps of viral detections in specimens
-
 tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
                        "Influenzas", "Paramyxoviruses")
-
 tmp <- d2 %>%
   mutate(
     family = case_when(
@@ -220,21 +206,16 @@ tmp <- d2 %>%
     genus = paste0(genus, " (", taxa_group_mod, ")"),
     genus = factor(genus, rev(unique(genus)))
   )
-
 tmp2 <- distinct(tmp, genus, taxa_group_mod)
-
 horizontal.breaks <- c()
-
 for(i in unique(tmp2$taxa_group_mod)) {
   
   horizontal.breaks <- 
     c(horizontal.breaks, max(which(tmp2$taxa_group_mod == i)))
 }
-
 horizontal.breaks <- horizontal.breaks[horizontal.breaks != nrow(tmp2)]
 horizontal.breaks <- nrow(tmp2) - horizontal.breaks
 horizontal.breaks <- horizontal.breaks + 0.5
-
 tmp %>%
   ggplot(aes(
     x = test_requested, 
@@ -261,7 +242,6 @@ tmp %>%
 <details>
 <summary>Site-Level Summary Table</summary>
 ```{r tables-2}
-
 get_country_site_viruses2() %>% 
   mutate_all(
     cell_spec, format = "html", 
@@ -273,9 +253,7 @@ get_country_site_viruses2() %>%
 </details>
 
 ```{r viral-curves-prep, include = FALSE}
-
 # Define the viral test types and specific protocols of interest
-
 tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
                        "Influenzas", "Paramyxoviruses")
 protocols.of.interest <- c(
@@ -285,10 +263,8 @@ protocols.of.interest <- c(
   "Anthony et al, M gene",
   "Tong et al, PAR"
 )
-
 # Recover all specimens for which a viral test type of interest was conducted
 # using the specified protocol of interest
-
 specimens <- d2 %>%
   filter(
     test_requested %in% tests.of.interest,
@@ -305,21 +281,16 @@ specimens <- d2 %>%
     n_tests == 1
   ) %>%
   pull(specimen_id)
-
 # Create a data subset for viral curves plotting that contains only the
 # specimens of interest for the viral test types of interest
-
 d.subset <- d2 %>%
   filter(
     test_requested %in% tests.of.interest,
     test_requested_protocol %in% protocols.of.interest,
     specimen_id %in% specimens
   )
-
 assertthat::assert_that(n_distinct(d.subset$specimen_id) == length(unique(specimens)))
-
 # Create iNEXT objects
-
 i.list <- create_ilist(d.subset, "test_requested", "specimen_id")
 if(length(i.list) == 1) {x <- as.matrix(i.list[[1]])}
 if(length(i.list) > 1) {x <- i.list}
@@ -329,41 +300,118 @@ i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")
 <details>
 <summary>Viral Discovery Curves</summary>
 ```{r, viral-curves-plot, fig.align = "center", fig.height = 6, fig.width = 8}
-
 if(length(i.list) > 0) {
   
-# Set plot characteristics and plot the iNEXT results
-
-axis.title.size <- 28
-axis.text.size <- 22
-legend.text.size <- 22
-template.colors <- wes_palette("Darjeeling1")[1:5]
-plot.colors <- template.colors[tests.of.interest %in% names(i.list)]
-
-ggiNEXT(i.out) +
-  xlab("Number of specimens") + ylab("Viral diversity") +
-  scale_color_manual(values = plot.colors, labels = names(i.list)) +
-  scale_fill_manual(values = plot.colors, labels = names(i.list)) +
-  scale_shape_manual(values = rep(19, length(i.list)), labels = names(i.list)) +
-  guides(linetype = F) +
-  theme_minimal() +
-  theme(axis.title = element_text(size = axis.title.size),
-        axis.text = element_text(size = axis.text.size),
-        legend.title = element_blank(),
-        legend.text = element_text(size = legend.text.size),
-        legend.position = "bottom")
+  # Set plot characteristics and plot the iNEXT results
+  axis.title.size <- 28
+  axis.text.size <- 22
+  legend.text.size <- 22
+  template.colors <- wes_palette("Darjeeling1")[1:5]
+  plot.colors <- template.colors[tests.of.interest %in% names(i.list)]
+  ggiNEXT(i.out) +
+    xlab("Number of specimens") + ylab("Viral diversity") +
+    scale_color_manual(values = plot.colors, labels = names(i.list)) +
+    scale_fill_manual(values = plot.colors, labels = names(i.list)) +
+    scale_shape_manual(values = rep(19, length(i.list)), labels = names(i.list)) +
+    guides(linetype = F) +
+    theme_minimal() +
+    theme(axis.title = element_text(size = axis.title.size),
+          axis.text = element_text(size = axis.text.size),
+          legend.title = element_blank(),
+          legend.text = element_text(size = legend.text.size),
+          legend.position = "bottom")
 }
 ```
 </details>
 
+
 ### Section 2: Current-State-of-Knowledge Risk Maps
+```{r get-map-data, include=FALSE}
+# Get site locations
+sites <- e2 %>% 
+  dplyr::select(country, site_latitude, site_longitude, concurrent_sampling_site) %>% 
+  mutate_at(vars(site_latitude, site_longitude), ~as.numeric(.)) %>%
+  distinct()
+
+# Get administrative borders of countries of interest
+country_mod <-  mod_country(country) # for density rasters
+country_eha <-  mod_country(eidith::eha_countries()) %>% unique() # for range layers
+
+data("wrld_simpl")
+admin <- wrld_simpl[wrld_simpl@data$NAME %in% country_mod, ] 
+admin_eha <- wrld_simpl[wrld_simpl@data$NAME %in% country_eha, ] %>% st_as_sf()
+
+# population density
+human_dens <- get_layers("gpw-v4-population-density_2015.tif", admin)
+mammal_dens <- get_layers("summed_mammal_livestock.tif", admin)
+
+# iucn ranges
+iucn <- st_read(h("data", "map-layers", "TERRESTRIAL_MAMMALS")) %>% # downloaded: https://www.iucnredlist.org/resources/spatial-data-download
+  filter(presence == 1) %>%
+  mutate(
+    binomial = case_when(
+      binomial == "Rattus arfakienis" ~ "Rattus arfakiensis",
+      str_detect(binomial, "Oryx beisa ssp") ~ "Oryx beisa",
+      TRUE ~ as.character(binomial)
+    )
+  )
+
+iucn <- iucn %>%
+  left_join(., read_csv(h("data", "iucn_to_hp3_taxonomic_harmonization.csv")),
+            by = c("binomial" = "IUCN_name")) %>%
+  mutate(binomial = ifelse(!is.na(hp3_zoo_prediction_name), hp3_zoo_prediction_name, binomial))
+
+iucn_detects <- iucn %>%
+  filter(binomial %in% unique(get_country_viruses()$`Species Names` ))
+```
+
+```{r maps}
+max_val_human <- ceiling(maxValue(human_dens))
+pal_human <- colorBin(palette = c("azure4", "yellow", "coral2"), domain = -1:max_val_human, na.color = "transparent")
+
+max_val_mammal <- ceiling(maxValue(mammal_dens))
+min_val_mammal <- floor(minValue(mammal_dens))
+
+pal_mammal <- colorBin(palette = c("azure4", "yellow", "coral2"), domain = min_val_mammal:max_val_mammal, na.color = "transparent", pretty = TRUE, bins = 5)
+
+lf <- leaflet() %>% 
+  addProviderTiles("CartoDB.Positron", group = "Base") 
+
+for(spec in unique(iucn_detects$binomial)){
+  
+  iucn_sub <- iucn_detects %>% filter(binomial==spec)
+  
+  lf <- lf %>%
+    addPolygons(data = iucn_sub, stroke = TRUE, weight = 2, color = "green", fill = FALSE, group = spec )
+}
+
+lf <- lf %>%
+  # Human
+  addRasterImage(x = human_dens, colors = pal_human, opacity = 0.8, group = "Human") %>%
+  addLegend(pal = pal_human, values = values(human_dens), group = "Human", position = "bottomright",
+            title = "Human Population Density" , labFormat = labelFormat(digits = 0 ,transform = function(x) 10 ^ x)) %>%
+  # Mammals
+  # addRasterImage(x = mammal_dens, colors = pal_mammal, opacity = 0.8, group = "Mammal") %>%
+  # addLegend(pal = pal_mammal, values = values(mammal_dens), group = "Mammal", position = "bottomright",
+  #           title = "Mammal Livestock Density" , labFormat = labelFormat(digits = 0)) %>%
+  # User controlled layers
+  addLayersControl(
+    baseGroups = unique(iucn_detects$binomial),
+    #overlayGroups  = c("Human", "Mammal"),
+    options = layersControlOptions(collapsed = FALSE),
+    position = "bottomleft"
+  ) 
+
+
+lf
+
+```
 
 ### Section 3: Prioritization of Future Viral Discovery and Zoonotic Surveillance
 
 <details>
 <summary>Sampling Prioritization Based on Missing Zoonoses</summary>
 ```{r, missing-zoonoses-analysis}
-
 mz <- read_csv(h("data", "hp3_zoo_predictions.csv")) %>%
   mutate(
     species = case_when(
