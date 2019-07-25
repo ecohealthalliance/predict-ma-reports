@@ -36,7 +36,7 @@ Hipposideros bat alphacoronavirus MJ/67C,China
 Human Coronavirus HKU1,Cambodia
 Infectious bronchitis virus (IBV),Bangladesh
 Infectious bronchitis virus (IBV),Cambodia
-Infectious bronchitis virus (IBV),"Malaysia, Peninsular"
+Infectious bronchitis virus (IBV),Malaysia
 Infectious bronchitis virus (IBV),Nepal
 Infectious bronchitis virus (IBV),Vietnam
 Influenza A,Bangladesh
@@ -50,8 +50,7 @@ Lonquan Aa mouse coronavirus,Cambodia
 Monkey pox,Cameroon
 Murine coronavirus,Bangladesh
 Murine coronavirus,Cambodia
-Murine coronavirus,"Malaysia, Peninsular"
-Murine coronavirus,"Malaysia, Sabah"
+Murine coronavirus,Malaysia
 Murine coronavirus,Nepal
 Murine coronavirus,Thailand
 Newcastle disease virus,Bangladesh
@@ -61,11 +60,11 @@ Newcastle disease virus,Vietnam
 Nipah virus,Thailand
 Pan paniscus lymphocryptovirus 1,DR Congo
 Peste des petits ruminants (PPR),Bangladesh
-Philippines/Diliman1525G2/2008,"Malaysia, Sabah"
+Philippines/Diliman1525G2/2008,Malaysia
 Pigeon-dominant coronavirus,Bangladesh
 Porcine parainfluenzavirus 1,Vietnam
 PREDICT_CoV-100,Cambodia
-PREDICT_CoV-104,"Malaysia, Peninsular"
+PREDICT_CoV-104,Malaysia
 PREDICT_CoV-17,Bangladesh
 PREDICT_CoV-17,Thailand
 PREDICT_CoV-22,China
@@ -85,7 +84,7 @@ PREDICT_CoV-47,Myanmar
 PREDICT_CoV-47,Thailand
 PREDICT_CoV-47,Vietnam
 PREDICT_CoV-52,Bangladesh
-PREDICT_CoV-52,"Malaysia, Sabah"
+PREDICT_CoV-52,Malaysia
 PREDICT_CoV-54,Cameroon
 PREDICT_CoV-56,Bangladesh
 PREDICT_CoV-56,Cambodia
@@ -93,17 +92,17 @@ PREDICT_CoV-65,Jordan
 PREDICT_CoV-66,Cameroon
 PREDICT_CoV-68,Thailand
 PREDICT_CoV-75,Cameroon
-PREDICT_CoV-76,"Malaysia, Sabah"
+PREDICT_CoV-76,Malaysia
 PREDICT_CoV-77,Rwanda
-PREDICT_CoV-78,"Malaysia, Sabah"
+PREDICT_CoV-78,Malaysia
 PREDICT_CoV-79,China
-PREDICT_CoV-80,"Malaysia, Sabah"
+PREDICT_CoV-80,Malaysia
 PREDICT_CoV-81,Cameroon
 PREDICT_CoV-82,Myanmar
 PREDICT_CoV-82,Vietnam
-PREDICT_CoV-84,"Malaysia, Sabah"
+PREDICT_CoV-84,Malaysia
 PREDICT_CoV-86,Bangladesh
-PREDICT_CoV-87,"Malaysia, Peninsular"
+PREDICT_CoV-87,Malaysia
 PREDICT_CoV-88,Bangladesh
 PREDICT_CoV-89,Bangladesh
 PREDICT_CoV-90,Bangladesh
@@ -117,23 +116,23 @@ PREDICT_CoV-95,China
 PREDICT_CoV-96,Myanmar
 PREDICT_CoV-97,Tanzania
 PREDICT_CoV-99,Vietnam
-PREDICT_Flavi-6,"Malaysia, Sabah"
+PREDICT_Flavi-6,Malaysia
 PREDICT_PMV-101,Cameroon
 PREDICT_PMV-103,Bangladesh
 PREDICT_PMV-104,Bangladesh
-PREDICT_PMV-105,"Malaysia, Sabah"
-PREDICT_PMV-106,"Malaysia, Sabah"
-PREDICT_PMV-107,"Malaysia, Sabah"
-PREDICT_PMV-108,"Malaysia, Sabah"
+PREDICT_PMV-105,Malaysia
+PREDICT_PMV-106,Malaysia
+PREDICT_PMV-107,Malaysia
+PREDICT_PMV-108,Malaysia
 PREDICT_PMV-109,Bangladesh
-PREDICT_PMV-110,"Malaysia, Sabah"
+PREDICT_PMV-110,Malaysia
 PREDICT_PMV-113,Egypt
 PREDICT_PMV-114,Egypt
 PREDICT_PMV-115,Egypt
 PREDICT_PMV-116,Egypt
 PREDICT_PMV-118,Egypt
 PREDICT_PMV-119,Egypt
-PREDICT_PMV-120,"Malaysia, Sabah"
+PREDICT_PMV-120,Malaysia
 PREDICT_PMV-123,China
 PREDICT_PMV-127,Cameroon
 PREDICT_PMV-129,China
@@ -145,7 +144,7 @@ PREDICT_PMV-133,Cameroon
 PREDICT_PMV-134,China
 PREDICT_PMV-135,China
 PREDICT_PMV-136,China
-PREDICT_PMV-137,"Malaysia, Sabah"
+PREDICT_PMV-137,Malaysia
 PREDICT_PMV-141,Tanzania
 PREDICT_PMV-143,Tanzania
 PREDICT_PMV-144,Tanzania
@@ -161,11 +160,11 @@ PREDICT_PMV-56,Rwanda
 PREDICT_PMV-63,Cambodia
 PREDICT_PMV-66,Cambodia
 PREDICT_PMV-67,Cambodia
-PREDICT_PMV-72,"Malaysia, Sabah"
-PREDICT_PMV-74,"Malaysia, Sabah"
+PREDICT_PMV-72,Malaysia
+PREDICT_PMV-74,Malaysia
 PREDICT_PMV-79,Cameroon
 PREDICT_PMV-80,Cameroon
-PREDICT_PMV-81,"Malaysia, Sabah"
+PREDICT_PMV-81,Malaysia
 PREDICT_PMV-82,Cameroon
 PREDICT_PMV-83,Nepal
 PREDICT_PMV-85,Thailand
@@ -175,8 +174,8 @@ PREDICT_PMV-89,China
 PREDICT_PMV-90,China
 PREDICT_PMV-91,Cameroon
 PREDICT_PMV-97,Cameroon
-PREDICT_PMV-98,"Malaysia, Sabah"
-PREDICT_PMV-99,"Malaysia, Sabah"
+PREDICT_PMV-98,Malaysia
+PREDICT_PMV-99,Malaysia
 PREDICT_RbdV-21,Cambodia
 PREDICT_RbdV-27,Cambodia
 PREDICT_RbdV-28,Cambodia
