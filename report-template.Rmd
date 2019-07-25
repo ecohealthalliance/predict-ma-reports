@@ -302,24 +302,24 @@ i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")
 ```{r, viral-curves-plot, fig.align = "center", fig.height = 6, fig.width = 8}
 if(length(i.list) > 0) {
   
-# Set plot characteristics and plot the iNEXT results
-axis.title.size <- 28
-axis.text.size <- 22
-legend.text.size <- 22
-template.colors <- wes_palette("Darjeeling1")[1:5]
-plot.colors <- template.colors[tests.of.interest %in% names(i.list)]
-ggiNEXT(i.out) +
-  xlab("Number of specimens") + ylab("Viral diversity") +
-  scale_color_manual(values = plot.colors, labels = names(i.list)) +
-  scale_fill_manual(values = plot.colors, labels = names(i.list)) +
-  scale_shape_manual(values = rep(19, length(i.list)), labels = names(i.list)) +
-  guides(linetype = F) +
-  theme_minimal() +
-  theme(axis.title = element_text(size = axis.title.size),
-        axis.text = element_text(size = axis.text.size),
-        legend.title = element_blank(),
-        legend.text = element_text(size = legend.text.size),
-        legend.position = "bottom")
+  # Set plot characteristics and plot the iNEXT results
+  axis.title.size <- 28
+  axis.text.size <- 22
+  legend.text.size <- 22
+  template.colors <- wes_palette("Darjeeling1")[1:5]
+  plot.colors <- template.colors[tests.of.interest %in% names(i.list)]
+  ggiNEXT(i.out) +
+    xlab("Number of specimens") + ylab("Viral diversity") +
+    scale_color_manual(values = plot.colors, labels = names(i.list)) +
+    scale_fill_manual(values = plot.colors, labels = names(i.list)) +
+    scale_shape_manual(values = rep(19, length(i.list)), labels = names(i.list)) +
+    guides(linetype = F) +
+    theme_minimal() +
+    theme(axis.title = element_text(size = axis.title.size),
+          axis.text = element_text(size = axis.text.size),
+          legend.title = element_blank(),
+          legend.text = element_text(size = legend.text.size),
+          legend.position = "bottom")
 }
 ```
 </details>
@@ -361,9 +361,8 @@ iucn <- iucn %>%
             by = c("binomial" = "IUCN_name")) %>%
   mutate(binomial = ifelse(!is.na(hp3_zoo_prediction_name), hp3_zoo_prediction_name, binomial))
 
-#iucn_eha <- st_join(iucn, admin_eha) 
- iucn_detects <- iucn %>%
-   filter(binomial %in% unique(get_country_viruses()$`Species Names` ))
+iucn_detects <- iucn %>%
+  filter(binomial %in% unique(get_country_viruses()$`Species Names` ))
 ```
 
 ```{r maps}
@@ -376,29 +375,35 @@ min_val_mammal <- floor(minValue(mammal_dens))
 pal_mammal <- colorBin(palette = c("azure4", "yellow", "coral2"), domain = min_val_mammal:max_val_mammal, na.color = "transparent", pretty = TRUE, bins = 5)
 
 lf <- leaflet() %>% 
-  # Base
-  addProviderTiles("CartoDB.Positron", group = "Base") %>%
-  # Human
-  addRasterImage(x = human_dens, colors = pal_human, opacity = 0.8, group = "Human") %>%
-  addLegend(pal = pal_human, values = values(human_dens), group = "Human", position = "bottomright",
-            title = "Human Population Density" , labFormat = labelFormat(digits = 0 ,transform = function(x) 10 ^ x)) %>%
-  # Mammals
-  addRasterImage(x = mammal_dens, colors = pal_mammal, opacity = 0.8, group = "Mammal") %>%
-  addLegend(pal = pal_mammal, values = values(mammal_dens), group = "Mammal", position = "bottomright",
-            title = "Mammal Livestock Density" , labFormat = labelFormat(digits = 0)) #%>%
-  # User controlled layers
-  # addLayersControl(overlayGroups  = c("Human", "Mammal"),
-  #                  options = layersControlOptions(collapsed = FALSE),
-  #                  position = "bottomleft"
-  # ) 
+  addProviderTiles("CartoDB.Positron", group = "Base") 
 
 for(spec in unique(iucn_detects$binomial)){
   
   iucn_sub <- iucn_detects %>% filter(binomial==spec)
   
   lf <- lf %>%
-    addPolygons(data = iucn_sub)
+    addPolygons(data = iucn_sub, stroke = TRUE, weight = 2, color = "green", fill = FALSE, group = spec )
 }
+
+lf <- lf %>%
+  # Human
+  addRasterImage(x = human_dens, colors = pal_human, opacity = 0.8, group = "Human") %>%
+  addLegend(pal = pal_human, values = values(human_dens), group = "Human", position = "bottomright",
+            title = "Human Population Density" , labFormat = labelFormat(digits = 0 ,transform = function(x) 10 ^ x)) %>%
+  # Mammals
+  # addRasterImage(x = mammal_dens, colors = pal_mammal, opacity = 0.8, group = "Mammal") %>%
+  # addLegend(pal = pal_mammal, values = values(mammal_dens), group = "Mammal", position = "bottomright",
+  #           title = "Mammal Livestock Density" , labFormat = labelFormat(digits = 0)) %>%
+  # User controlled layers
+  addLayersControl(
+    baseGroups = unique(iucn_detects$binomial),
+    #overlayGroups  = c("Human", "Mammal"),
+    options = layersControlOptions(collapsed = FALSE),
+    position = "bottomleft"
+  ) 
+
+
+lf
 
 ```
 
