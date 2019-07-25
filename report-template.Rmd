@@ -172,7 +172,7 @@ animal_virus_summary <- d2 %>%
 
 text.color <- "#787272"
 
-get_country_viruses() %>%
+get_country_viruses(view = FALSE, animal_virus_summary) %>%
   left_join(., read_csv(h("data", "viral_species_country_lookup.csv")), 
             by = c(`Virus Name` = "viral_species")) %>%
   mutate(country = ifelse(country == params$country, NA_character_, country)) %>%
@@ -284,7 +284,7 @@ This table provides a site-level overview of in-country PREDICT-2 viral surveill
 
 ```{r tables-2}
 
-get_country_site_viruses2() %>% 
+get_country_site_viruses2(view = FALSE, animal_virus_summary) %>% 
   mutate_all(
     cell_spec, format = "html", 
     bold = TRUE, color = text.color
