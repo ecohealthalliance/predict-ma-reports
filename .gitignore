@@ -2,5 +2,6 @@
 .Rhistory
 .Rproj.user
 
+data/TERRESTRIAL_MAMMALS/*
 outputs/*
 report-template.html

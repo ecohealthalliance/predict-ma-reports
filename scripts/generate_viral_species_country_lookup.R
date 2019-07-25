@@ -3,6 +3,7 @@ library(tidyverse)
 h <- here::here
 
 e2 <- ed2_events() %>%
+  mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
   arrange(desc(integer_id)) %>%
   distinct(event_name, .keep_all = TRUE)
 a2 <- ed2_animals() %>%
