@@ -14,6 +14,11 @@ Depends:
     iNEXT,
     kableExtra,
     tidyverse,
-    wesanderson
+    wesanderson,
+    leaflet,
+    raster,
+    maptools,
+    sf
+
 Remotes:
     ecohealthalliance/eidith
