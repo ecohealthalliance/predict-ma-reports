@@ -3,6 +3,7 @@ params:
   country: "Thailand"
 title: 'PREDICT M&A Report: `r params$country`'
 date: "`r Sys.Date()`"
+runtime: shiny
 output:
   html_document:
     keep_md: false
@@ -172,7 +173,7 @@ animal_virus_summary <- d2 %>%
 
 text.color <- "#787272"
 
-get_country_viruses() %>%
+get_country_viruses(view = FALSE, animal_virus_summary) %>%
   left_join(., read_csv(h("data", "viral_species_country_lookup.csv")), 
             by = c(`Virus Name` = "viral_species")) %>%
   mutate(country = ifelse(country == params$country, NA_character_, country)) %>%
@@ -284,7 +285,7 @@ This table provides a site-level overview of in-country PREDICT-2 viral surveill
 
 ```{r tables-2}
 
-get_country_site_viruses2() %>% 
+get_country_site_viruses2(view = FALSE, animal_virus_summary) %>% 
   mutate_all(
     cell_spec, format = "html", 
     bold = TRUE, color = text.color
@@ -381,131 +382,6 @@ if(length(i.list) > 0) {
 }
 ```
 </details>
-
-### Section 2: Current-State-of-Knowledge Risk Maps
-
-```{r get-map-data, include=FALSE}
-# Get administrative borders of countries of interest
-country_mod <-  mod_country(country) # for density rasters
-country_eha <-  mod_country(eidith::eha_countries()) %>% unique() # for range layers
-
-data("wrld_simpl")
-admin <- wrld_simpl[wrld_simpl@data$NAME %in% country_mod, ] 
-admin_eha <- wrld_simpl[wrld_simpl@data$NAME %in% country_eha, ] %>% st_as_sf()
-
-country_centroid <- CoordinateCleaner::countryref %>% 
-  filter(name == countrycode(sourcevar = country_mod,
-                             origin = "country.name",
-                             destination = "country.name")) %>%
-  slice(1)
-
-# viral-species pairs for country
-animal_viral_pairs <- animal_virus_summary %>% 
-  select(species_scientific_name, viral_species) %>% 
-  distinct()
-
-# population density
-human_dens <- get_layers("gpw-v4-population-density_2015.tif", admin)
-mammal_dens <- get_layers("summed_mammal_livestock.tif", admin)
-
-# iucn ranges
-iucn <- st_read(h("data", "TERRESTRIAL_MAMMALS")) %>% # downloaded: https://www.iucnredlist.org/resources/spatial-data-download
-  filter(presence == 1) %>%
-  mutate(
-    binomial = case_when(
-      binomial == "Rattus arfakienis" ~ "Rattus arfakiensis",
-      str_detect(binomial, "Oryx beisa ssp") ~ "Oryx beisa",
-      TRUE ~ as.character(binomial)
-    )
-  )
-
-iucn <- iucn %>%
-  left_join(., read_csv(h("data", "iucn_to_hp3_taxonomic_harmonization.csv")),
-            by = c("binomial" = "IUCN_name")) %>%
-  mutate(binomial = ifelse(!is.na(hp3_zoo_prediction_name), hp3_zoo_prediction_name, binomial))
-
-iucn_detects <- iucn %>%
-  filter(binomial %in% unique(animal_viral_pairs$species_scientific_name))
-
-```
-
-```{r maps}
-
-# set palettes
-max_val_human <- ceiling(maxValue(human_dens))
-pal_human <- colorBin(palette =
-                        c("white","gray50", "black"),
-                        #c("azure4", "yellow", "coral2"),
-                        #c("mistyrose1", "coral", "darkred"),
-                      domain = -1:max_val_human, na.color = "transparent")
-
-max_val_mammal <- ceiling(maxValue(mammal_dens))
-min_val_mammal <- floor(minValue(mammal_dens))
-
-pal_mammal <- colorBin(palette = c("azure4", "yellow", "coral2"), domain = min_val_mammal:max_val_mammal, na.color = "transparent", pretty = TRUE, bins = 5)
-
-opac <- 0.3
-
-# leaflet
-lf <- leaflet() %>%
-  addProviderTiles("CartoDB.Positron") %>%
-  addPolygons(data = admin_eha, fill = FALSE, stroke = TRUE, weight = 1, color = "black", opacity = 0.5) %>%
-    addPolygons(data = admin, fill = FALSE, stroke = FALSE, group = "None")
-
-
-for(vir in unique(animal_viral_pairs$viral_species)){
-
-  species <- animal_viral_pairs %>%
-    filter(viral_species == vir, species_scientific_name %in% iucn_detects$binomial) %>%
-    pull(species_scientific_name)
-
-  if(length(species) < 11){
-    pal_spec <- brewer.pal(length(species), "Set3")
-    names(pal_spec) <- species
-
-    for(spec in species){
-
-      iucn_sub <- iucn_detects %>% filter(binomial==spec)
-
-      lf <- lf %>%
-        addPolygons(data = iucn_sub,
-                    stroke = TRUE, color = unname(pal_spec[spec]), weight = 2, opacity = opac,
-                    fill = TRUE, fillColor = unname(pal_spec[spec]), fillOpacity = opac,
-                    label = spec,
-                    group = vir)
-
-    }
-  } else { # n species > 10
-
-          iucn_sub <- iucn_detects %>% filter(binomial %in% species)
-
-    lf <- lf %>%
-      addPolygons(data = iucn_sub,
-                  stroke = TRUE, color = brewer.pal(3, "Accent")[1], weight = 2, opacity = opac,
-                  fill = TRUE, fillColor = brewer.pal(3, "Accent")[1], fillOpacity = opac,
-                  label = glue("All Species: ", glue_collapse(species, "\n")),
-                  group = vir)
-
-  }
-}
-
-lf <- lf %>%
-  # Human
-  addRasterImage(x = human_dens, colors = pal_human, group = "Human", opacity = 1) %>%
-  addLegend(pal = pal_human, values = values(human_dens), group = "Human", position = "bottomright",
-            title = "Human Population Density" , labFormat = labelFormat(digits = 0 ,transform = function(x) 10 ^ x)) %>%
-  # User controlled layers
-  addLayersControl(
-    overlayGroups  = c("Human"), #  legend group only works when using overlayGroups
-    baseGroups = c("none", sort(unique(animal_viral_pairs$viral_species))),
-    options = layersControlOptions(collapsed = TRUE),
-    position = "bottomleft"
-  )  %>%
-  setView(zoom = 3, lng = country_centroid$centroid.lon, lat = country_centroid$centroid.lat)
-
-lf
-
-```
 
 ### Section 3: Prioritization of Future Viral Discovery and Zoonotic Surveillance
 
