@@ -442,13 +442,17 @@ pal_human <- colorBin(palette =
 max_val_mammal <- ceiling(maxValue(mammal_dens))
 min_val_mammal <- floor(minValue(mammal_dens))
 
-pal_mammal <- colorBin(palette = c("azure4", "yellow", "coral2"), domain = min_val_mammal:max_val_mammal, na.color = "transparent", pretty = TRUE, bins = 5)
+pal_mammal <- colorBin( c("white","gray50", "black"),
+  #palette = c("azure4", "yellow", "coral2"), 
+                       domain = min_val_mammal:max_val_mammal, 
+                       na.color = "transparent", pretty = TRUE, 
+                       bins = 5)
 
 opac <- 0.3
 
 # leaflet
 lf <- leaflet() %>%
-  addProviderTiles("CartoDB.Positron") %>%
+  addProviderTiles("CartoDB.DarkMatter") %>%
   addPolygons(data = admin_eha, fill = FALSE, stroke = TRUE, weight = 1, color = "black", opacity = 0.5) %>%
     addPolygons(data = admin, fill = FALSE, stroke = FALSE, group = "None")
 
@@ -460,7 +464,7 @@ for(vir in unique(animal_viral_pairs$viral_species)){
     pull(species_scientific_name)
 
   if(length(species) < 11){
-    pal_spec <- brewer.pal(length(species), "Set3")
+    pal_spec <- suppressWarnings(brewer.pal(length(species), "Set3"))
     names(pal_spec) <- species
 
     for(spec in species){
@@ -494,13 +498,18 @@ lf <- lf %>%
   addRasterImage(x = human_dens, colors = pal_human, group = "Human", opacity = 1) %>%
   addLegend(pal = pal_human, values = values(human_dens), group = "Human", position = "bottomright",
             title = "Human Population Density" , labFormat = labelFormat(digits = 0 ,transform = function(x) 10 ^ x)) %>%
+   # Mammals
+  addRasterImage(x = mammal_dens, colors = pal_mammal, opacity = 0.8, group = "Mammal") %>%
+  addLegend(pal = pal_mammal, values = values(mammal_dens), group = "Mammal", position = "bottomright",
+            title = "Mammal Livestock Density" , labFormat = labelFormat(digits = 0)) %>%
   # User controlled layers
   addLayersControl(
-    overlayGroups  = c("Human"), #  legend group only works when using overlayGroups
+    overlayGroups  = c("Human", "Mammal"), #  legend group only works when using overlayGroups
     baseGroups = c("none", sort(unique(animal_viral_pairs$viral_species))),
     options = layersControlOptions(collapsed = TRUE),
     position = "bottomleft"
   )  %>%
+  hideGroup("Mammal") %>%
   setView(zoom = 3, lng = country_centroid$centroid.lon, lat = country_centroid$centroid.lat)
 
 lf
