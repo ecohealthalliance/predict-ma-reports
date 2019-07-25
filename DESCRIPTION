@@ -15,9 +15,12 @@ Depends:
     kableExtra,
     tidyverse,
     wesanderson,
+    sf,
     leaflet,
     raster,
     maptools,
-    sf
+    CoordinateCleaner,
+    countrycode,
+    RColorBrewer
 Remotes:
     ecohealthalliance/eidith

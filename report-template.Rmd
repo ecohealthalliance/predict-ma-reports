@@ -21,6 +21,9 @@ library(leaflet)
 library(maptools)
 library(raster)
 library(sf)
+library(RColorBrewer)
+library(CoordinateCleaner)
+library(countrycode)
 library(tidyverse)
 library(wesanderson)
 h <- here::here
@@ -382,12 +385,6 @@ if(length(i.list) > 0) {
 ### Section 2: Current-State-of-Knowledge Risk Maps
 
 ```{r get-map-data, include=FALSE}
-# Get site locations
-sites <- e2 %>% 
-  dplyr::select(country, site_latitude, site_longitude, concurrent_sampling_site) %>% 
-  mutate_at(vars(site_latitude, site_longitude), ~as.numeric(.)) %>%
-  distinct()
-
 # Get administrative borders of countries of interest
 country_mod <-  mod_country(country) # for density rasters
 country_eha <-  mod_country(eidith::eha_countries()) %>% unique() # for range layers
@@ -395,6 +392,17 @@ country_eha <-  mod_country(eidith::eha_countries()) %>% unique() # for range la
 data("wrld_simpl")
 admin <- wrld_simpl[wrld_simpl@data$NAME %in% country_mod, ] 
 admin_eha <- wrld_simpl[wrld_simpl@data$NAME %in% country_eha, ] %>% st_as_sf()
+
+country_centroid <- CoordinateCleaner::countryref %>% 
+  filter(name == countrycode(sourcevar = country_mod,
+                             origin = "country.name",
+                             destination = "country.name")) %>%
+  slice(1)
+
+# viral-species pairs for country
+animal_viral_pairs <- animal_virus_summary %>% 
+  select(species_scientific_name, viral_species) %>% 
+  distinct()
 
 # population density
 human_dens <- get_layers("gpw-v4-population-density_2015.tif", admin)
@@ -417,46 +425,83 @@ iucn <- iucn %>%
   mutate(binomial = ifelse(!is.na(hp3_zoo_prediction_name), hp3_zoo_prediction_name, binomial))
 
 iucn_detects <- iucn %>%
-  filter(binomial %in% unique(get_country_viruses()$`Species Names` ))
+  filter(binomial %in% unique(animal_viral_pairs$species_scientific_name))
+
 ```
 
 ```{r maps}
+
+# set palettes
 max_val_human <- ceiling(maxValue(human_dens))
-pal_human <- colorBin(palette = c("azure4", "yellow", "coral2"), domain = -1:max_val_human, na.color = "transparent")
+pal_human <- colorBin(palette =
+                        c("white","gray50", "black"),
+                        #c("azure4", "yellow", "coral2"),
+                        #c("mistyrose1", "coral", "darkred"),
+                      domain = -1:max_val_human, na.color = "transparent")
 
 max_val_mammal <- ceiling(maxValue(mammal_dens))
 min_val_mammal <- floor(minValue(mammal_dens))
 
 pal_mammal <- colorBin(palette = c("azure4", "yellow", "coral2"), domain = min_val_mammal:max_val_mammal, na.color = "transparent", pretty = TRUE, bins = 5)
 
-lf <- leaflet() %>% 
-  addProviderTiles("CartoDB.Positron", group = "Base") 
+opac <- 0.3
 
-for(spec in unique(iucn_detects$binomial)){
-  
-  iucn_sub <- iucn_detects %>% filter(binomial==spec)
-  
-  lf <- lf %>%
-    addPolygons(data = iucn_sub, stroke = TRUE, weight = 2, color = "green", fill = FALSE, group = spec )
+# leaflet
+lf <- leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(data = admin_eha, fill = FALSE, stroke = TRUE, weight = 1, color = "black", opacity = 0.5) %>%
+    addPolygons(data = admin, fill = FALSE, stroke = FALSE, group = "None")
+
+
+for(vir in unique(animal_viral_pairs$viral_species)){
+
+  species <- animal_viral_pairs %>%
+    filter(viral_species == vir, species_scientific_name %in% iucn_detects$binomial) %>%
+    pull(species_scientific_name)
+
+  if(length(species) < 11){
+    pal_spec <- brewer.pal(length(species), "Set3")
+    names(pal_spec) <- species
+
+    for(spec in species){
+
+      iucn_sub <- iucn_detects %>% filter(binomial==spec)
+
+      lf <- lf %>%
+        addPolygons(data = iucn_sub,
+                    stroke = TRUE, color = unname(pal_spec[spec]), weight = 2, opacity = opac,
+                    fill = TRUE, fillColor = unname(pal_spec[spec]), fillOpacity = opac,
+                    label = spec,
+                    group = vir)
+
+    }
+  } else { # n species > 10
+
+          iucn_sub <- iucn_detects %>% filter(binomial %in% species)
+
+    lf <- lf %>%
+      addPolygons(data = iucn_sub,
+                  stroke = TRUE, color = brewer.pal(3, "Accent")[1], weight = 2, opacity = opac,
+                  fill = TRUE, fillColor = brewer.pal(3, "Accent")[1], fillOpacity = opac,
+                  label = glue("All Species: ", glue_collapse(species, "\n")),
+                  group = vir)
+
+  }
 }
 
 lf <- lf %>%
   # Human
-  addRasterImage(x = human_dens, colors = pal_human, opacity = 0.8, group = "Human") %>%
+  addRasterImage(x = human_dens, colors = pal_human, group = "Human", opacity = 1) %>%
   addLegend(pal = pal_human, values = values(human_dens), group = "Human", position = "bottomright",
             title = "Human Population Density" , labFormat = labelFormat(digits = 0 ,transform = function(x) 10 ^ x)) %>%
-  # Mammals
-  # addRasterImage(x = mammal_dens, colors = pal_mammal, opacity = 0.8, group = "Mammal") %>%
-  # addLegend(pal = pal_mammal, values = values(mammal_dens), group = "Mammal", position = "bottomright",
-  #           title = "Mammal Livestock Density" , labFormat = labelFormat(digits = 0)) %>%
   # User controlled layers
   addLayersControl(
-    baseGroups = unique(iucn_detects$binomial),
-    #overlayGroups  = c("Human", "Mammal"),
-    options = layersControlOptions(collapsed = FALSE),
+    overlayGroups  = c("Human"), #  legend group only works when using overlayGroups
+    baseGroups = c("none", sort(unique(animal_viral_pairs$viral_species))),
+    options = layersControlOptions(collapsed = TRUE),
     position = "bottomleft"
-  ) 
-
+  )  %>%
+  setView(zoom = 3, lng = country_centroid$centroid.lon, lat = country_centroid$centroid.lat)
 
 lf
 
