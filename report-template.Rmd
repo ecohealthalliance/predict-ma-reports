@@ -399,11 +399,25 @@ species.sampled.in.country <- d2 %>%
 
 text.color <- ifelse(mz.subset$species %in% species.sampled.in.country, "#1B8925", "#BD0505")
 
+specimen.count <- d2 %>%
+  mutate(
+    species_scientific_name = str_replace(species_scientific_name, "cf. ", ""),
+    species_scientific_name = word(species_scientific_name, 1, 2)
+  ) %>%
+  group_by(species_scientific_name) %>%
+  summarize(specimen_count = n_distinct(specimen_id, na.rm = T))
+
+assertthat::assert_that(length(species.sampled.in.country) == nrow(specimen.count))
+
+mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_scientific_name"))
+
 mz.subset %>% 
-  select(1:2) %>%
+  select(1, 2, 9) %>%
+  mutate(specimen_count = ifelse(is.na(specimen_count), 0, specimen_count)) %>%
   rename(
     `Host Species` = species,
-    `Predicted Missing Zoonoses` = pred_mean
+    `Predicted Missing Zoonoses` = pred_mean,
+    `Number of Specimens Collected` = specimen_count
   ) %>%
   mutate_if(
     is.character,
