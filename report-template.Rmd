@@ -34,7 +34,9 @@ country <- params$country
 #### _Click on the_ ▶ _︎arrows to expand sections._
 
 ```{r read-data, include = FALSE}
+
 # Load EIDITH data tables
+
 e <- ed_events() %>% 
   filter(country == !!params$country) # events filtered to country
 a <- ed_animals()
@@ -42,6 +44,7 @@ s <- ed_specimens()
 t <- ed_tests()
 v <- ed_viruses()
 ts <- ed_testspecimen()
+
 e2 <- ed2_events() %>%
   mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
   filter(country == !!params$country) %>% # events filtered to country
@@ -62,7 +65,9 @@ ti <- ed2_test_interpreted() %>%
        real_time_internal_control_value, real_time_ct_value, lab_name_confirmation,
        test_status, date_govt_approved_release)
   )
+
 # Modify animal taxonomy information
+
 a2 <- a2 %>%
   mutate(
     class = stringr::str_to_sentence(class),
@@ -80,7 +85,9 @@ a2 <- a2 %>%
       TRUE ~ species_scientific_name
     )
   )
+
 # Split out P2 viral co-infection data
+
 t2 <- t2 %>%
   mutate(
     sequence = case_when(
@@ -91,11 +98,15 @@ t2 <- t2 %>%
       TRUE ~ sequence
     )
   )
+
 t2 <- separate_rows(t2, virus, sequence, sep = "\\|")
+
 # Modify virus name (in new "viral_species" column) and detection data
+
 v <- v %>%
   mutate(viral_species = stringi::stri_replace_first_regex(
     virus_name, "(new\\s)?strain\\sof\\s", ""))
+
 t2 <- t2 %>%
   mutate(
     virus = case_when(
@@ -112,12 +123,15 @@ t2 <- t2 %>%
   left_join(., read_csv(h("data", "viral_species_modifications.csv")), by = "viral_species") %>%
   mutate(viral_species = ifelse(!is.na(viral_species_mod), viral_species_mod, viral_species)) %>%
   select(-viral_species_mod)
+
 # Join across all tables to get complete data
+
 d <- left_join(e, a, by = "event_id") %>%
   left_join(s, by = "animal_id") %>%
   left_join(ts, by = "specimen_id") %>%
   left_join(t, by = "test_id") %>%
   left_join(v, by = "test_id")
+
 d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
   left_join(s2, by = c("animal_id" = "animal_human_id", "project")) %>%
   left_join(t2, by = c("specimen_id", "gains4_specimen_id", "project")) %>%
@@ -129,10 +143,12 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
 <details>
 <summary>Virus-Level Summary Table</summary>
 ```{r tables-1}
+
 animal.grouping.vars <-
   c("country", "concurrent_sampling_site", "site_name",
     "human_density_impact", "taxa_group_mod", 
     "species_scientific_name", "viral_species")
+
 animal_virus_summary <- d2 %>%
   filter(!is.na(viral_species)) %>%
   mutate(
@@ -147,7 +163,9 @@ animal_virus_summary <- d2 %>%
   ungroup() %>%
   arrange(country, site_name, taxa_group_mod, 
           species_scientific_name, viral_species, n_positives)
+
 text.color <- "#787272"
+
 get_country_viruses() %>%
   left_join(., read_csv(h("data", "viral_species_country_lookup.csv")), 
             by = c(`Virus Name` = "viral_species")) %>%
@@ -171,9 +189,12 @@ get_country_viruses() %>%
 <details>
 <summary>Viral Testing Heatmap</summary>
 ```{r heatmap, fig.align = "center", fig.width = 10}
+
 # Plot country-level heat maps of viral detections in specimens
+
 tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
                        "Influenzas", "Paramyxoviruses")
+
 tmp <- d2 %>%
   mutate(
     family = case_when(
@@ -206,16 +227,21 @@ tmp <- d2 %>%
     genus = paste0(genus, " (", taxa_group_mod, ")"),
     genus = factor(genus, rev(unique(genus)))
   )
+
 tmp2 <- distinct(tmp, genus, taxa_group_mod)
+
 horizontal.breaks <- c()
+
 for(i in unique(tmp2$taxa_group_mod)) {
   
   horizontal.breaks <- 
     c(horizontal.breaks, max(which(tmp2$taxa_group_mod == i)))
 }
+
 horizontal.breaks <- horizontal.breaks[horizontal.breaks != nrow(tmp2)]
 horizontal.breaks <- nrow(tmp2) - horizontal.breaks
 horizontal.breaks <- horizontal.breaks + 0.5
+
 tmp %>%
   ggplot(aes(
     x = test_requested, 
@@ -242,6 +268,7 @@ tmp %>%
 <details>
 <summary>Site-Level Summary Table</summary>
 ```{r tables-2}
+
 get_country_site_viruses2() %>% 
   mutate_all(
     cell_spec, format = "html", 
@@ -253,9 +280,12 @@ get_country_site_viruses2() %>%
 </details>
 
 ```{r viral-curves-prep, include = FALSE}
+
 # Define the viral test types and specific protocols of interest
+
 tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
                        "Influenzas", "Paramyxoviruses")
+
 protocols.of.interest <- c(
   "Modified Watanabe et al, RdRp gene",
   "Unpublished, UCD",
@@ -263,8 +293,10 @@ protocols.of.interest <- c(
   "Anthony et al, M gene",
   "Tong et al, PAR"
 )
+
 # Recover all specimens for which a viral test type of interest was conducted
 # using the specified protocol of interest
+
 specimens <- d2 %>%
   filter(
     test_requested %in% tests.of.interest,
@@ -281,16 +313,21 @@ specimens <- d2 %>%
     n_tests == 1
   ) %>%
   pull(specimen_id)
+
 # Create a data subset for viral curves plotting that contains only the
 # specimens of interest for the viral test types of interest
+
 d.subset <- d2 %>%
   filter(
     test_requested %in% tests.of.interest,
     test_requested_protocol %in% protocols.of.interest,
     specimen_id %in% specimens
   )
+
 assertthat::assert_that(n_distinct(d.subset$specimen_id) == length(unique(specimens)))
+
 # Create iNEXT objects
+
 i.list <- create_ilist(d.subset, "test_requested", "specimen_id")
 if(length(i.list) == 1) {x <- as.matrix(i.list[[1]])}
 if(length(i.list) > 1) {x <- i.list}
@@ -324,8 +361,8 @@ if(length(i.list) > 0) {
 ```
 </details>
 
-
 ### Section 2: Current-State-of-Knowledge Risk Maps
+
 ```{r get-map-data, include=FALSE}
 # Get site locations
 sites <- e2 %>% 
@@ -412,6 +449,7 @@ lf
 <details>
 <summary>Sampling Prioritization Based on Missing Zoonoses</summary>
 ```{r, missing-zoonoses-analysis}
+
 mz <- read_csv(h("data", "hp3_zoo_predictions.csv")) %>%
   mutate(
     species = case_when(
