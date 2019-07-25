@@ -1,5 +1,3 @@
-
-
 datatable_ <- function(x, caption = NULL) {
 
   datatable(x,
@@ -67,7 +65,7 @@ get_host_viruses <- function(x, view = FALSE) {
 }
 
 
-get_country_viruses <- function(view = FALSE) {
+get_country_viruses <- function(view = FALSE, animal_virus_summary) {
 
   tmp <- animal_virus_summary %>%
     arrange(viral_species, taxa_group_mod, species_scientific_name, site_name) %>%
@@ -91,7 +89,7 @@ get_country_viruses <- function(view = FALSE) {
 }
 
 
-get_country_site_viruses <- function(view = FALSE) {
+get_country_site_viruses <- function(view = FALSE, animal_virus_summary) {
 
   tmp <- animal_virus_summary %>%
     distinct(site_name, concurrent_sampling_site, viral_species) %>%
@@ -105,7 +103,7 @@ get_country_site_viruses <- function(view = FALSE) {
 }
 
 
-get_country_site_viruses2 <- function(view = FALSE) {
+get_country_site_viruses2 <- function(view = FALSE, animal_virus_summary) {
 
   tmp <- animal_virus_summary %>%
     arrange(site_name, viral_species, taxa_group_mod, species_scientific_name) %>%
@@ -231,8 +229,9 @@ create_ilist <- function(dataframe, matrix.of, column.var) {
 }
 
 # Download and read in layers for viral range maps
-# get layers
 get_layers <- function(filename, admin){
+
+  h <- here::here
 
   local_file <- h(glue("data/map-layers/", filename))
   aws_folder <- switch(filename, "gpw-v4-population-density_2015.tif" = "country-maps",
