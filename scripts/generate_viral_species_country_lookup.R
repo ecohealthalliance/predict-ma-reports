@@ -35,6 +35,8 @@ t2 <- t2 %>%
     viral_species = stringi::stri_replace_first_regex(virus, "(new\\s)?strain\\sof\\s", ""),
     viral_species = ifelse(str_detect(viral_species, "(OC43)"), "Betacoronavirus 1 (OC43)", viral_species),
     viral_species = ifelse(str_detect(viral_species, "MJ/67C"), "Hipposideros bat alphacoronavirus MJ/67C", viral_species),
+    viral_species = ifelse(str_detect(viral_species, "(PPR)"), "Peste des petits ruminants (PPR)", viral_species),
+    viral_species = ifelse(viral_species == "Human Coronavirus 229E (Human strain)", "Coronavirus 229E (Human strain)", viral_species),
     viral_species = str_replace(viral_species, "Bat Coronavirus", "Bat coronavirus"),
     viral_species = str_replace(viral_species, " Bat ", " bat "),
     virus_detected = ifelse(confirmation_result == "Positive", 1, 0)
