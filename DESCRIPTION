@@ -19,7 +19,7 @@ Depends:
     leaflet.extras,
     maptools,
     raster,
-    RColorBrewer
+    RColorBrewer,
     sf,
     tidyverse,
     wesanderson
