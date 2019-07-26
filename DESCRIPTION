@@ -6,22 +6,22 @@ LazyData: true
 ByteCompile: true
 URL: https://github.com/ecohealthalliance/predict-ma-reports
 Depends:
-    eidith,
-    tidyverse,
-    here,
-    DT,
-    glue,
-    iNEXT,
-    kableExtra,
-    tidyverse,
-    wesanderson,
-    sf,
-    leaflet,
-    leaflet.extras,
-    raster,
-    maptools,
+    assertthat,
     CoordinateCleaner,
     countrycode,
+    DT,
+    eidith,
+    glue,
+    here,
+    iNEXT,
+    kableExtra,
+    leaflet,
+    leaflet.extras,
+    maptools,
+    raster,
     RColorBrewer
+    sf,
+    tidyverse,
+    wesanderson
 Remotes:
     ecohealthalliance/eidith

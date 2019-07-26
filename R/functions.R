@@ -234,12 +234,6 @@ get_layers <- function(filename, admin){
   h <- here::here
 
   local_file <- h(glue("data/map-layers/", filename))
-  aws_folder <- switch(filename, "gpw-v4-population-density_2015.tif" = "country-maps",
-                       "summed_mammal_livestock.tif" = "country-maps/mammal_livestock")
-
-  if(!file.exists(local_file)){
-    download.file(glue("https://s3.amazonaws.com/", aws_folder, "/", filename), local_file)
-  }
 
   r <- raster(local_file) %>%
     crop(., admin) %>%

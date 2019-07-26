@@ -19,9 +19,8 @@ build:
     paths:
     - outputs/
   script:
-    - ./00-get-eidith-data.R
+    - ./00-get-data.R
     - ./make.R
-
 
 build_w_new_data_and_upload:
   only:
@@ -31,6 +30,6 @@ build_w_new_data_and_upload:
     paths:
     - outputs/
   script:
-    - ./00-get-eidith-data.R
+    - ./00-get-data.R
     - ./make.R
     - ./dropbox_upload.R
