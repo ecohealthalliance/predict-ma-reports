@@ -11,7 +11,7 @@ if(file.exists(h("db", "eidith.sqlite")) &&
   cat("Database is current")
 } else {
 
-  ed_db_download(verbose = FALSE)
+  ed_db_download(verbose = TRUE)
   cat(as.character(Sys.Date()), file = h("db", "last_dl_date.txt"))
 }
 
