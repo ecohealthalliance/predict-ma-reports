@@ -17,6 +17,7 @@ Depends:
     wesanderson,
     sf,
     leaflet,
+    leaflet.extras,
     raster,
     maptools,
     CoordinateCleaner,
