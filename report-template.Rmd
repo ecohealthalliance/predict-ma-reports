@@ -21,9 +21,10 @@ library(iNEXT)
 library(kableExtra)
 library(leaflet)
 library(leaflet.extras)
-library(maptools)
 library(raster)
 library(RColorBrewer)
+library(rnaturalearth)
+library(rnaturalearthdata)
 library(sf)
 library(tidyverse)
 library(wesanderson)
@@ -386,30 +387,31 @@ if(length(i.list) > 0) {
 ### Section 2: Current-State-of-Knowledge Risk Maps
 
 ```{r get-map-data, include=FALSE}
+
 # Get administrative borders of countries of interest
 country_mod <-  mod_country(country) # for density rasters
 country_eha <-  mod_country(eidith::eha_countries()) %>% unique() # for range layers
 
-data("wrld_simpl")
-admin <- wrld_simpl[wrld_simpl@data$NAME %in% country_mod, ] 
-admin_eha <- wrld_simpl[wrld_simpl@data$NAME %in% country_eha, ] %>% st_as_sf()
+admin <- ne_countries(country = country, type='countries', scale = 'large')
+admin_eha <- ne_countries(country = country_eha, type='countries', scale = 'large')
 
+# Centroids for setting view in leaflet
 country_centroid <- CoordinateCleaner::countryref %>% 
   filter(name == countrycode(sourcevar = country_mod,
                              origin = "country.name",
                              destination = "country.name")) %>%
   slice(1)
 
-# viral-species pairs for country
+# Viral-species pairs
 animal_viral_pairs <- animal_virus_summary %>% 
   select(species_scientific_name, viral_species) %>% 
   distinct()
 
-# population density
+# Get population density rasters
 human_dens <- get_layers("gpw-v4-population-density_2015.tif", admin)
 mammal_dens <- get_layers("summed_mammal_livestock.tif", admin)
 
-# iucn ranges
+# Get iucn ranges for species with viral detections
 iucn <- st_read(h("data", "TERRESTRIAL_MAMMALS")) %>% # downloaded: https://www.iucnredlist.org/resources/spatial-data-download
   filter(presence == 1) %>%
   mutate(
@@ -454,7 +456,7 @@ opac <- 0.3
 # leaflet
 lf <- leaflet() %>%
   addProviderTiles("CartoDB.DarkMatter") %>%
-  addPolygons(data = admin_eha, fill = FALSE, stroke = TRUE, weight = 1, color = "black", opacity = 0.5) %>%
+  addPolygons(data = admin_eha, fill = FALSE, stroke = TRUE, weight = 1, color = "white", opacity = 0.5) %>%
     addPolygons(data = admin, fill = FALSE, stroke = FALSE, group = "None") %>% 
   addFullscreenControl(position = "topright")
 
