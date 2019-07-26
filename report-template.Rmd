@@ -564,7 +564,6 @@ for(vir in unique(animal_viral_pairs$viral_species)){
                     fill = TRUE, fillColor = unname(pal_spec[spec]), fillOpacity = opac,
                     label = spec,
                     group = vir)
-      
     }
     
     # iucn_sub <- iucn_detects %>% filter(binomial %in% species)
@@ -580,7 +579,6 @@ for(vir in unique(animal_viral_pairs$viral_species)){
                   fill = TRUE, fillColor = brewer.pal(3, "Accent")[1], fillOpacity = opac,
                   label = htmltools::HTML(glue_collapse(species, "<br/>")),
                   group = vir)
-    
   }
 }
 
@@ -588,7 +586,7 @@ lf <- lf %>%
   # Human
   addRasterImage(x = human_dens, colors = pal_human, group = "Human", opacity = 1) %>%
   addLegend(pal = pal_human, values = values(human_dens), group = "Human", position = "bottomright",
-            title =  htmltools::HTML("Human Population Density <br/> (Persons per Sq. Km)"), 
+            title =  "Human Population Density <br/> (Persons per Sq. Km)", 
             labFormat = labelFormat(digits = 0 ,transform = function(x) 10 ^ x)) %>%
   # Mammals
   addRasterImage(x = mammal_dens, colors = pal_mammal, opacity = 0.8, group = "Mammal") %>%
