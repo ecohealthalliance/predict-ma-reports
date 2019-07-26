@@ -121,6 +121,8 @@ t2 <- t2 %>%
     viral_species = stringi::stri_replace_first_regex(virus, "(new\\s)?strain\\sof\\s", ""),
     viral_species = ifelse(str_detect(viral_species, "(OC43)"), "Betacoronavirus 1 (OC43)", viral_species),
     viral_species = ifelse(str_detect(viral_species, "MJ/67C"), "Hipposideros bat alphacoronavirus MJ/67C", viral_species),
+    viral_species = ifelse(str_detect(viral_species, "(PPR)"), "Peste des petits ruminants (PPR)", viral_species),
+    viral_species = ifelse(viral_species == "Human Coronavirus 229E (Human strain)", "Coronavirus 229E (Human strain)", viral_species),
     viral_species = str_replace(viral_species, "Bat Coronavirus", "Bat coronavirus"),
     viral_species = str_replace(viral_species, " Bat ", " bat "),
     virus_detected = ifelse(confirmation_result == "Positive", 1, 0)
@@ -296,6 +298,85 @@ get_country_site_viruses2(view = FALSE, animal_virus_summary) %>%
 ```
 </details>
 
+```{r viral-host-range-prep, include = FALSE}
+
+viral.name.harmonization <- read_csv(h("data", "hp3_to_p2_viral_name_harmonization.csv"))
+
+all_equal(
+  grep("PREDICT", sort(unique(t2$viral_species)), invert = TRUE, value = TRUE), 
+  viral.name.harmonization$p2_virus_name
+)
+
+hp3.associations <- read_csv(h("data", "associations.csv")) %>%
+  rename(
+    virus_name = vVirusNameCorrected,
+    host_name = hHostNameFinal
+  ) %>%
+  left_join(., viral.name.harmonization, by = c("virus_name" = "hp3_virus_name")) %>%
+  filter(!is.na(p2_virus_name)) %>%
+  mutate(
+    viral_species = p2_virus_name,
+    species_scientific_name = str_replace_all(host_name, "_", " "),
+    project = rep("HP3", nrow(.))
+  )
+
+# "species" to exclude from P2 associations
+
+species.to.exclude <- c("Rodentia")
+
+p2.associations <- animal_virus_summary %>%
+  distinct(viral_species, species_scientific_name) %>%
+  filter(viral_species %in% unique(hp3.associations$viral_species)) %>%
+  mutate(project = rep(paste("PREDICT-2", params$country), nrow(.))) %>%
+  filter(
+    !str_detect(species_scientific_name, " sp."),
+    !(species_scientific_name %in% species.to.exclude)
+  )
+
+full.association.table <- hp3.associations %>%
+  select(viral_species, species_scientific_name, project) %>%
+  bind_rows(., p2.associations) %>%
+  filter(viral_species %in% p2.associations$viral_species) %>%
+  arrange(viral_species, species_scientific_name) %>%
+  group_by(viral_species, species_scientific_name) %>%
+  summarize(project = glue_collapse(project, sep = " and ")) %>%
+  ungroup() %>%
+  mutate(
+    project = as.factor(project),
+    project = fct_rev(project)
+  )
+```
+
+<details>
+<summary>Expansion of Known Viral Host Range</summary>
+
+```{r viral-host-range, fig.align = "center", fig.height = 5, fig.width = 10}
+
+axis.title.size <- 22
+axis.text.size <- 16
+legend.text.size <- 18
+template.colors <- wes_palette("Darjeeling1")[c(1, 3, 5)]
+plot.colors <- if(sum(str_detect(full.association.table$project, " and ")) > 0) {
+  template.colors
+} else {
+  template.colors[c(1, 3)]
+}
+
+full.association.table %>%
+  ggplot(aes(x = viral_species, fill = project)) +
+  ylab("Number of known host species") +
+  geom_bar() +
+  scale_fill_manual(values = plot.colors) +
+  theme_minimal() +
+  theme(axis.title = element_text(size = axis.title.size),
+        axis.title.x = element_blank(),
+        axis.text = element_text(size = axis.text.size),
+        legend.title = element_blank(),
+        legend.text = element_text(size = legend.text.size),
+        legend.position = "bottom")
+```
+</details>
+
 ```{r viral-curves-prep, include = FALSE}
 
 # Define the viral test types and specific protocols of interest
@@ -434,7 +515,7 @@ iucn_detects <- iucn %>%
 
 ```
 
-```{r maps}
+```{r maps, fig.align = "center"}
 
 # set palettes
 max_val_human <- ceiling(maxValue(human_dens))
