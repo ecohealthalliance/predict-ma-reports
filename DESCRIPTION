@@ -17,9 +17,10 @@ Depends:
     kableExtra,
     leaflet,
     leaflet.extras,
-    maptools,
     raster,
     RColorBrewer,
+    rnaturalearth,
+    rnaturalearthdata,
     sf,
     tidyverse,
     wesanderson
