@@ -386,6 +386,8 @@ if(length(i.list) > 0) {
 
 ### Section 2: Current-State-of-Knowledge Risk Maps
 
+Viral host species ranges are shown over country risk maps below. Use the bottom-left icon to control the map display.  The listed viruses have been detected under PREDICT surveillance in `r params$country`.  Clicking on a virus displays the International Union for Conservation of Nature (IUCN) global ranges for the host species in which the virus was detected (hover over polygons to see host species' names). Scroll to the bottom of the list to toggle between the human population density layer, as estimated by the Center for International Earth Science Information Network (CIESIN), and the mammalian livestock density layer, based on a model developed by Robinson et al. (2014).  These density layers are shown only for `r params$country`.  Other EcoHealth Alliance PREDICT countries are outlined in white.
+
 ```{r get-map-data, include=FALSE}
 
 # Get administrative borders of countries of interest
@@ -438,18 +440,18 @@ iucn_detects <- iucn %>%
 max_val_human <- ceiling(maxValue(human_dens))
 pal_human <- colorBin(palette =
                         c("white","gray50", "black"),
-                        #c("azure4", "yellow", "coral2"),
-                        #c("mistyrose1", "coral", "darkred"),
+                      #c("azure4", "yellow", "coral2"),
+                      #c("mistyrose1", "coral", "darkred"),
                       domain = -1:max_val_human, na.color = "transparent")
 
 max_val_mammal <- ceiling(maxValue(mammal_dens))
 min_val_mammal <- floor(minValue(mammal_dens))
 
 pal_mammal <- colorBin( c("white","gray50", "black"),
-  #palette = c("azure4", "yellow", "coral2"), 
-                       domain = min_val_mammal:max_val_mammal, 
-                       na.color = "transparent", pretty = TRUE, 
-                       bins = 5)
+                        #palette = c("azure4", "yellow", "coral2"), 
+                        domain = min_val_mammal:max_val_mammal, 
+                        na.color = "transparent", pretty = TRUE, 
+                        bins = 5)
 
 opac <- 0.3
 
@@ -457,43 +459,47 @@ opac <- 0.3
 lf <- leaflet() %>%
   addProviderTiles("CartoDB.DarkMatter") %>%
   addPolygons(data = admin_eha, fill = FALSE, stroke = TRUE, weight = 1, color = "white", opacity = 0.5) %>%
-    addPolygons(data = admin, fill = FALSE, stroke = FALSE, group = "None") %>% 
+  addPolygons(data = admin, fill = FALSE, stroke = FALSE, group = "None") %>% 
   addFullscreenControl(position = "topright")
 
 
 for(vir in unique(animal_viral_pairs$viral_species)){
-
+  
   species <- animal_viral_pairs %>%
     filter(viral_species == vir, species_scientific_name %in% iucn_detects$binomial) %>%
     pull(species_scientific_name)
-
+  
   if(length(species) < 11){
     pal_spec <- suppressWarnings(brewer.pal(length(species), "Set3"))
     names(pal_spec) <- species
-
+    
     for(spec in species){
-
+      
       iucn_sub <- iucn_detects %>% filter(binomial==spec)
-
+      
       lf <- lf %>%
         addPolygons(data = iucn_sub,
                     stroke = TRUE, color = unname(pal_spec[spec]), weight = 2, opacity = opac,
                     fill = TRUE, fillColor = unname(pal_spec[spec]), fillOpacity = opac,
                     label = spec,
                     group = vir)
-
+      
     }
+    
+    # iucn_sub <- iucn_detects %>% filter(binomial %in% species)
+    # test <- st_intersection(iucn_sub)
+    
   } else { # n species > 10
-
-          iucn_sub <- iucn_detects %>% filter(binomial %in% species)
-
+    
+    iucn_sub <- iucn_detects %>% filter(binomial %in% species)
+    
     lf <- lf %>%
       addPolygons(data = iucn_sub,
                   stroke = TRUE, color = brewer.pal(3, "Accent")[1], weight = 2, opacity = opac,
                   fill = TRUE, fillColor = brewer.pal(3, "Accent")[1], fillOpacity = opac,
-                  label = glue("All Species: ", glue_collapse(species, "\n")),
+                  label = htmltools::HTML(glue_collapse(species, "<br/>")),
                   group = vir)
-
+    
   }
 }
 
@@ -501,11 +507,12 @@ lf <- lf %>%
   # Human
   addRasterImage(x = human_dens, colors = pal_human, group = "Human", opacity = 1) %>%
   addLegend(pal = pal_human, values = values(human_dens), group = "Human", position = "bottomright",
-            title = "Human Population Density" , labFormat = labelFormat(digits = 0 ,transform = function(x) 10 ^ x)) %>%
-   # Mammals
+            title =  htmltools::HTML("Human Population Density <br/> (Persons per Sq. Km)"), 
+            labFormat = labelFormat(digits = 0 ,transform = function(x) 10 ^ x)) %>%
+  # Mammals
   addRasterImage(x = mammal_dens, colors = pal_mammal, opacity = 0.8, group = "Mammal") %>%
   addLegend(pal = pal_mammal, values = values(mammal_dens), group = "Mammal", position = "bottomright",
-            title = "Mammal Livestock Density" , labFormat = labelFormat(digits = 0)) %>%
+            title = "Mammal Livestock Density <br/> (Head per Sq. Km)" , labFormat = labelFormat(digits = 0)) %>%
   # User controlled layers
   addLayersControl(
     overlayGroups  = c("Human", "Mammal"), #  legend group only works when using overlayGroups
@@ -608,3 +615,10 @@ mz.subset %>%
   kable_styling(fixed_thead = TRUE)
 ```
 </details>
+
+# References
+Center for International Earth Science Information Network - CIESIN - Columbia University. 2016. Gridded Population of the World, Version 4 (GPWv4): Population Density. Palisades, NY: NASA Socioeconomic Data and Applications Center (SEDAC). http://dx.doi.org/10.7927/H4NP22DQ. Accessed 21 December 2017.
+
+IUCN v6.2. The IUCN Red List of Threatened Species. Version 6.2. http://www.iucnredlist.org. Downloaded on 24 July 2019.
+
+Robinson, T.P., Wint, G.W., Conchedda, G., Van Boeckel, T.P., Ercoli, V., Palamara, E., Cinardi, G., D’Aietti, L., Hay, S.I. and Gilbert, M., 2014. Mapping the global distribution of livestock. PloS one, 9(5), p.e96084.
