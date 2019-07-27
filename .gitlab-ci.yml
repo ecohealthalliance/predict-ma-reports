@@ -10,6 +10,8 @@ cache:
   paths:
     - .cache/
     - db/
+    - data/TERRESTRIAL_MAMMALS/
+    - data/map-layers/
 
 build:
   only:
