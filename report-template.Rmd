@@ -486,20 +486,15 @@ country_centroid <- CoordinateCleaner::countryref %>%
   slice(1)
 
 # Viral-species pairs
-animal_viral_pairs <- d2 %>% 
-  group_by(species_scientific_name, viral_species, site_latitude, site_longitude) %>%
-  count() %>%  
-  ungroup() %>%
-  mutate(n_detect = ifelse(is.na(viral_species), "0", as.character(n))) %>%
-  mutate(
-    species_scientific_name = case_when(
-      str_detect(species_scientific_name, " cf. ") ~ 
-        str_replace(species_scientific_name, " cf. ", " "),
-      TRUE ~ species_scientific_name
-    )
-  ) %>%
-  mutate_at(.vars = c("site_latitude", "site_longitude"), ~as.numeric(.))
+animal_viral_pairs <- read_csv(h("data", "viral_species_testing_by_host_and_site.csv")) %>%
+  filter(country == params$country)
 
+viral.species.detected.in.country <- animal_viral_pairs %>%
+  filter(n_animals_w_detections > 0) %>%
+  pull(viral_species) %>%
+  unique()
+
+animal_viral_pairs <- filter(animal_viral_pairs, viral_species %in% viral.species.detected.in.country)
 
 # Get population density rasters
 human_dens <- get_layers("gpw-v4-population-density_2015.tif", admin)
@@ -554,15 +549,22 @@ lf <- leaflet() %>%
   addPolygons(data = admin, fill = FALSE, stroke = FALSE, group = "None") %>% 
   addFullscreenControl(position = "topright")
 
-
-for(vir in unique(animal_viral_pairs$viral_species)){
+for(vir in viral.species.detected.in.country){
   
   species_detects <- animal_viral_pairs %>%
-    filter(viral_species == vir, species_scientific_name %in% unique(iucn_detects$binomial)) 
+    filter(
+      viral_species == vir, 
+      species_scientific_name %in% unique(iucn_detects$binomial), 
+      n_animals_w_detections > 0
+    ) 
   species <- unique(species_detects$species_scientific_name)
   
   species_non_detects <- animal_viral_pairs %>%
-    filter(species_scientific_name %in% species_detects$species_scientific_name, is.na(viral_species))
+    filter(
+      viral_species == vir, 
+      species_scientific_name %in% species_detects$species_scientific_name, 
+      n_animals_w_detections == 0
+    )
   
   pal_spec <- suppressWarnings(brewer.pal(length(species), "Set3"))
   names(pal_spec) <- species
@@ -586,13 +588,13 @@ for(vir in unique(animal_viral_pairs$viral_species)){
                        lng = ~jitter(site_longitude), lat = ~jitter(site_latitude), 
                        stroke = TRUE, color = ~unname(pal_spec[species_scientific_name]), weight = 1, opacity = 1,
                        fill = TRUE, fillColor = "#ffffff", fillOpacity = 1,
-                       label = ~paste("PREDICT ", species_scientific_name, "non-detect"),
+                       label = ~paste0("PREDICT ", species_scientific_name, " non-detect (", n_animals_tested, " animals tested)"),
                        group = vir) %>%
             addCircleMarkers(data = species_detects, radius = rad, 
                        lng = ~jitter(site_longitude), lat = ~jitter(site_latitude), 
                        stroke = FALSE, 
                        fill = TRUE, fillColor = ~unname(pal_spec[species_scientific_name]), fillOpacity = 1,
-                       label = ~paste("PREDICT ", species_scientific_name, "(n detect = ", n_detect, ")"),
+                       label = ~paste0("PREDICT ", species_scientific_name, " (", n_animals_tested, " animals tested, ", n_animals_w_detections, " animals positive)"),
                        group = vir) 
 
     
