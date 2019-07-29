@@ -429,7 +429,7 @@ assertthat::assert_that(n_distinct(d.subset$specimen_id) == length(unique(specim
 i.list <- create_ilist(d.subset, "test_requested", "specimen_id")
 if(length(i.list) == 1) {x <- as.matrix(i.list[[1]])}
 if(length(i.list) > 1) {x <- i.list}
-i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")
+if(length(i.list) > 0) {i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")}
 ```
 
 <details>
@@ -549,7 +549,7 @@ lf <- leaflet() %>%
   addPolygons(data = admin, fill = FALSE, stroke = FALSE, group = "None") %>% 
   addFullscreenControl(position = "topright")
 
-for(vir in viral.species.detected.in.country){
+for(vir in viral.species.detected.in.country) {
   
   species_detects <- animal_viral_pairs %>%
     filter(
@@ -567,11 +567,12 @@ for(vir in viral.species.detected.in.country){
     )
   
   pal_spec <- suppressWarnings(brewer.pal(length(species), "Set3"))
-  names(pal_spec) <- species
   
-  if(length(species) < 11){
+  if(length(species) < 11) {
     
-    for(spec in species){
+    names(pal_spec) <- species
+    
+    for(spec in species) {
       
       iucn_sub <- iucn_detects %>% filter(binomial==spec)
       
@@ -615,13 +616,13 @@ for(vir in viral.species.detected.in.country){
                        lng = ~jitter(site_longitude), lat = ~jitter(site_latitude), 
                        stroke = TRUE, color =  "#7FC97F", weight = 1, opacity = 1,
                        fill = TRUE, fillColor = "#ffffff", fillOpacity = 1,
-                       label = ~paste("PREDICT ", species_scientific_name, "non-detect"),
+                       label = ~paste0("PREDICT ", species_scientific_name, " non-detect (", n_animals_tested, " animals tested)"),
                        group = vir) %>%
             addCircleMarkers(data = species_detects, radius = rad, 
                        lng = ~jitter(site_longitude), lat = ~jitter(site_latitude), 
                        stroke = FALSE, 
                        fill = TRUE, fillColor = "#7FC97F", fillOpacity = 1,
-                       label = ~paste("PREDICT ", species_scientific_name, "(n detect = ", n_detect, ")"),
+                       label = ~paste0("PREDICT ", species_scientific_name, " (", n_animals_tested, " animals tested, ", n_animals_w_detections, " animals positive)"),
                        group = vir) 
     
   }
