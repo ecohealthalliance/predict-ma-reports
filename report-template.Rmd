@@ -475,7 +475,7 @@ Viral host species ranges are shown over country risk maps below. Use the bottom
 country_mod <-  mod_country(country) # for density rasters
 country_eha <-  mod_country(eidith::eha_countries()) %>% unique() # for range layers
 
-admin <- ne_countries(country = country, type='countries', scale = 'large')
+admin <- ne_countries(country = country_mod, type='countries', scale = 'large')
 admin_eha <- ne_countries(country = country_eha, type='countries', scale = 'large')
 
 # Centroids for setting view in leaflet
