@@ -150,7 +150,7 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
 <details>
 <summary>Virus-Level Summary Table</summary>
 
-This table provides an overview of all in-country viral findings. For each unique virus detected, the table indicates the number of detections, the host taxa in which these detections occurred, and the sites associated with viral detection. Finally, to add broader context to viral findings, the final column of the table lists other PREDICT-2 countries in which the same virus was found, highlighting the potential geographic range of the pathogen.
+This table provides an overview of all in-country viral findings. For each unique virus detected, the table indicates the number of detections, the host taxa in which these detections occurred, and the associated sites. Finally, to add broader context to viral findings, the final column of the table lists other PREDICT-2 countries in which the same virus was found, highlighting the potential geographic range of the pathogen.
 
 ```{r tables-1}
 
@@ -350,7 +350,9 @@ full.association.table <- hp3.associations %>%
 <details>
 <summary>Expansion of Known Viral Host Range</summary>
 
-```{r viral-host-range, fig.align = "center", fig.height = 5, fig.width = 10}
+To examine the expansion of viral host range as a result of in-country PREDICT-2 sampling, here we show previously known viruses, as recorded in the host-virus association dataset of [Olival et al. 2017](https://www.nature.com/articles/nature22975). The number of known hosts for each virus are visualized, with hosts newly discovered as part of PREDICT sampling efforts indicated by the red portion of each bar.
+
+```{r viral-host-range, fig.align = "center", fig.height = 8, fig.width = 12}
 
 axis.title.size <- 22
 axis.text.size <- 16
@@ -363,6 +365,7 @@ plot.colors <- if(sum(str_detect(full.association.table$project, " and ")) > 0) 
 }
 
 full.association.table %>%
+  mutate(viral_species = str_replace(viral_species, " \\(", "\n\\(")) %>%
   ggplot(aes(x = viral_species, fill = project)) +
   ylab("Number of known host species") +
   geom_bar() +
@@ -371,6 +374,7 @@ full.association.table %>%
   theme(axis.title = element_text(size = axis.title.size),
         axis.title.x = element_blank(),
         axis.text = element_text(size = axis.text.size),
+        axis.text.x = element_text(size = axis.text.size - 4, face = "bold"),
         legend.title = element_blank(),
         legend.text = element_text(size = legend.text.size),
         legend.position = "bottom")
@@ -435,7 +439,7 @@ if(length(i.list) > 0) {i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")}
 <details>
 <summary>Viral Discovery Curves</summary>
 
-To provide model-based estimates of viral sampling completeness within country, here we generate viral discovery curves across the five priority PREDICT-2 viral groups. In order to preserve interpretability among curves, we have restricted the data included in this portion of the report. Specifically, we report only on specimens that were tested for the same viral test protocol within each viral test type. The viral test protocols considered here are: `r glue_collapse(paste0(protocols.of.interest, " (", tests.of.interest, ")"), sep = "; ")`. Thus, every specimen included in figure was tested only once, with the viral test protocol indicated, for each viral test type.
+To provide model-based estimates of viral sampling completeness within country, here we generate viral discovery curves across the five priority PREDICT-2 viral groups. In order to preserve interpretability among curves, we have restricted the data included in this portion of the report. Specifically, we report only on specimens that were tested for the same viral test protocol within each viral test type. The viral test protocols considered here are: `r glue_collapse(paste0(protocols.of.interest, " (", tests.of.interest, ")"), sep = "; ")`. Thus, every specimen included in the figure was tested only once, with the viral test protocol indicated, for each viral test type.
 
 ```{r, viral-curves-plot, fig.align = "center", fig.height = 6, fig.width = 8}
 
@@ -711,7 +715,7 @@ mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_sc
 <details>
 <summary>Sampling Prioritization Based on Missing Zoonoses</summary>
 
-To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). Using a simplified version of the "missing zoonoses" model from that paper, we have generated a list of host species occurring in-country. These species are ranked according to model-based estimates of the number of predicted unobserved zoonotic viruses remaining in that host. Further, species are color-coded according to PREDICT-2 sampling history. Host species already sampled in-country for PREDICT-2 are indicated in green, along with the number of specimens collected from that species. Host species not sampled in PREDICT-2, and therefore of possible interest for future viral surveillance work, are highlighted in red.
+To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). Using a simplified version of the "missing zoonoses" model from that paper, we have generated a list of host species occurring in-country. These species are ranked according to model-based estimates of the number of predicted unobserved zoonotic viruses in that host. Further, species are color-coded according to PREDICT-2 sampling history. Host species already sampled in-country for PREDICT-2 are indicated in green, along with the number of specimens collected from that species. Host species not sampled in PREDICT-2, and therefore of possible interest for future viral surveillance work, are highlighted in red.
 
 ```{r, missing-zoonoses-analysis}
 
