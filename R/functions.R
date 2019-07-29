@@ -256,7 +256,7 @@ mod_country <- function(country){
                     "Vietnam" = "Viet Nam",
                     "Tanzania" = "United Republic of Tanzania",
                   # "Ivory Coast" = "Cote d'Ivoire",
-                  # "Republic of Congo" = "Congo",
+                    "Republic of Congo" =  "Republic of the Congo",
                   # "South Sudan"= "Sudan",
                     ", Peninsular" = "",
                     ", Sabah" = ""
