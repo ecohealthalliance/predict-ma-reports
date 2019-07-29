@@ -486,9 +486,19 @@ country_centroid <- CoordinateCleaner::countryref %>%
   slice(1)
 
 # Viral-species pairs
-animal_viral_pairs <- animal_virus_summary %>% 
-  select(species_scientific_name, viral_species) %>% 
-  distinct()
+animal_viral_pairs <- d2 %>% 
+  drop_na(viral_species) %>%
+  group_by(species_scientific_name, viral_species, site_latitude, site_longitude) %>%
+  summarize(n_detects = as.character(n())) %>%
+  ungroup() %>%
+  mutate(
+    species_scientific_name = case_when(
+      str_detect(species_scientific_name, " cf. ") ~ 
+        str_replace(species_scientific_name, " cf. ", " "),
+      TRUE ~ species_scientific_name
+    )
+  ) %>%
+  mutate_at(.vars = c("site_latitude", "site_longitude"), ~as.numeric(.))
 
 # Get population density rasters
 human_dens <- get_layers("gpw-v4-population-density_2015.tif", admin)
@@ -527,7 +537,6 @@ pal_human <- colorBin(palette =
 
 max_val_mammal <- ceiling(maxValue(mammal_dens))
 min_val_mammal <- floor(minValue(mammal_dens))
-
 pal_mammal <- colorBin( c("white","gray50", "black"),
                         #palette = c("azure4", "yellow", "coral2"), 
                         domain = min_val_mammal:max_val_mammal, 
@@ -546,25 +555,32 @@ lf <- leaflet() %>%
 
 for(vir in unique(animal_viral_pairs$viral_species)){
   
-  species <- animal_viral_pairs %>%
+  species_detects <- animal_viral_pairs %>%
     filter(viral_species == vir, species_scientific_name %in% iucn_detects$binomial) %>%
-    pull(species_scientific_name)
+    mutate(color = factor(species_scientific_name, labels = suppressWarnings(brewer.pal(n_distinct(species_scientific_name), "Set3"))[1:n_distinct(species_scientific_name)]))
   
-  if(length(species) < 11){
-    pal_spec <- suppressWarnings(brewer.pal(length(species), "Set3"))
-    names(pal_spec) <- species
+  if(n_distinct(species_detects$species_scientific_name) < 11){
     
-    for(spec in species){
+    for(spec in unique(species_detects$species_scientific_name)){
       
       iucn_sub <- iucn_detects %>% filter(binomial==spec)
+      species_detects_sub <- species_detects %>% filter(species_scientific_name == spec)
       
       lf <- lf %>%
         addPolygons(data = iucn_sub,
-                    stroke = TRUE, color = unname(pal_spec[spec]), weight = 2, opacity = opac,
-                    fill = TRUE, fillColor = unname(pal_spec[spec]), fillOpacity = opac,
+                    stroke = TRUE, color = unique(species_detects_sub$color), weight = 2, opacity = opac,
+                    fill = TRUE, fillColor = unique(species_detects_sub$color), fillOpacity = opac,
                     label = spec,
-                    group = vir)
+                    group = vir) 
     }
+    
+    lf <- lf %>%
+              addCircleMarkers(data = species_detects, radius = 3,
+                         lng = ~site_longitude, lat = ~site_latitude, 
+                         stroke = FALSE, 
+                         fill = TRUE, fillColor = species_detects$color, fillOpacity = 1,
+                         label = ~paste("PREDICT ", species_scientific_name, "(n detect = ", n_detects, ")"),
+                         group = vir)
     
     # iucn_sub <- iucn_detects %>% filter(binomial %in% species)
     # test <- st_intersection(iucn_sub)
@@ -578,7 +594,14 @@ for(vir in unique(animal_viral_pairs$viral_species)){
                   stroke = TRUE, color = brewer.pal(3, "Accent")[1], weight = 2, opacity = opac,
                   fill = TRUE, fillColor = brewer.pal(3, "Accent")[1], fillOpacity = opac,
                   label = htmltools::HTML(glue_collapse(species, "<br/>")),
-                  group = vir)
+                  group = vir) %>%
+              addCircleMarkers(data = species_detects_sub, radius = 3,
+                         lng = ~site_longitude, lat = ~site_latitude, 
+                         stroke = FALSE, 
+                         fill = TRUE, fillColor = brewer.pal(3, "Accent")[1], fillOpacity = 1,
+                         label = ~paste("PREDICT ", species_scientific_name, "(n detect = ", n_detects, ")"),
+                         group = vir)
+
   }
 }
 
