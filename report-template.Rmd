@@ -157,7 +157,7 @@ This table provides an overview of all in-country viral findings. For each uniqu
 animal.grouping.vars <-
   c("country", "concurrent_sampling_site", "site_name",
     "human_density_impact", "taxa_group_mod", 
-    "species_scientific_name", "viral_species")
+    "species_scientific_name", "test_requested", "viral_species")
 
 animal_virus_summary <- d2 %>%
   filter(!is.na(viral_species)) %>%
@@ -187,6 +187,7 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
     `Concurrent Detections` = str_replace(`Concurrent Detections`, "NA\n", ""),
     `Concurrent Detections` = str_replace(`Concurrent Detections`, "\nNA", "")
   ) %>%
+  arrange(`Viral Test Type`, `Virus Name`) %>%
   mutate_all(
     cell_spec, format = "html", 
     bold = TRUE, color = text.color
@@ -385,14 +386,13 @@ full.association.table %>%
 
 # Define the viral test types and specific protocols of interest
 
-tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
-                       "Influenzas", "Paramyxoviruses")
+tests.of.interest <- c("Coronaviruses", "Filoviruses", 
+                       "Flaviviruses", "Paramyxoviruses")
 
 protocols.of.interest <- c(
   "Modified Watanabe et al, RdRp gene",
   "Unpublished, UCD",
   "Moureau et al, NS5 gene",
-  "Anthony et al, M gene",
   "Tong et al, PAR"
 )
 
@@ -439,7 +439,7 @@ if(length(i.list) > 0) {i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")}
 <details>
 <summary>Viral Discovery Curves</summary>
 
-To provide model-based estimates of viral sampling completeness within country, here we generate viral discovery curves across the five priority PREDICT-2 viral groups. In order to preserve interpretability among curves, we have restricted the data included in this portion of the report. Specifically, we report only on specimens that were tested for the same viral test protocol within each viral test type. The viral test protocols considered here are: `r glue_collapse(paste0(protocols.of.interest, " (", tests.of.interest, ")"), sep = "; ")`. Thus, every specimen included in the figure was tested only once, with the viral test protocol indicated, for each viral test type.
+To provide model-based estimates of viral sampling completeness within country, here we generate viral discovery curves across four of the five priority PREDICT-2 viral groups. We have excluded influenza testing from this analysis since only one influenza species (Influenza A) was recovered globally in PREDICT-2. In order to preserve interpretability among curves, we have restricted the data included in this portion of the report. Specifically, we report only on specimens that were tested for the same viral test protocol within each viral test type. The viral test protocols considered here are: `r glue_collapse(paste0(protocols.of.interest, " (", tests.of.interest, ")"), sep = "; ")`. Thus, every specimen included in the figure was tested only once, with the viral test protocol indicated, for each viral test type.
 
 ```{r, viral-curves-plot, fig.align = "center", fig.height = 6, fig.width = 8}
 
@@ -450,7 +450,7 @@ if(length(i.list) > 0) {
   axis.title.size <- 28
   axis.text.size <- 22
   legend.text.size <- 22
-  template.colors <- wes_palette("Darjeeling1")[1:5]
+  template.colors <- wes_palette("Darjeeling1")[c(1:3, 5)]
   plot.colors <- template.colors[tests.of.interest %in% names(i.list)]
   
   ggiNEXT(i.out) +
