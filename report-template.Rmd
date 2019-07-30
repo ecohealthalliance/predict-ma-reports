@@ -1,6 +1,6 @@
 ---
 params:
-  country: "Thailand"
+  country: "Bangladesh"
 title: 'PREDICT M&A Report: `r params$country`'
 date: "`r Sys.Date()`"
 output:
@@ -469,9 +469,11 @@ if(length(i.list) > 0) {
 ```
 </details>
 
-### Section 2: Current-State-of-Knowledge Risk Maps
+### Section 2: Viral Host Ranges and Risk Maps
 
-Viral host species ranges are shown over country risk maps below. Use the bottom-left icon to control the map display.  The listed viruses have been detected under PREDICT surveillance in `r params$country`.  Clicking on a virus displays the International Union for Conservation of Nature (IUCN) global ranges for the host species in which the virus was detected (hover over polygons to see host species' names). Scroll to the bottom of the list to toggle between the human population density layer, as estimated by the Center for International Earth Science Information Network (CIESIN), and the mammalian livestock density layer, based on a model developed by Robinson et al. (2014).  These density layers are shown only for `r params$country`.  Other EcoHealth Alliance PREDICT countries are outlined in white.
+Viral host ranges of mammalian species are shown over country risk maps below. Use the bottom-left icon to control the map display.  The listed viruses have been detected under PREDICT surveillance in mammalian species in `r params$country`.  Clicking on a virus displays global ranges from the International Union for Conservation of Nature (IUCN) for the host species in which the virus was detected (hover over polygons to see the host species names). Points on maps show where the host species was sampled in `r params$country`.  Circles with colored fills indicate detects and circles with white fills indicate non-detects (hover over points to see counts of animals tested).
+
+Scroll to the bottom of the list from the bottom-left icon to toggle between the human population density layer, as estimated by the Center for International Earth Science Information Network (CIESIN), and the mammalian livestock density layer, based on a model developed by Robinson et al. (2014).  These density layers are shown only for `r params$country`.  Other EcoHealth Alliance PREDICT countries are outlined in white.
 
 ```{r get-map-data, include=FALSE}
 
@@ -488,17 +490,6 @@ country_centroid <- CoordinateCleaner::countryref %>%
                              origin = "country.name",
                              destination = "country.name")) %>%
   slice(1)
-
-# Viral-species pairs
-animal_viral_pairs <- read_csv(h("data", "viral_species_testing_by_host_and_site.csv")) %>%
-  filter(country == params$country)
-
-viral.species.detected.in.country <- animal_viral_pairs %>%
-  filter(n_animals_w_detections > 0) %>%
-  pull(viral_species) %>%
-  unique()
-
-animal_viral_pairs <- filter(animal_viral_pairs, viral_species %in% viral.species.detected.in.country)
 
 # Get population density rasters
 human_dens <- get_layers("gpw-v4-population-density_2015.tif", admin)
@@ -520,9 +511,17 @@ iucn <- iucn %>%
             by = c("binomial" = "IUCN_name")) %>%
   mutate(binomial = ifelse(!is.na(hp3_zoo_prediction_name), hp3_zoo_prediction_name, binomial))
 
-iucn_detects <- iucn %>%
-  filter(binomial %in% unique(animal_viral_pairs$species_scientific_name))
+# Viral-species pairs
+animal_viral_pairs <- read_csv(h("data", "viral_species_testing_by_host_and_site.csv")) %>%
+  filter(country == params$country,
+         species_scientific_name %in% unique(iucn$binomial)) # only keep host species that have ranges
 
+viral.species.detected.in.country <- animal_viral_pairs %>% # identify specues with detects
+  filter(n_animals_w_detections > 0) %>%
+  pull(viral_species) %>%
+  unique()
+
+animal_viral_pairs <- filter(animal_viral_pairs, viral_species %in% viral.species.detected.in.country)
 ```
 
 ```{r maps, fig.align = "center"}
@@ -546,11 +545,10 @@ pal_mammal <- colorBin( c("white","gray50", "black"),
 opac <- 0.3
 rad <- 5
 
-# leaflet
+# initiate leaflet map
 lf <- leaflet() %>%
   addProviderTiles("CartoDB.DarkMatter") %>%
-  addPolygons(data = admin_eha, fill = FALSE, stroke = TRUE, weight = 1, color = "white", opacity = 0.5) %>%
-  addPolygons(data = admin, fill = FALSE, stroke = FALSE, group = "None") %>% 
+  addPolygons(data = admin_eha, fill = FALSE, stroke = TRUE, weight = 1, color = "white", opacity = 0.5) %>% # EHA outlines
   addFullscreenControl(position = "topright")
 
 for(vir in viral.species.detected.in.country) {
@@ -558,15 +556,14 @@ for(vir in viral.species.detected.in.country) {
   species_detects <- animal_viral_pairs %>%
     filter(
       viral_species == vir, 
-      species_scientific_name %in% unique(iucn_detects$binomial), 
       n_animals_w_detections > 0
     ) 
+  
   species <- unique(species_detects$species_scientific_name)
   
   species_non_detects <- animal_viral_pairs %>%
     filter(
       viral_species == vir, 
-      species_scientific_name %in% species_detects$species_scientific_name, 
       n_animals_w_detections == 0
     )
   
@@ -578,7 +575,7 @@ for(vir in viral.species.detected.in.country) {
     
     for(spec in species) {
       
-      iucn_sub <- iucn_detects %>% filter(binomial==spec)
+      iucn_sub <- iucn %>% filter(binomial==spec)
       
       lf <- lf %>%
         addPolygons(data = iucn_sub,
@@ -591,7 +588,7 @@ for(vir in viral.species.detected.in.country) {
     lf <- lf %>%
       addCircleMarkers(data = species_non_detects, radius = rad,
                        lng = ~jitter(site_longitude), lat = ~jitter(site_latitude), 
-                       stroke = TRUE, color = ~unname(pal_spec[species_scientific_name]), weight = 1, opacity = 1,
+                       stroke = TRUE, color = ~unname(pal_spec[species_scientific_name]), weight = 1.5, opacity = 1,
                        fill = TRUE, fillColor = "#ffffff", fillOpacity = 1,
                        label = ~paste0("PREDICT ", species_scientific_name, " non-detect (", n_animals_tested, " animals tested)"),
                        group = vir) %>%
@@ -603,12 +600,9 @@ for(vir in viral.species.detected.in.country) {
                        group = vir) 
 
     
-    # iucn_sub <- iucn_detects %>% filter(binomial %in% species)
-    # test <- st_intersection(iucn_sub)
-    
   } else { # n species > 10
     
-    iucn_sub <- iucn_detects %>% filter(binomial %in% species)
+    iucn_sub <- iucn %>% filter(binomial %in% species)
     
     lf <- lf %>%
       addPolygons(data = iucn_sub,
@@ -618,7 +612,7 @@ for(vir in viral.species.detected.in.country) {
                   group = vir) %>%
           addCircleMarkers(data = species_non_detects, radius = rad,
                        lng = ~jitter(site_longitude), lat = ~jitter(site_latitude), 
-                       stroke = TRUE, color =  "#7FC97F", weight = 1, opacity = 1,
+                       stroke = TRUE, color =  "#7FC97F", weight = 1.5, opacity = 1,
                        fill = TRUE, fillColor = "#ffffff", fillOpacity = 1,
                        label = ~paste0("PREDICT ", species_scientific_name, " non-detect (", n_animals_tested, " animals tested)"),
                        group = vir) %>%
@@ -645,7 +639,7 @@ lf <- lf %>%
   # User controlled layers
   addLayersControl(
     overlayGroups  = c("Human", "Mammal"), #  legend group only works when using overlayGroups
-    baseGroups = c("none", sort(unique(animal_viral_pairs$viral_species))),
+    baseGroups = c("None", sort(viral.species.detected.in.country)),
     options = layersControlOptions(collapsed = TRUE),
     position = "bottomleft"
   )  %>%
