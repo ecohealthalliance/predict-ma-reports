@@ -7,8 +7,10 @@ ByteCompile: true
 URL: https://github.com/ecohealthalliance/predict-ma-reports
 Depends:
     assertthat,
+    base64enc,
     CoordinateCleaner,
     countrycode,
+    cyphr,
     DT,
     eidith,
     glue,
@@ -20,9 +22,11 @@ Depends:
     leaflet.extras,
     raster,
     RColorBrewer,
+    rdrop2,
     rnaturalearth,
     rnaturalearthdata,
     sf,
+    sodium,
     tidyverse,
     wesanderson
 Remotes:
