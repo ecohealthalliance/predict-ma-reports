@@ -319,7 +319,7 @@ hp3.associations <- read_csv(h("data", "associations.csv")) %>%
   mutate(
     viral_species = p2_virus_name,
     species_scientific_name = str_replace_all(host_name, "_", " "),
-    project = rep("HP3", nrow(.))
+    project = rep("Previously Known", nrow(.))
   )
 
 # "species" to exclude from P2 associations
@@ -339,18 +339,11 @@ full.association.table <- hp3.associations %>%
   select(viral_species, species_scientific_name, project) %>%
   bind_rows(., p2.associations) %>%
   filter(viral_species %in% p2.associations$viral_species) %>%
-  arrange(viral_species, species_scientific_name) %>%
+  arrange(viral_species, species_scientific_name, project) %>%
   group_by(viral_species, species_scientific_name) %>%
   summarize(project = glue_collapse(project, sep = " and ")) %>%
   ungroup() %>%
-  mutate(
-    project = as.character(project),
-    project = case_when(
-      project == "HP3" ~ "Previously Known",
-      TRUE ~ project
-    ),
-    project = as.factor(project)
-  )
+  mutate(project = as.factor(project))
 ```
 
 <details>
@@ -478,7 +471,7 @@ if(length(i.list) > 0) {
 
 Viral host ranges of mammalian species are shown over country risk maps below. Use the bottom-left icon to control the map display.  The listed viruses have been detected under PREDICT surveillance in mammalian species in `r params$country`.  Clicking on a virus displays global ranges from the International Union for Conservation of Nature (IUCN) for the host species in which the virus was detected (hover over polygons to see the host species names). Points on maps show where the host species was sampled in `r params$country`.  Circles with colored fills indicate detects and circles with white fills indicate non-detects (hover over points to see counts of animals tested).
 
-Scroll to the bottom of the list from the bottom-left icon to toggle between the human population density layer, as estimated by the Center for International Earth Science Information Network (CIESIN), and the mammalian livestock density layer, based on a model developed by Robinson et al. (2014).  These density layers are shown only for `r params$country`.  Other EcoHealth Alliance PREDICT countries are outlined in white.
+Scroll to the bottom of the list from the bottom-left icon to toggle between the human population density layer, as estimated by the Center for International Earth Science Information Network (CIESIN), and the mammalian livestock density layer, based on a model developed by [Robinson et al. 2014](http://dx.doi.org/10.1371/journal.pone.0096084).  These density layers are shown only for `r params$country`.  Other EcoHealth Alliance PREDICT countries are outlined in white.
 
 ```{r get-map-data, include=FALSE}
 
@@ -676,7 +669,14 @@ mz <- read_csv(h("data", "hp3_zoo_predictions.csv")) %>%
   ) %>%
   separate_rows(species, sep = "\\|") %>%
   select(-species_alt) %>%
-  arrange(desc(pred_mean))
+  arrange(desc(pred_mean)) %>%
+  mutate(
+    relative_zoonoses = case_when(
+      pred_mean > quantile(pred_mean, c(0.33, 0.66))[2] ~ "High",
+      pred_mean < quantile(pred_mean, c(0.33, 0.66)[1]) ~ "Low",
+      TRUE ~ "Medium"
+    )
+  )
 
 mammals.in.country <- read_csv(h("data", "mammal_country_lookup.csv")) %>%
   filter(country == params$country) %>%
@@ -714,12 +714,12 @@ mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_sc
 <details>
 <summary><font size="+1.5"><b>Sampling Prioritization Based on Missing Zoonoses</b></font></summary>
 
-To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). Using a simplified version of the "missing zoonoses" model from that paper, we have generated a list of host species occurring in-country. These species are ranked according to model-based estimates of the number of predicted unobserved zoonotic viruses in that host. Further, species are color-coded according to PREDICT-2 sampling history. Host species already sampled in-country for PREDICT-2 are indicated in green, along with the number of specimens collected from that species. Host species not sampled in PREDICT-2, and therefore of possible interest for future viral surveillance work, are highlighted in red.
+To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). Using a simplified version of the "missing zoonoses" model from that paper, we generated a list of host species occurring in-country and corresponding model-based estimates of the number of predicted unobserved zoonotic viruses residing in those hosts. These quantitative estimates, which are likely to be underestimates of true unobserved viral diversity, have been converted into broad risk categories here to simplify surveillance prioritization. Further, species are color-coded according to PREDICT-2 sampling history. Host species already sampled in-country for PREDICT-2 are indicated in green, along with the number of specimens collected from that species. Host species not sampled in PREDICT-2, and therefore of possible interest for future viral surveillance work, are highlighted in red.
 
 ```{r, missing-zoonoses-analysis}
 
 mz.subset %>% 
-  select(1, 2, 9, 11) %>%
+  select(1, 9, 10, 12) %>%
   mutate(
     specimen_count = ifelse(is.na(specimen_count), 0, specimen_count),
     viruses_detected = ifelse(is.na(viruses_detected), "", viruses_detected)) %>%
@@ -735,8 +735,8 @@ mz.subset %>%
   ) %>%
   rename(
     `Host Species` = species,
-    `Predicted Missing Zoonoses` = pred_mean,
-    `Number of Specimens Collected` = specimen_count,
+    `Relative No. of Unobserved Zoonotic Viruses` = relative_zoonoses,
+    `No. of Specimens Collected` = specimen_count,
     `Viruses Detected In-Country?` = viruses_detected
   ) %>%
   kable(escape = FALSE, align = "c") %>%
