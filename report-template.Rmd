@@ -469,9 +469,22 @@ if(length(i.list) > 0) {
 
 ### Section 2: Viral Host Ranges and Risk Maps
 
-Viral host ranges of mammalian species are shown over country risk maps below. Use the bottom-left icon to control the map display.  The listed viruses have been detected under PREDICT surveillance in mammalian species in `r params$country`.  Clicking on a virus displays global ranges from the International Union for Conservation of Nature (IUCN) for the host species in which the virus was detected (hover over polygons to see the host species names). Points on maps show where the host species was sampled in `r params$country`.  Circles with colored fills indicate detects and circles with white fills indicate non-detects (hover over points to see counts of animals tested).
+The map below communicates two layers of information:
 
-Scroll to the bottom of the list from the bottom-left icon to toggle between the human population density layer, as estimated by the Center for International Earth Science Information Network (CIESIN), and the mammalian livestock density layer, based on a model developed by [Robinson et al. 2014](http://dx.doi.org/10.1371/journal.pone.0096084).  These density layers are shown only for `r params$country`.  Other EcoHealth Alliance PREDICT countries are outlined in white.
+1) Human and livestock population density in `r params$country`.  
+
+2) Ranges of mammalian host species in which viruses have been detected in `r params$country` under PREDICT surveillance.
+
+To control the layers visable on the map, click the bottom left icon.  
+
+-   This will bring up a list of viruses that have been detected in mammals in `r params$country`.  Click on a virus to see global ranges from the International Union for Conservation of Nature (IUCN) for the host species.  Hover over polygons to see the host species names. Points on the map show where the host species was sampled in `r params$country`.  Solid color circles indicate that the virus was detected in one or more specimen; circles filled with white indicate non-detects.  Hover over points to see counts of animals tested.
+
+-   At the bottom of the list, you can select whether to show the human population density map or the livestock density map, or you may elect to turn off both maps to more easily view the viral host range layers.  The human population density layer is estimated by the Center for International Earth Science Information Network (CIESIN), and the mammalian livestock density layer is based on a model developed by [Robinson et al. 2014](http://dx.doi.org/10.1371/journal.pone.0096084).
+
+-   Note that EcoHealth Alliance PREDICT countries are outlined on the map in white.
+
+For easier viewing, you may use the icon on the top right to launch full-screen mode.  
+
 
 ```{r get-map-data, include=FALSE}
 
