@@ -1,7 +1,7 @@
 **/.DS_Store
 .Rhistory
 .Rproj.user
-
 data/TERRESTRIAL_MAMMALS*
 outputs/*
 report-template.html
+.httr-oauth
