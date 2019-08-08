@@ -5,6 +5,9 @@ before_script:
   - mkdir -p $CI_PROJECT_DIR/.cache; rsync -r --ignore-existing /usr/local/lib/R/site-library/ $CI_PROJECT_DIR/.cache/; rm -rf /usr/local/lib/R/site-library; ln -sf $CI_PROJECT_DIR/.cache /usr/local/lib/R/site-library
   - Rscript -e "devtools::install_deps(dependencies=TRUE, quiet=TRUE)"
 
+tags:
+ - aegypti
+
 cache:
   key: common-cache
   paths:
@@ -24,6 +27,7 @@ build:
   script:
     - ./00-get-data.R
     - ./make.R
+    - ./dropbox_upload.R
 
 build_w_new_data_and_upload:
   only:
