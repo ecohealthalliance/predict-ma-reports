@@ -1,6 +1,6 @@
 ---
 params:
-  country: "Bangladesh"
+  country: "Thailand"
 title: 'PREDICT M&A Report: `r params$country`'
 date: "`r Sys.Date()`"
 output:
@@ -148,7 +148,7 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
 ### Section 1: Summary of Viral Findings
 
 <details>
-<summary>Virus-Level Summary Table</summary>
+<summary><font size="+1.5"><b>Virus-Level Summary Table</b></font></summary>
 
 This table provides an overview of all in-country viral findings. For each unique virus detected, the table indicates the number of detections, the host taxa in which these detections occurred, and the associated sites. Finally, to add broader context to viral findings, the final column of the table lists other PREDICT-2 countries in which the same virus was found, highlighting the potential geographic range of the pathogen.
 
@@ -198,7 +198,7 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
 </details>
 
 <details>
-<summary>Viral Testing Heatmap</summary>
+<summary><font size="+1.5"><b>Viral Testing Heatmap</b></font></summary>
 
 Building from the viral summary table above, this heatmap provides more granular information about sampling effort and detection rates across the five priority PREDICT-2 viral groups: Coronaviruses, Filoviruses, Flaviviruses, Influenzas, and Paramyxoviruses. Data shown within the heatmap represent numbers of viral PCR tests. Host taxa sampled are summarized to the genus-level, and taxa groups are indicated in parentheses. The intensity of red color within the heatmap scales with viral detection rate. Host taxa that never yielded positive viral tests for a given viral group are shown in white, while red coloration indicates increasingly higher rates of viral detection.
 
@@ -231,6 +231,7 @@ tmp <- d2 %>%
     n_tests = n_distinct(gains4_test_id),
     n_positives = sum(virus_detected, na.rm = TRUE),
     prop = n_positives/n_tests,
+    prop.num.for.plot = ifelse(prop == 0, prop, prop + 0.1),
     percent = round(n_positives/n_tests*100, digits = 1),
     percent_mod = paste0(percent, "% (", n_tests, ")")
   ) %>%
@@ -266,10 +267,10 @@ tmp %>%
   )) +
   xlab("Viral Test Type") +
   scale_x_discrete(position = "top") +
-  geom_tile(aes(fill = log(1 + prop)), color = "lightgray") +
+  geom_tile(aes(fill = log(1 + prop.num.for.plot)), color = "lightgray") +
   geom_text(aes(label = percent_mod)) +
   geom_hline(yintercept = horizontal.breaks, size = 0.4) +
-  scale_fill_gradientn(colors = c("white", "firebrick"), limits = c(0, 0.7)) +
+  scale_fill_gradientn(colors = c("white", "firebrick"), limits = c(0, 0.75)) +
   theme_minimal() +
   theme(
     panel.grid = element_blank(),
@@ -283,7 +284,7 @@ tmp %>%
 </details>
 
 <details>
-<summary>Site-Level Summary Table</summary>
+<summary><font size="+1.5"><b>Site-Level Summary Table</b></font></summary>
 
 This table provides a site-level overview of in-country PREDICT-2 viral surveillance. For each site, the table outlines basic site characteristics as well as the total number of viruses and host taxa sampled from that site. 
 
@@ -343,13 +344,17 @@ full.association.table <- hp3.associations %>%
   summarize(project = glue_collapse(project, sep = " and ")) %>%
   ungroup() %>%
   mutate(
-    project = as.factor(project),
-    project = fct_rev(project)
+    project = as.character(project),
+    project = case_when(
+      project == "HP3" ~ "Previously Known",
+      TRUE ~ project
+    ),
+    project = as.factor(project)
   )
 ```
 
 <details>
-<summary>Expansion of Known Viral Host Range</summary>
+<summary><font size="+1.5"><b>Expansion of Known Viral Host Range</b></font></summary>
 
 To examine the expansion of viral host range as a result of in-country PREDICT-2 sampling, here we show previously known viruses, as recorded in the host-virus association dataset of [Olival et al. 2017](https://www.nature.com/articles/nature22975). The number of known hosts for each virus are visualized, with hosts newly discovered as part of PREDICT sampling efforts indicated by the red portion of each bar.
 
@@ -437,7 +442,7 @@ if(length(i.list) > 0) {i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")}
 ```
 
 <details>
-<summary>Viral Discovery Curves</summary>
+<summary><font size="+1.5"><b>Viral Discovery Curves</b></font></summary>
 
 To provide model-based estimates of viral sampling completeness within country, here we generate viral discovery curves across four of the five priority PREDICT-2 viral groups. We have excluded influenza testing from this analysis since only one influenza species (Influenza A) was recovered globally in PREDICT-2. In order to preserve interpretability among curves, we have restricted the data included in this portion of the report. Specifically, we report only on specimens that were tested for the same viral test protocol within each viral test type. The viral test protocols considered here are: `r glue_collapse(paste0(protocols.of.interest, " (", tests.of.interest, ")"), sep = "; ")`. Thus, every specimen included in the figure was tested only once, with the viral test protocol indicated, for each viral test type.
 
@@ -707,7 +712,7 @@ mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_sc
 ```
 
 <details>
-<summary>Sampling Prioritization Based on Missing Zoonoses</summary>
+<summary><font size="+1.5"><b>Sampling Prioritization Based on Missing Zoonoses</b></font></summary>
 
 To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). Using a simplified version of the "missing zoonoses" model from that paper, we have generated a list of host species occurring in-country. These species are ranked according to model-based estimates of the number of predicted unobserved zoonotic viruses in that host. Further, species are color-coded according to PREDICT-2 sampling history. Host species already sampled in-country for PREDICT-2 are indicated in green, along with the number of specimens collected from that species. Host species not sampled in PREDICT-2, and therefore of possible interest for future viral surveillance work, are highlighted in red.
 
@@ -740,8 +745,11 @@ mz.subset %>%
 </details>
 
 # References
+
 Center for International Earth Science Information Network - CIESIN - Columbia University. 2016. Gridded Population of the World, Version 4 (GPWv4): Population Density. Palisades, NY: NASA Socioeconomic Data and Applications Center (SEDAC). http://dx.doi.org/10.7927/H4NP22DQ. Accessed 21 December 2017.
 
 IUCN v6.2. The IUCN Red List of Threatened Species. Version 6.2. http://www.iucnredlist.org. Downloaded on 24 July 2019.
 
-Robinson, T.P., Wint, G.W., Conchedda, G., Van Boeckel, T.P., Ercoli, V., Palamara, E., Cinardi, G., D’Aietti, L., Hay, S.I. and Gilbert, M., 2014. Mapping the global distribution of livestock. PloS one, 9(5), p.e96084.
+Olival, K.J., Hosseini, P.R., Zambrana-Torrelio, C., Ross, N., Bogich, T.L. and Daszak, P. 2017. Host and viral traits predict zoonotic spillover from mammals. Nature 546: 646-650. http://dx.doi.org/10.1038/nature22975
+
+Robinson, T.P., Wint, G.R.W., Conchedda, G., Van Boeckel, T.P., Ercoli, V., Palamara, E., Cinardi, G., D’Aietti, L., Hay, S.I. and Gilbert, M. 2014. Mapping the global distribution of livestock. PLoS ONE 9: e96084. http://dx.doi.org/10.1371/journal.pone.0096084
