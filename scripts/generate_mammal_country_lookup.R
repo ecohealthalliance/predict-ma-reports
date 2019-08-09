@@ -1,9 +1,10 @@
 library(sf)
+library(tidyverse)
 h <- here::here
 
 # Establish countries of interest
 
-eha.countries <- eidith::eha_countries()[-c(10, 11)]
+eha.countries <- c(eidith::eha_countries()[-c(10, 11)], "Malaysia")
 
 # Import all terrestrial mammal shapefiles from IUCN
 
