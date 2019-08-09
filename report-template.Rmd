@@ -31,7 +31,7 @@ library(wesanderson)
 h <- here::here
 walk(list.files(h("R/"), full.names = TRUE),
      source, echo = FALSE, verbose = FALSE)
-country <- params$country
+report_country <- params$country
 ```
 
 ![](./media/predict-logos.png){width="100%"}
@@ -43,7 +43,8 @@ country <- params$country
 # Load EIDITH data tables
 
 e <- ed_events() %>% 
-  filter(country == !!params$country) # events filtered to country
+  mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
+  filter(country == !!report_country) # events filtered to country
 a <- ed_animals()
 s <- ed_specimens()
 t <- ed_tests()
@@ -52,7 +53,7 @@ ts <- ed_testspecimen()
 
 e2 <- ed2_events() %>%
   mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
-  filter(country == !!params$country) %>% # events filtered to country
+  filter(country == !!report_country) %>% # events filtered to country
   arrange(desc(integer_id)) %>%
   distinct(event_name, .keep_all = TRUE)
 a2 <- ed2_animals() %>% 
@@ -179,7 +180,7 @@ text.color <- "#787272"
 get_country_viruses(view = FALSE, animal_virus_summary) %>%
   left_join(., read_csv(h("data", "viral_species_country_lookup.csv")), 
             by = c(`Virus Name` = "viral_species")) %>%
-  mutate(country = ifelse(country == params$country, NA_character_, country)) %>%
+  mutate(country = ifelse(country == !!report_country, NA_character_, country)) %>%
   group_by_at(vars(-country)) %>%
   summarize("Concurrent Detections" = paste(unique(country), collapse = "\n")) %>%
   ungroup() %>%
@@ -329,7 +330,7 @@ species.to.exclude <- c("Rodentia")
 p2.associations <- animal_virus_summary %>%
   distinct(viral_species, species_scientific_name) %>%
   filter(viral_species %in% unique(hp3.associations$viral_species)) %>%
-  mutate(project = rep(paste("PREDICT-2", params$country), nrow(.))) %>%
+  mutate(project = rep(paste("PREDICT-2", country), nrow(.))) %>%
   filter(
     !str_detect(species_scientific_name, " sp."),
     !(species_scientific_name %in% species.to.exclude)
@@ -471,13 +472,13 @@ if(length(i.list) > 0) {
 
 The map below communicates two layers of information:
 
-1) Human and livestock population density in `r params$country`.  
+1) Human and livestock population density in `r report_country`.  
 
-2) Ranges of mammalian host species in which viruses have been detected in `r params$country` under PREDICT surveillance.
+2) Ranges of mammalian host species in which viruses have been detected in `r report_country` under PREDICT surveillance.
 
 To control the layers visable on the map, click the bottom left icon.  
 
--   This will bring up a list of viruses that have been detected in mammals in `r params$country`.  Click on a virus to see global ranges from the International Union for Conservation of Nature (IUCN) for the host species.  Hover over polygons to see the host species names. Points on the map show where the host species was sampled in `r params$country`.  Solid color circles indicate that the virus was detected in one or more specimen; circles filled with white indicate non-detects.  Hover over points to see counts of animals tested.
+-   This will bring up a list of viruses that have been detected in mammals in `r report_country`.  Click on a virus to see global ranges from the International Union for Conservation of Nature (IUCN) for the host species.  Hover over polygons to see the host species names. Points on the map show where the host species was sampled in `r report_country`.  Solid color circles indicate that the virus was detected in one or more specimen; circles filled with white indicate non-detects.  Hover over points to see counts of animals tested.
 
 -   At the bottom of the list, you can select whether to show the human population density map or the livestock density map, or you may elect to turn off both maps to more easily view the viral host range layers.  The human population density layer is estimated by the Center for International Earth Science Information Network (CIESIN), and the mammalian livestock density layer is based on a model developed by [Robinson et al. 2014](http://dx.doi.org/10.1371/journal.pone.0096084).
 
@@ -489,7 +490,7 @@ For easier viewing, you may use the icon on the top right to launch full-screen 
 ```{r get-map-data, include=FALSE}
 
 # Get administrative borders of countries of interest
-country_mod <-  mod_country(country) # for density rasters
+country_mod <-  mod_country(report_country) # for density rasters
 country_eha <-  mod_country(eidith::eha_countries()) %>% unique() # for range layers
 
 admin <- ne_countries(country = country_mod, type='countries', scale = 'large')
@@ -524,7 +525,7 @@ iucn <- iucn %>%
 
 # Viral-species pairs
 animal_viral_pairs <- read_csv(h("data", "viral_species_testing_by_host_and_site.csv")) %>%
-  filter(country == params$country,
+  filter(country == !!report_country,
          species_scientific_name %in% unique(iucn$binomial)) # only keep host species that have ranges
 
 viral.species.detected.in.country <- animal_viral_pairs %>% # identify specues with detects
@@ -692,7 +693,7 @@ mz <- read_csv(h("data", "hp3_zoo_predictions.csv")) %>%
   )
 
 mammals.in.country <- read_csv(h("data", "mammal_country_lookup.csv")) %>%
-  filter(country == params$country) %>%
+  filter(country == !!report_country) %>%
   pull(binomial)
 
 mz.subset <- filter(mz, species %in% mammals.in.country)
