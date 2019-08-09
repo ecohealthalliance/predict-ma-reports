@@ -17,8 +17,8 @@ library(base64enc)
 # # Encrypt token
 # cyphr::encrypt_file("token.rds", cyphr::key_sodium(base64decode(key64)), "token.rds.encrypted")
 
-token <- decrypt(readRDS("token.rds.encrypted"), key = key_sodium(base64decode(Sys.getenv("SODIUM_KEY"))))
-to_upload <- list.files("outputs", pattern = ".html", full.names = TRUE)
-for (f in to_upload) {
-  drop_upload(f, path  = "predict-ma-reports", dtoken = token, autorename = FALSE)
-}
+# token <- decrypt(readRDS("token.rds.encrypted"), key = key_sodium(base64decode(Sys.getenv("SODIUM_KEY"))))
+# to_upload <- list.files("outputs", pattern = ".html", full.names = TRUE)
+# for (f in to_upload) {
+#   drop_upload(f, path  = "predict-ma-reports", dtoken = token, autorename = FALSE)
+# }
