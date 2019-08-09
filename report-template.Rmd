@@ -330,7 +330,7 @@ species.to.exclude <- c("Rodentia")
 p2.associations <- animal_virus_summary %>%
   distinct(viral_species, species_scientific_name) %>%
   filter(viral_species %in% unique(hp3.associations$viral_species)) %>%
-  mutate(project = rep(paste("PREDICT-2", country), nrow(.))) %>%
+  mutate(project = rep(paste("PREDICT-2", report_country), nrow(.))) %>%
   filter(
     !str_detect(species_scientific_name, " sp."),
     !(species_scientific_name %in% species.to.exclude)
