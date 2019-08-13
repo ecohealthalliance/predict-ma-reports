@@ -1,7 +1,7 @@
 ---
 params:
   country: "Thailand"
-title: 'PREDICT M&A Report: `r params$country`'
+title: 'EcoHealth Alliance PREDICT M&A Report: `r params$country`'
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -35,6 +35,8 @@ report_country <- params$country
 ```
 
 ![](./media/predict-logos.png){width="100%"}
+
+This report is meant to provide a broad overview of in-country PREDICT-2 viral findings in animals. **Human viral findings are not addressed here** but rather will be covered by Behavioral Risk outputs and data summaries. Please note that, where relevant, information about viral findings in other countries are provided for general context only and constitute **government-approved data** such as can also be found on [HealthMap](https://www.healthmap.org/predict/).
 
 #### _Click on the_ ▶ _︎arrows to expand sections._
 
@@ -157,8 +159,8 @@ This table provides an overview of all in-country viral findings. For each uniqu
 
 animal.grouping.vars <-
   c("country", "concurrent_sampling_site", "site_name",
-    "human_density_impact", "taxa_group_mod", 
-    "species_scientific_name", "test_requested", "viral_species")
+    "human_density_impact", "taxa_group_mod", "class",
+    "species_scientific_name", "test_requested", "viral_species", "human_threat")
 
 animal_virus_summary <- d2 %>%
   filter(!is.na(viral_species)) %>%
@@ -188,6 +190,7 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
     `Concurrent Detections` = str_replace(`Concurrent Detections`, "NA\n", ""),
     `Concurrent Detections` = str_replace(`Concurrent Detections`, "\nNA", "")
   ) %>%
+  rename(`Concurrent Detections\n(Gov. Approved)` = `Concurrent Detections`) %>%
   arrange(`Viral Test Type`, `Virus Name`) %>%
   mutate_all(
     cell_spec, format = "html", 
@@ -328,13 +331,15 @@ hp3.associations <- read_csv(h("data", "associations.csv")) %>%
 species.to.exclude <- c("Rodentia")
 
 p2.associations <- animal_virus_summary %>%
-  distinct(viral_species, species_scientific_name) %>%
+  distinct(viral_species, class, species_scientific_name) %>%
   filter(viral_species %in% unique(hp3.associations$viral_species)) %>%
   mutate(project = rep(paste("PREDICT-2", report_country), nrow(.))) %>%
   filter(
+    class == "Mammalia",
     !str_detect(species_scientific_name, " sp."),
     !(species_scientific_name %in% species.to.exclude)
-  )
+  ) %>%
+  select(-class)
 
 full.association.table <- hp3.associations %>%
   select(viral_species, species_scientific_name, project) %>%
@@ -350,7 +355,7 @@ full.association.table <- hp3.associations %>%
 <details>
 <summary><font size="+1.5"><b>Expansion of Known Viral Host Range</b></font></summary>
 
-To examine the expansion of viral host range as a result of in-country PREDICT-2 sampling, here we show previously known viruses, as recorded in the host-virus association dataset of [Olival et al. 2017](https://www.nature.com/articles/nature22975). The number of known hosts for each virus are visualized, with hosts newly discovered as part of PREDICT sampling efforts indicated by the red portion of each bar.
+To examine the expansion of viral host range in mammals as a result of in-country PREDICT-2 sampling, here we show previously known viruses, as recorded in the host-virus association dataset of [Olival et al. 2017](https://www.nature.com/articles/nature22975). The number of known mammalian hosts for each virus are visualized, with hosts newly discovered as part of PREDICT sampling efforts indicated by the red portion of each bar.
 
 ```{r viral-host-range, fig.align = "center", fig.height = 8, fig.width = 12}
 
