@@ -70,7 +70,7 @@ get_country_viruses <- function(view = FALSE, animal_virus_summary) {
   tmp <- animal_virus_summary %>%
     arrange(test_requested, viral_species, taxa_group_mod, species_scientific_name, site_name) %>%
     filter(!is.na(viral_species)) %>%
-    group_by(viral_species, test_requested) %>%
+    group_by(viral_species, test_requested, human_threat) %>%
     summarize(
       n_detections = sum(n_positives),
       taxa_groups = paste(unique(taxa_group_mod), collapse = "\n"),
@@ -79,8 +79,8 @@ get_country_viruses <- function(view = FALSE, animal_virus_summary) {
     ) %>%
     ungroup()
 
-  colnames(tmp) <- c("Virus Name", "Viral Test Type", "Number of Detections",
-                     "Taxa Groups", "Species Names", "Site Names")
+  colnames(tmp) <- c("Virus Name", "Viral Test Type", "Known Human Threat?",
+                     "Number of Detections", "Taxa Groups", "Species Names", "Site Names")
 
   ifelse(view == TRUE,
          return(datatable_(tmp)),
