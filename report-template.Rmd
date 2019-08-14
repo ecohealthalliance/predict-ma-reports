@@ -771,9 +771,16 @@ mz <- read_csv(h("data", "hp3_zoo_predictions.csv")) %>%
   arrange(desc(pred_mean)) %>%
   mutate(
     relative_zoonoses = case_when(
-      pred_mean > quantile(pred_mean, c(0.33, 0.66))[2] ~ "High",
-      pred_mean < quantile(pred_mean, c(0.33, 0.66)[1]) ~ "Low",
-      TRUE ~ "Medium"
+      pred_mean > quantile(pred_mean, 0.9) ~ "Top 10% of all mammals",
+      pred_mean > quantile(pred_mean, 0.8) ~ "Top 20% of all mammals",
+      pred_mean > quantile(pred_mean, 0.7) ~ "Top 30% of all mammals",
+      pred_mean > quantile(pred_mean, 0.6) ~ "Top 40% of all mammals",
+      pred_mean > quantile(pred_mean, 0.5) ~ "Top 50% of all mammals",
+      pred_mean > quantile(pred_mean, 0.4) ~ "Bottom 50% of all mammals",
+      pred_mean > quantile(pred_mean, 0.3) ~ "Bottom 40% of all mammals",
+      pred_mean > quantile(pred_mean, 0.2) ~ "Bottom 30% of all mammals",
+      pred_mean > quantile(pred_mean, 0.1) ~ "Bottom 20% of all mammals",
+      pred_mean > quantile(pred_mean, 0) ~ "Bottom 10% of all mammals"
     )
   )
 
@@ -843,7 +850,7 @@ mz.subset %>%
     datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
-              pageLength = 5
+              pageLength = 20
             )
   )
 ```
