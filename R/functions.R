@@ -121,7 +121,7 @@ get_country_site_viruses2 <- function(view = FALSE, animal_virus_summary) {
     ungroup()
 
   colnames(tmp) <- c("Site Name", "Concurrent Site Status", "Disease Transmission Interfaces", "Human Density Impact",
-                     "Unique Viruses", "Virus Names", "Number of Detections",
+                     "Unique Viruses", "Virus Names", "No. Detections",
                      "No. Taxa Groups", "Taxa Groups", "No. Species", "Species")
 
   ifelse(view == TRUE,
