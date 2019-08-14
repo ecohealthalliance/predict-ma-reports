@@ -206,9 +206,9 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
 
 Building from the viral summary table above, this heatmap provides more granular information about sampling effort and detection rates across the five priority PREDICT-2 viral groups: Coronaviruses, Filoviruses, Flaviviruses, Influenzas, and Paramyxoviruses. Data shown within the heatmap represent numbers of viral PCR tests. Host taxa sampled are summarized to the genus-level, and taxa groups are indicated in parentheses. The intensity of red color within the heatmap scales with viral detection rate. Host taxa that never yielded positive viral tests for a given viral group are shown in white, while red coloration indicates increasingly higher rates of viral detection.
 
-```{r heatmap, fig.align = "center", fig.width = 10}
+```{r heatmaps, fig.align = "center", fig.width = 10}
 
-# Plot country-level heat maps of viral detections in specimens
+# Plot country-level heat maps of viral detections in specimens by animal group
 
 tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
                        "Influenzas", "Paramyxoviruses")
@@ -264,7 +264,7 @@ horizontal.breaks <- horizontal.breaks[horizontal.breaks != nrow(tmp2)]
 horizontal.breaks <- nrow(tmp2) - horizontal.breaks
 horizontal.breaks <- horizontal.breaks + 0.5
 
-tmp %>%
+heatmap1 <- tmp %>%
   ggplot(aes(
     x = test_requested, 
     y = genus
@@ -284,6 +284,71 @@ tmp %>%
     text = element_text(size = 13),
     axis.title.y = element_blank()
   )
+
+# Plot country-level heat maps of viral detections in specimens by interface
+
+tmp <- d2 %>%
+  mutate(
+    disease_transmission_interfaces = 
+      str_replace(disease_transmission_interfaces, 
+                  "dwellings and temporary settlements",
+                  "dwellings"),
+    disease_transmission_interfaces = 
+      str_replace(disease_transmission_interfaces, 
+                  "outbreak investigation",
+                  "outbreak"),
+    disease_transmission_interfaces = 
+      str_replace(disease_transmission_interfaces, 
+                  "zoos and sanctuaries",
+                  "zoos/sanctuaries")
+  ) %>%
+  filter(
+    test_requested %in% tests.of.interest,
+    test_type == "Conventional PCR"
+  ) %>%
+  arrange(gains4_test_id, desc(virus_detected)) %>%
+  distinct(gains4_test_id, .keep_all = TRUE) %>%
+  group_by(disease_transmission_interfaces, test_requested) %>%
+  summarize(
+    n_tests = n_distinct(gains4_test_id),
+    n_positives = sum(virus_detected, na.rm = TRUE),
+    prop = n_positives/n_tests,
+    prop.num.for.plot = ifelse(prop == 0, prop, prop + 0.1),
+    percent = round(n_positives/n_tests*100, digits = 1),
+    percent_mod = paste0(percent, "% (", n_tests, ")")
+  ) %>%
+  ungroup() %>%
+  filter(!is.na(disease_transmission_interfaces)) %>%
+  arrange(disease_transmission_interfaces) %>%
+  mutate(
+    disease_transmission_interfaces = 
+      factor(disease_transmission_interfaces, rev(unique(disease_transmission_interfaces)))
+  )
+
+heatmap2 <- tmp %>%
+  ggplot(aes(
+    x = test_requested, 
+    y = disease_transmission_interfaces
+  )) +
+  xlab("Viral Test Type") +
+  scale_x_discrete(position = "top") +
+  geom_tile(aes(fill = log(1 + prop.num.for.plot)), color = "lightgray") +
+  geom_text(aes(label = percent_mod)) +
+  scale_fill_gradientn(colors = c("white", "firebrick"), limits = c(0, 0.75)) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = "none",
+    axis.text.x = element_text(size = 14),
+    axis.title.x = element_text(color = "white"),
+    text = element_text(size = 13),
+    axis.title.y = element_blank()
+  )
+
+g1 <- ggplotGrob(heatmap1)
+g2 <- ggplotGrob(heatmap2)
+grid::grid.newpage()
+grid::grid.draw(rbind(g1, g2))
 ```
 </details>
 
