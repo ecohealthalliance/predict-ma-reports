@@ -33,6 +33,7 @@ h <- here::here
 walk(list.files(h("R/"), full.names = TRUE),
      source, echo = FALSE, verbose = FALSE)
 report_country <- params$country
+cb_palette <- c("#D55E00", "#009E73", "#999999", "#E69F00", "#56B4E9")
 ```
 
 ![](./media/predict-logos.png){width="100%"}
@@ -378,7 +379,8 @@ get_country_site_viruses2(view = FALSE, animal_virus_summary) %>%
     datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
-              pageLength = 5
+              pageLength = 5,
+              scrollX = TRUE
             )
   )
 ```
@@ -442,7 +444,7 @@ To examine the expansion of viral host range in mammals as a result of in-countr
 axis.title.size <- 22
 axis.text.size <- 16
 legend.text.size <- 18
-template.colors <- wes_palette("Darjeeling1")[c(1, 3, 5)]
+template.colors <- cb_palette[c(1, 5, 3)]
 plot.colors <- if(sum(str_detect(full.association.table$project, " and ")) > 0) {
   template.colors
 } else {
@@ -534,7 +536,7 @@ if(length(i.list) > 0) {
   axis.title.size <- 28
   axis.text.size <- 22
   legend.text.size <- 22
-  template.colors <- wes_palette("Darjeeling1")[c(1:3, 5)]
+  template.colors <- cb_palette[c(1:3, 5)]
   plot.colors <- template.colors[tests.of.interest %in% names(i.list)]
   
   ggiNEXT(i.out) +
@@ -841,7 +843,7 @@ mz.subset %>%
   ) %>%
   rename(
     `Host Species` = species,
-    `Relative No. of Unobserved Zoonotic Viruses` = relative_zoonoses,
+    `Predicted No. of Unobserved Zoonotic Viruses` = relative_zoonoses,
     `No. of Specimens Collected` = specimen_count,
     `Viruses Detected In-Country?` = viruses_detected
   ) %>%
