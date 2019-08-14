@@ -14,6 +14,7 @@ editor_options:
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 library(CoordinateCleaner)
 library(countrycode)
+library(cowplot)
 library(DT)
 library(eidith)
 library(glue)
@@ -150,7 +151,7 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
 
 ### Section 1: Summary of Viral Findings
 
-<details>
+<details open>
 <summary><font size="+1.5"><b>Virus-Level Summary Table</b></font></summary>
 
 This table provides an overview of all in-country viral findings. For each unique virus detected, the table indicates the number of detections, the host taxa in which these detections occurred, and the associated sites. Finally, to add broader context to viral findings, the final column of the table lists other PREDICT-2 countries in which the same virus was found, highlighting the potential geographic range of the pathogen.
@@ -196,8 +197,14 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
     cell_spec, format = "html", 
     bold = TRUE, color = text.color
   ) %>%
-  kable(escape = FALSE, align = "c") %>%
-  kable_styling(fixed_thead = TRUE)
+  # kable(escape = FALSE, align = "c") %>%
+  # kable_styling(fixed_thead = TRUE)
+  datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+            options = list(
+              columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
+              pageLength = 5
+            )
+  )
 ```
 </details>
 
@@ -206,14 +213,14 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
 
 Building from the viral summary table above, this heatmap provides more granular information about sampling effort and detection rates across the five priority PREDICT-2 viral groups: Coronaviruses, Filoviruses, Flaviviruses, Influenzas, and Paramyxoviruses. Data shown within the heatmap represent numbers of viral PCR tests. Host taxa sampled are summarized to the genus-level, and taxa groups are indicated in parentheses. The intensity of red color within the heatmap scales with viral detection rate. Host taxa that never yielded positive viral tests for a given viral group are shown in white, while red coloration indicates increasingly higher rates of viral detection.
 
-```{r heatmaps, fig.align = "center", fig.width = 10}
+```{r heatmaps-prep}
 
 # Plot country-level heat maps of viral detections in specimens by animal group
 
 tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
                        "Influenzas", "Paramyxoviruses")
 
-tmp <- d2 %>%
+tmp1 <- d2 %>%
   mutate(
     family = case_when(
       is.na(family) ~ "Unknown",
@@ -250,21 +257,21 @@ tmp <- d2 %>%
     genus = factor(genus, rev(unique(genus)))
   )
 
-tmp2 <- distinct(tmp, genus, taxa_group_mod)
+tmp1_mod <- distinct(tmp1, genus, taxa_group_mod)
 
 horizontal.breaks <- c()
 
-for(i in unique(tmp2$taxa_group_mod)) {
+for(i in unique(tmp1_mod$taxa_group_mod)) {
   
   horizontal.breaks <- 
-    c(horizontal.breaks, max(which(tmp2$taxa_group_mod == i)))
+    c(horizontal.breaks, max(which(tmp1_mod$taxa_group_mod == i)))
 }
 
-horizontal.breaks <- horizontal.breaks[horizontal.breaks != nrow(tmp2)]
-horizontal.breaks <- nrow(tmp2) - horizontal.breaks
+horizontal.breaks <- horizontal.breaks[horizontal.breaks != nrow(tmp1_mod)]
+horizontal.breaks <- nrow(tmp1_mod) - horizontal.breaks
 horizontal.breaks <- horizontal.breaks + 0.5
 
-heatmap1 <- tmp %>%
+heatmap1 <- tmp1 %>%
   ggplot(aes(
     x = test_requested, 
     y = genus
@@ -287,7 +294,7 @@ heatmap1 <- tmp %>%
 
 # Plot country-level heat maps of viral detections in specimens by interface
 
-tmp <- d2 %>%
+tmp2 <- d2 %>%
   mutate(
     disease_transmission_interfaces = 
       str_replace(disease_transmission_interfaces, 
@@ -325,7 +332,7 @@ tmp <- d2 %>%
       factor(disease_transmission_interfaces, rev(unique(disease_transmission_interfaces)))
   )
 
-heatmap2 <- tmp %>%
+heatmap2 <- tmp2 %>%
   ggplot(aes(
     x = test_requested, 
     y = disease_transmission_interfaces
@@ -340,15 +347,17 @@ heatmap2 <- tmp %>%
     panel.grid = element_blank(),
     legend.position = "none",
     axis.text.x = element_text(size = 14),
-    axis.title.x = element_text(color = "white"),
+    axis.title.x = element_blank(),
     text = element_text(size = 13),
     axis.title.y = element_blank()
   )
 
-g1 <- ggplotGrob(heatmap1)
-g2 <- ggplotGrob(heatmap2)
-grid::grid.newpage()
-grid::grid.draw(rbind(g1, g2))
+fig.height <- sum(nrow(tmp1) + nrow(tmp2))/16
+```
+
+```{r heatmaps-plot, fig.align = "center", fig.width = 10, fig.height = fig.height}
+
+plot_grid(heatmap1, heatmap2, nrow = 2, align = "v", rel_heights = c(nrow(tmp1), nrow(tmp2)))
 ```
 </details>
 
@@ -364,8 +373,14 @@ get_country_site_viruses2(view = FALSE, animal_virus_summary) %>%
     cell_spec, format = "html", 
     bold = TRUE, color = text.color
   ) %>%
-  kable(escape = FALSE, align = "c") %>%
-  kable_styling(fixed_thead = TRUE)
+  # kable(escape = FALSE, align = "c") %>%
+  # kable_styling(fixed_thead = TRUE) %>%
+    datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+            options = list(
+              columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
+              pageLength = 5
+            )
+  )
 ```
 </details>
 
@@ -823,8 +838,14 @@ mz.subset %>%
     `No. of Specimens Collected` = specimen_count,
     `Viruses Detected In-Country?` = viruses_detected
   ) %>%
-  kable(escape = FALSE, align = "c") %>%
-  kable_styling(fixed_thead = TRUE)
+  # kable(escape = FALSE, align = "c") %>%
+  # kable_styling(fixed_thead = TRUE) %>%
+    datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+            options = list(
+              columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
+              pageLength = 5
+            )
+  )
 ```
 </details>
 
