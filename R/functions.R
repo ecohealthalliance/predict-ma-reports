@@ -108,7 +108,7 @@ get_country_site_viruses2 <- function(view = FALSE, animal_virus_summary) {
   tmp <- animal_virus_summary %>%
     arrange(site_name, viral_species, taxa_group_mod, species_scientific_name) %>%
     filter(!is.na(site_name)) %>%
-    group_by(site_name, concurrent_sampling_site, human_density_impact) %>%
+    group_by(site_name, concurrent_sampling_site, disease_transmission_interfaces, human_density_impact) %>%
     summarize(
       n_viruses = length(unique(viral_species)),
       viruses = paste(unique(viral_species), collapse = "\n"),
@@ -120,7 +120,7 @@ get_country_site_viruses2 <- function(view = FALSE, animal_virus_summary) {
     ) %>%
     ungroup()
 
-  colnames(tmp) <- c("Site Name", "Concurrent Site Status", "Human Density Impact",
+  colnames(tmp) <- c("Site Name", "Concurrent Site Status", "Disease Transmission Interfaces", "Human Density Impact",
                      "Unique Viruses", "Virus Names", "Number of Detections",
                      "No. Taxa Groups", "Taxa Groups", "No. Species", "Species")
 
