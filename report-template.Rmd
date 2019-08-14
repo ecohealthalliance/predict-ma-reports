@@ -36,6 +36,12 @@ report_country <- params$country
 cb_palette <- c("#D55E00", "#009E73", "#999999", "#E69F00", "#56B4E9")
 ```
 
+<script>
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+
 ![](./media/predict-logos.png){width="100%"}
 
 **This report is meant to provide a broad overview of `r report_country` PREDICT-2 viral findings in animals, and present those findings with additional data and analyses to help understand viral host range, geographic risk, and future sampling targets for your country.** *Human viral findings are not addressed here*. Behavioral Risk outputs and data summaries are available via other tools and the Interim Data Review (IDR) report on EIDITH. Additional summaries of `r report_country` surveillance data can also be found via the Surveillance Activities and Risk Characterization reports on EIDITH. This report include all `r report_country` animal data currently available in EIDITH, both government-approved and pending approval, and is designed for country-coordinators and country teams to explore their data further. Please note that, where relevant, information about viral detections in *other countries* are provided for general context and **only include government-approved data** as already publically available on [HealthMap](https://www.healthmap.org/predict/). 
@@ -160,9 +166,9 @@ This table provides an overview of all `r report_country` viral findings in anim
 ```{r tables-1}
 
 animal.grouping.vars <-
-  c("country", "concurrent_sampling_site", "site_name", "disease_transmission_interfaces",
-    "human_density_impact", "taxa_group_mod", "class",
-    "species_scientific_name", "test_requested", "viral_species", "human_threat")
+  c("country", "concurrent_sampling_site", "site_name", "disease_transmission_interfaces", "human_density_impact", 
+    "class", "taxa_group_mod", "species_scientific_name", 
+    "test_requested", "viral_species", "human_threat", "interpretation")
 
 animal_virus_summary <- d2 %>%
   filter(!is.na(viral_species)) %>%
@@ -190,14 +196,23 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
   ungroup() %>%
   mutate(
     `Concurrent Detections` = str_replace(`Concurrent Detections`, "NA\n", ""),
-    `Concurrent Detections` = str_replace(`Concurrent Detections`, "\nNA", "")
+    `Concurrent Detections` = str_replace(`Concurrent Detections`, "\nNA", ""),
+    `Known Human Threat?` = ifelse(`Known Human Threat?` == "yes", "yes\n(scroll over for details)", `Known Human Threat?`)
   ) %>%
   rename(`Concurrent Detections\n(Gov. Approved)` = `Concurrent Detections`) %>%
   arrange(`Viral Test Type`, `Virus Name`) %>%
-  mutate_all(
+  mutate_at(
+    vars(-interpretation),
     cell_spec, format = "html", 
     bold = TRUE, color = text.color
   ) %>%
+  mutate(
+    `Known Human Threat?` = 
+      ifelse(str_detect(`Known Human Threat?`, "yes"), 
+             str_replace(`Known Human Threat?`, "<span ", paste("<span data-toggle = 'tooltip' data-placement = 'top' title = '", interpretation, "' ")),
+             `Known Human Threat?`)
+  ) %>%
+  select(-interpretation) %>%
   # kable(escape = FALSE, align = "c") %>%
   # kable_styling(fixed_thead = TRUE)
   datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
@@ -563,7 +578,7 @@ The map below communicates two layers of information:
 
 2) Ranges of mammal host species in which viruses have been detected in `r report_country` under PREDICT surveillance.
 
-**To control the layers visable on the map, click the bottom left icon.**  
+**To control the layers visible on the map, click the bottom left icon.**  
 
 -   This will bring up a list of viruses that have been detected in mammals in `r report_country`.  Click on a virus to see global ranges from the International Union for Conservation of Nature (IUCN) for the host species positive for that virus.  Hover your cursor over geographic ranges to see the host species names. Points (circles) on the map show where the host species was sampled in `r report_country`.  Solid color circles indicate that the virus was detected in one or more specimen; circles filled with white indicate the virus was not detected.  Hover over points to see counts of animals tested at each site.
 
@@ -819,13 +834,8 @@ assertthat::assert_that(length(species.sampled.in.country) == nrow(specimen.coun
 mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_scientific_name"))
 ```
 
-<<<<<<< HEAD
-<details>
-<summary><font size="+1.5"><b>Sampling Prioritization Based on Predicted 'Missing' Zoonoses</b></font></summary>
-=======
 <details open>
-<summary><font size="+1.5"><b>Sampling Prioritization Based on Missing Zoonoses</b></font></summary>
->>>>>>> d1ade8d678dc637c45432f1bdcbcf1397c322121
+<summary><font size="+1.5"><b>Sampling Prioritization Based on Predicted 'Missing' Zoonoses</b></font></summary>
 
 To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). This PREDICT-funded study used a series of mammal host traits to predict the as-of-yet undiscovered (or "missing") viral diversity in mammals. We extended a version of the "missing zoonoses" model from that paper to all mammals, and rank all mammal species based on their probability for harboring the next zoonoses. Below we list all mammal species occurring in `r report_country` and rank them based on model-based estimates of the number of predicted unobserved zoonotic viruses. We have converted these quantitative estimates into broad risk categories here to simplify surveillance prioritization and interpretation. Host species already sampled in-country for PREDICT-2 are indicated in green, along with the number of specimens collected from that species. Host species not yet sampled in `r report_country` under PREDICT-2 efforts, and therefore of possible interest for future viral surveillance work, are highlighted in red.
 

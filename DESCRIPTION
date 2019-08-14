@@ -31,4 +31,5 @@ Depends:
     tidyverse,
     wesanderson
 Remotes:
-    ecohealthalliance/eidith
+    ecohealthalliance/eidith,
+    wilkelab/cowplot
