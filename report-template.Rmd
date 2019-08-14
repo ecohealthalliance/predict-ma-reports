@@ -152,8 +152,13 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
 
 ### Section 1: Summary of Viral Findings
 
-<details open>
-<summary><font size="+1.5"><b>Virus-Level Summary Table</b></font></summary>
+#### Virus-Level Summary Table 
+
+<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#vir-sum-table" aria-expanded="false" aria-controls="vir-sum-table">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="vir-sum-table">
 
 This table provides an overview of all in-country viral findings. For each unique virus detected, the table indicates the number of detections, the host taxa in which these detections occurred, and the associated sites. Finally, to add broader context to viral findings, the final column of the table lists other PREDICT-2 countries in which the same virus was found, highlighting the potential geographic range of the pathogen.
 
@@ -207,10 +212,15 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
             )
   )
 ```
-</details>
+</div>
 
-<details>
-<summary><font size="+1.5"><b>Viral Testing Heatmap</b></font></summary>
+#### Viral Testing Heatmap 
+
+<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#vir-test-heatmap" aria-expanded="false" aria-controls="vir-test-heatmap">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="vir-test-heatmap">
 
 Building from the viral summary table above, this heatmap provides more granular information about sampling effort and detection rates across the five priority PREDICT-2 viral groups: Coronaviruses, Filoviruses, Flaviviruses, Influenzas, and Paramyxoviruses. Data shown within the heatmap represent numbers of viral PCR tests. Host taxa sampled are summarized to the genus-level, and taxa groups are indicated in parentheses. The intensity of red color within the heatmap scales with viral detection rate. Host taxa that never yielded positive viral tests for a given viral group are shown in white, while red coloration indicates increasingly higher rates of viral detection.
 
@@ -360,10 +370,16 @@ fig.height <- sum(nrow(tmp1) + nrow(tmp2))/16
 
 plot_grid(heatmap1, heatmap2, nrow = 2, align = "v", rel_heights = c(nrow(tmp1), nrow(tmp2)))
 ```
-</details>
+</div>
 
-<details open>
-<summary><font size="+1.5"><b>Site-Level Summary Table</b></font></summary>
+#### Site-Level Summary Table
+
+<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#site-sum-table" aria-expanded="false" aria-controls="site-sum-table">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="site-sum-table">
+
 
 This table provides a site-level overview of in-country PREDICT-2 viral surveillance. For each site, the table outlines basic site characteristics as well as the total number of viruses and host taxa sampled from that site. 
 
@@ -466,7 +482,7 @@ full.association.table %>%
         legend.text = element_text(size = legend.text.size),
         legend.position = "bottom")
 ```
-</details>
+</div>
 
 ```{r viral-curves-prep, include = FALSE}
 
@@ -522,8 +538,14 @@ if(length(i.list) > 1) {x <- i.list}
 if(length(i.list) > 0) {i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")}
 ```
 
-<details>
-<summary><font size="+1.5"><b>Viral Discovery Curves</b></font></summary>
+
+#### Viral Discovery Curves
+
+<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#vir-disc-curves" aria-expanded="false" aria-controls="vir-disc-curves">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="vir-disc-curves">
 
 To provide model-based estimates of viral sampling completeness within country, here we generate viral discovery curves across four of the five priority PREDICT-2 viral groups. We have excluded influenza testing from this analysis since only one influenza species (Influenza A) was recovered globally in PREDICT-2. In order to preserve interpretability among curves, we have restricted the data included in this portion of the report. Specifically, we report only on specimens that were tested for the same viral test protocol within each viral test type. The viral test protocols considered here are: `r glue_collapse(paste0(protocols.of.interest, " (", tests.of.interest, ")"), sep = "; ")`. Thus, every specimen included in the figure was tested only once, with the viral test protocol indicated, for each viral test type.
 
@@ -553,7 +575,7 @@ if(length(i.list) > 0) {
           legend.position = "bottom")
 }
 ```
-</details>
+</div>
 
 ### Section 2: Viral Host Ranges and Risk Maps
 
@@ -819,8 +841,13 @@ assertthat::assert_that(length(species.sampled.in.country) == nrow(specimen.coun
 mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_scientific_name"))
 ```
 
-<details open>
-<summary><font size="+1.5"><b>Sampling Prioritization Based on Missing Zoonoses</b></font></summary>
+#### Sampling Prioritization Based on Missing Zoonoses
+
+<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#miss-zoo" aria-expanded="false" aria-controls="miss-zoo">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="miss-zoo">
 
 To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). Using a simplified version of the "missing zoonoses" model from that paper, we generated a list of host species occurring in-country and corresponding model-based estimates of the number of predicted unobserved zoonotic viruses residing in those hosts. These quantitative estimates, which are likely to be underestimates of true unobserved viral diversity, have been converted into broad risk categories here to simplify surveillance prioritization. Further, species are color-coded according to PREDICT-2 sampling history. Host species already sampled in-country for PREDICT-2 are indicated in green, along with the number of specimens collected from that species. Host species not sampled in PREDICT-2, and therefore of possible interest for future viral surveillance work, are highlighted in red.
 
@@ -856,7 +883,7 @@ mz.subset %>%
             )
   )
 ```
-</details>
+</div>
 
 # References
 
