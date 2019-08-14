@@ -46,7 +46,7 @@ $(function () {
 
 **This report is meant to provide a broad overview of `r report_country` PREDICT-2 viral findings in animals, and present those findings with additional data and analyses to help understand viral host range, geographic risk, and future sampling targets for your country.** *Human viral findings are not addressed here*. Behavioral Risk outputs and data summaries are available via other tools and the Interim Data Review (IDR) report on EIDITH. Additional summaries of `r report_country` surveillance data can also be found via the Surveillance Activities and Risk Characterization reports on EIDITH. This report include all `r report_country` animal data currently available in EIDITH, both government-approved and pending approval, and is designed for country-coordinators and country teams to explore their data further. Please note that, where relevant, information about viral detections in *other countries* are provided for general context and **only include government-approved data** as already publically available on [HealthMap](https://www.healthmap.org/predict/). 
 
-#### _Click on the_ ▶ _︎arrows to expand sections._
+#### _Click on the "Expand / Collapse" buttons to expand sections._
 
 ```{r read-data, include = FALSE}
 
@@ -158,9 +158,14 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
 
 ### Section 1: Summary of Viral Findings
 
-<details open>
-<summary><font size="+1.5"><b>Virus-Level Summary Table</b></font></summary>
+#### Virus-Level Summary Table 
 
+<button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#vir-sum-table" aria-expanded="false" aria-controls="vir-sum-table" color="grey">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="vir-sum-table">
+\newline
 This table provides an overview of all `r report_country` viral findings in animals. For each unique virus detected in-country, the table indicates the number of times it was detected, the host taxonomic groups and species in which these detections occurred, and the associated sites. Finally, to add broader context to viral findings beyond `r report_country`'s borders, the final column of the table lists other PREDICT-2 countries in which the same virus was found and approved for government release, highlighting the potential geographic range of each virus.
 
 ```{r tables-1}
@@ -219,14 +224,20 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
               pageLength = 5
-            )
+            ),
+            callback = JS("$(function () {$('[data-toggle=\"tooltip\"]').tooltip()})")
   )
 ```
-</details>
+</div>
 
-<details>
-<summary><font size="+1.5"><b>Viral Testing Heatmap</b></font></summary>
+#### Viral Testing Heatmap
 
+<button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#vir-test-heatmap" aria-expanded="false" aria-controls="vir-test-heatmap" color="grey">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="vir-test-heatmap">
+\newline
 Building from the viral summary table above, this heatmap provides more granular information about sampling effort and detection rates across the five priority PREDICT-2 viral groups: Coronaviruses, Filoviruses, Flaviviruses, Influenzas, and Paramyxoviruses. Data are summarized at a host genus level, and broad taxonomic groups are shown in parentheses. Data within the heatmap shows the percentage of viral detections that were confirmed positive (%) and the number of PCR tests conducted (in parentheses). The intensity of red color within the heatmap scales with viral detection rate. Host taxa that never yielded positive viral tests for a given viral group are shown in white, while red coloration indicates increasingly higher rates of viral detection.
 
 ```{r heatmaps-prep}
@@ -375,11 +386,16 @@ fig.height <- sum(nrow(tmp1) + nrow(tmp2))/16
 
 plot_grid(heatmap1, heatmap2, nrow = 2, align = "v", rel_heights = c(nrow(tmp1), nrow(tmp2)))
 ```
-</details>
+</div>
 
-<details open>
-<summary><font size="+1.5"><b>Site-Level Summary Table</b></font></summary>
+#### Site-Level Summary Table
 
+<button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#site-sum-table" aria-expanded="false" aria-controls="site-sum-table" color="grey">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="site-sum-table">
+\newline
 This table provides a site-level overview of `r report_country` PREDICT-2 viral detections. For each site, the table outlines basic site characteristics as well as a summary of the viruses found and host species that were positive from each site. 
 
 ```{r tables-2}
@@ -399,7 +415,7 @@ get_country_site_viruses2(view = FALSE, animal_virus_summary) %>%
             )
   )
 ```
-</details>
+</div>
 
 ```{r viral-host-range-prep, include = FALSE}
 
@@ -449,9 +465,14 @@ full.association.table <- hp3.associations %>%
   mutate(project = as.factor(project))
 ```
 
-<details>
-<summary><font size="+1.5"><b>Expansion of Known Virus Host Range</b></font></summary>
+#### Expansion of Known Virus Host Range
 
+<button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#vir-range-fig" aria-expanded="false" aria-controls="vir-range-fig" color="grey">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="vir-range-fig">
+\newline
 This table shows the expansion in the number of recognized mammal host species for previously-described viruses as a result of `r report_country` PREDICT-2 sampling. One plot is shown for each previously-described (known) virus, i.e. those named by the International Committee on the Taxonomy of Viruses 8th edition. Previously known host species for each virus are from the dataset of [Olival et al. 2017](https://www.nature.com/articles/nature22975). The number of mammalian hosts for each virus are visualized using stacked bar plots, showing the number of pre-PREDICT-2 recognized host species (blue portion), the number of known host species also found positive by PREDICT-2 `r report_country` (yellow portion), and number of *newly recognized host species* as part of PREDICT-2 `r report_country` sampling efforts (red portion).
 
 ```{r viral-host-range, fig.align = "center", fig.height = 8, fig.width = 12}
@@ -481,7 +502,7 @@ full.association.table %>%
         legend.text = element_text(size = legend.text.size),
         legend.position = "bottom")
 ```
-</details>
+</div>
 
 ```{r viral-curves-prep, include = FALSE}
 
@@ -537,9 +558,14 @@ if(length(i.list) > 1) {x <- i.list}
 if(length(i.list) > 0) {i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")}
 ```
 
-<details>
-<summary><font size="+1.5"><b>Viral Discovery Curves</b></font></summary>
+#### Viral Discovery Curves
 
+<button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#vir-disc-curves" aria-expanded="false" aria-controls="vir-disc-curves" color="grey">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="vir-disc-curves">
+\newline
 To provide model-based estimates of viral sampling completeness within country, here we generate viral discovery curves across four of the five priority PREDICT-2 viral groups. We have excluded influenza testing from this analysis since only one influenza species (Influenza A) was recovered globally in PREDICT-2. In order to preserve interpretability among curves, we have restricted the data included in this portion of the report. Specifically, we report only on specimens that were tested for the same viral test protocol within each viral test type. The viral test protocols considered here are: `r glue_collapse(paste0(protocols.of.interest, " (", tests.of.interest, ")"), sep = "; ")`. Thus, every specimen included in the figure was tested only once, with the viral test protocol indicated, for each viral test type.
 
 ```{r, viral-curves-plot, fig.align = "center", fig.height = 6, fig.width = 8}
@@ -568,7 +594,7 @@ if(length(i.list) > 0) {
           legend.position = "bottom")
 }
 ```
-</details>
+</div>
 
 ### Section 2: Viral Host Ranges and Risk Maps
 
@@ -834,9 +860,14 @@ assertthat::assert_that(length(species.sampled.in.country) == nrow(specimen.coun
 mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_scientific_name"))
 ```
 
-<details open>
-<summary><font size="+1.5"><b>Sampling Prioritization Based on Predicted 'Missing' Zoonoses</b></font></summary>
+#### Sampling Prioritization Based on Predicted 'Missing' Zoonoses
 
+<button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#miss-zoo" aria-expanded="false" aria-controls="miss-zoo" color="grey">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="miss-zoo">
+\newline
 To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). This PREDICT-funded study used a series of mammal host traits to predict the as-of-yet undiscovered (or "missing") viral diversity in mammals. We extended a version of the "missing zoonoses" model from that paper to all mammals, and rank all mammal species based on their probability for harboring the next zoonoses. Below we list all mammal species occurring in `r report_country` and rank them based on model-based estimates of the number of predicted unobserved zoonotic viruses. We have converted these quantitative estimates into broad risk categories here to simplify surveillance prioritization and interpretation. Host species already sampled in-country for PREDICT-2 are indicated in green, along with the number of specimens collected from that species. Host species not yet sampled in `r report_country` under PREDICT-2 efforts, and therefore of possible interest for future viral surveillance work, are highlighted in red.
 
 ```{r, missing-zoonoses-analysis}
@@ -871,7 +902,7 @@ mz.subset %>%
             )
   )
 ```
-</details>
+</div>
 
 # References
 
