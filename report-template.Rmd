@@ -14,6 +14,7 @@ editor_options:
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 library(CoordinateCleaner)
 library(countrycode)
+library(cowplot)
 library(DT)
 library(eidith)
 library(glue)
@@ -32,6 +33,7 @@ h <- here::here
 walk(list.files(h("R/"), full.names = TRUE),
      source, echo = FALSE, verbose = FALSE)
 report_country <- params$country
+cb_palette <- c("#D55E00", "#009E73", "#999999", "#E69F00", "#56B4E9")
 ```
 
 ![](./media/predict-logos.png){width="100%"}
@@ -150,7 +152,7 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
 
 ### Section 1: Summary of Viral Findings
 
-<details>
+<details open>
 <summary><font size="+1.5"><b>Virus-Level Summary Table</b></font></summary>
 
 This table provides an overview of all `r report_country` viral findings in animals. For each unique virus detected in-country, the table indicates the number of times it was detected, the host taxonomic groups and species in which these detections occurred, and the associated sites. Finally, to add broader context to viral findings beyond `r report_country`'s borders, the final column of the table lists other PREDICT-2 countries in which the same virus was found and approved for government release, highlighting the potential geographic range of each virus.
@@ -158,7 +160,7 @@ This table provides an overview of all `r report_country` viral findings in anim
 ```{r tables-1}
 
 animal.grouping.vars <-
-  c("country", "concurrent_sampling_site", "site_name",
+  c("country", "concurrent_sampling_site", "site_name", "disease_transmission_interfaces",
     "human_density_impact", "taxa_group_mod", "class",
     "species_scientific_name", "test_requested", "viral_species", "human_threat")
 
@@ -196,8 +198,14 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
     cell_spec, format = "html", 
     bold = TRUE, color = text.color
   ) %>%
-  kable(escape = FALSE, align = "c") %>%
-  kable_styling(fixed_thead = TRUE)
+  # kable(escape = FALSE, align = "c") %>%
+  # kable_styling(fixed_thead = TRUE)
+  datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+            options = list(
+              columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
+              pageLength = 5
+            )
+  )
 ```
 </details>
 
@@ -206,14 +214,14 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
 
 Building from the viral summary table above, this heatmap provides more granular information about sampling effort and detection rates across the five priority PREDICT-2 viral groups: Coronaviruses, Filoviruses, Flaviviruses, Influenzas, and Paramyxoviruses. Data are summarized at a host genus level, and broad taxonomic groups are shown in parentheses. Data within the heatmap shows the percentage of viral detections that were confirmed positive (%) and the number of PCR tests conducted (in parentheses). The intensity of red color within the heatmap scales with viral detection rate. Host taxa that never yielded positive viral tests for a given viral group are shown in white, while red coloration indicates increasingly higher rates of viral detection.
 
-```{r heatmap, fig.align = "center", fig.width = 10}
+```{r heatmaps-prep}
 
-# Plot country-level heat maps of viral detections in specimens
+# Plot country-level heat maps of viral detections in specimens by animal group
 
 tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
                        "Influenzas", "Paramyxoviruses")
 
-tmp <- d2 %>%
+tmp1 <- d2 %>%
   mutate(
     family = case_when(
       is.na(family) ~ "Unknown",
@@ -250,21 +258,21 @@ tmp <- d2 %>%
     genus = factor(genus, rev(unique(genus)))
   )
 
-tmp2 <- distinct(tmp, genus, taxa_group_mod)
+tmp1_mod <- distinct(tmp1, genus, taxa_group_mod)
 
 horizontal.breaks <- c()
 
-for(i in unique(tmp2$taxa_group_mod)) {
+for(i in unique(tmp1_mod$taxa_group_mod)) {
   
   horizontal.breaks <- 
-    c(horizontal.breaks, max(which(tmp2$taxa_group_mod == i)))
+    c(horizontal.breaks, max(which(tmp1_mod$taxa_group_mod == i)))
 }
 
-horizontal.breaks <- horizontal.breaks[horizontal.breaks != nrow(tmp2)]
-horizontal.breaks <- nrow(tmp2) - horizontal.breaks
+horizontal.breaks <- horizontal.breaks[horizontal.breaks != nrow(tmp1_mod)]
+horizontal.breaks <- nrow(tmp1_mod) - horizontal.breaks
 horizontal.breaks <- horizontal.breaks + 0.5
 
-tmp %>%
+heatmap1 <- tmp1 %>%
   ggplot(aes(
     x = test_requested, 
     y = genus
@@ -284,10 +292,77 @@ tmp %>%
     text = element_text(size = 13),
     axis.title.y = element_blank()
   )
+
+# Plot country-level heat maps of viral detections in specimens by interface
+
+tmp2 <- d2 %>%
+  mutate(
+    disease_transmission_interfaces = 
+      str_replace(disease_transmission_interfaces, 
+                  "dwellings and temporary settlements",
+                  "dwellings"),
+    disease_transmission_interfaces = 
+      str_replace(disease_transmission_interfaces, 
+                  "outbreak investigation",
+                  "outbreak"),
+    disease_transmission_interfaces = 
+      str_replace(disease_transmission_interfaces, 
+                  "zoos and sanctuaries",
+                  "zoos/sanctuaries")
+  ) %>%
+  filter(
+    test_requested %in% tests.of.interest,
+    test_type == "Conventional PCR"
+  ) %>%
+  arrange(gains4_test_id, desc(virus_detected)) %>%
+  distinct(gains4_test_id, .keep_all = TRUE) %>%
+  group_by(disease_transmission_interfaces, test_requested) %>%
+  summarize(
+    n_tests = n_distinct(gains4_test_id),
+    n_positives = sum(virus_detected, na.rm = TRUE),
+    prop = n_positives/n_tests,
+    prop.num.for.plot = ifelse(prop == 0, prop, prop + 0.1),
+    percent = round(n_positives/n_tests*100, digits = 1),
+    percent_mod = paste0(percent, "% (", n_tests, ")")
+  ) %>%
+  ungroup() %>%
+  filter(!is.na(disease_transmission_interfaces)) %>%
+  arrange(disease_transmission_interfaces) %>%
+  mutate(
+    disease_transmission_interfaces = 
+      factor(disease_transmission_interfaces, rev(unique(disease_transmission_interfaces)))
+  )
+
+heatmap2 <- tmp2 %>%
+  ggplot(aes(
+    x = test_requested, 
+    y = disease_transmission_interfaces
+  )) +
+  xlab("Viral Test Type") +
+  scale_x_discrete(position = "top") +
+  geom_tile(aes(fill = log(1 + prop.num.for.plot)), color = "lightgray") +
+  geom_text(aes(label = percent_mod)) +
+  scale_fill_gradientn(colors = c("white", "firebrick"), limits = c(0, 0.75)) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    legend.position = "none",
+    axis.text.x = element_text(size = 14),
+    axis.title.x = element_blank(),
+    text = element_text(size = 13),
+    axis.title.y = element_blank()
+  )
+
+fig.height <- sum(nrow(tmp1) + nrow(tmp2))/16
+```
+
+```{r heatmaps-plot, fig.align = "center", fig.width = 10, fig.height = fig.height}
+
+plot_grid(heatmap1, heatmap2, nrow = 2, align = "v", rel_heights = c(nrow(tmp1), nrow(tmp2)))
 ```
 </details>
 
-<details>
+<details open>
 <summary><font size="+1.5"><b>Site-Level Summary Table</b></font></summary>
 
 This table provides a site-level overview of `r report_country` PREDICT-2 viral detections. For each site, the table outlines basic site characteristics as well as a summary of the viruses found and host species that were positive from each site. 
@@ -299,8 +374,15 @@ get_country_site_viruses2(view = FALSE, animal_virus_summary) %>%
     cell_spec, format = "html", 
     bold = TRUE, color = text.color
   ) %>%
-  kable(escape = FALSE, align = "c") %>%
-  kable_styling(fixed_thead = TRUE)
+  # kable(escape = FALSE, align = "c") %>%
+  # kable_styling(fixed_thead = TRUE) %>%
+    datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+            options = list(
+              columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
+              pageLength = 5,
+              scrollX = TRUE
+            )
+  )
 ```
 </details>
 
@@ -362,7 +444,7 @@ This table shows the expansion in the number of recognized mammal host species f
 axis.title.size <- 22
 axis.text.size <- 16
 legend.text.size <- 18
-template.colors <- wes_palette("Darjeeling1")[c(1, 3, 5)]
+template.colors <- cb_palette[c(1, 5, 3)]
 plot.colors <- if(sum(str_detect(full.association.table$project, " and ")) > 0) {
   template.colors
 } else {
@@ -454,7 +536,7 @@ if(length(i.list) > 0) {
   axis.title.size <- 28
   axis.text.size <- 22
   legend.text.size <- 22
-  template.colors <- wes_palette("Darjeeling1")[c(1:3, 5)]
+  template.colors <- cb_palette[c(1:3, 5)]
   plot.colors <- template.colors[tests.of.interest %in% names(i.list)]
   
   ggiNEXT(i.out) +
@@ -691,9 +773,16 @@ mz <- read_csv(h("data", "hp3_zoo_predictions.csv")) %>%
   arrange(desc(pred_mean)) %>%
   mutate(
     relative_zoonoses = case_when(
-      pred_mean > quantile(pred_mean, c(0.33, 0.66))[2] ~ "High",
-      pred_mean < quantile(pred_mean, c(0.33, 0.66)[1]) ~ "Low",
-      TRUE ~ "Medium"
+      pred_mean > quantile(pred_mean, 0.9) ~ "Top 10% of all mammals",
+      pred_mean > quantile(pred_mean, 0.8) ~ "Top 20% of all mammals",
+      pred_mean > quantile(pred_mean, 0.7) ~ "Top 30% of all mammals",
+      pred_mean > quantile(pred_mean, 0.6) ~ "Top 40% of all mammals",
+      pred_mean > quantile(pred_mean, 0.5) ~ "Top 50% of all mammals",
+      pred_mean > quantile(pred_mean, 0.4) ~ "Bottom 50% of all mammals",
+      pred_mean > quantile(pred_mean, 0.3) ~ "Bottom 40% of all mammals",
+      pred_mean > quantile(pred_mean, 0.2) ~ "Bottom 30% of all mammals",
+      pred_mean > quantile(pred_mean, 0.1) ~ "Bottom 20% of all mammals",
+      pred_mean > quantile(pred_mean, 0) ~ "Bottom 10% of all mammals"
     )
   )
 
@@ -730,8 +819,13 @@ assertthat::assert_that(length(species.sampled.in.country) == nrow(specimen.coun
 mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_scientific_name"))
 ```
 
+<<<<<<< HEAD
 <details>
 <summary><font size="+1.5"><b>Sampling Prioritization Based on Predicted 'Missing' Zoonoses</b></font></summary>
+=======
+<details open>
+<summary><font size="+1.5"><b>Sampling Prioritization Based on Missing Zoonoses</b></font></summary>
+>>>>>>> d1ade8d678dc637c45432f1bdcbcf1397c322121
 
 To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). This PREDICT-funded study used a series of mammal host traits to predict the as-of-yet undiscovered (or "missing") viral diversity in mammals. We extended a version of the "missing zoonoses" model from that paper to all mammals, and rank all mammal species based on their probability for harboring the next zoonoses. Below we list all mammal species occurring in `r report_country` and rank them based on model-based estimates of the number of predicted unobserved zoonotic viruses. We have converted these quantitative estimates into broad risk categories here to simplify surveillance prioritization and interpretation. Host species already sampled in-country for PREDICT-2 are indicated in green, along with the number of specimens collected from that species. Host species not yet sampled in `r report_country` under PREDICT-2 efforts, and therefore of possible interest for future viral surveillance work, are highlighted in red.
 
@@ -754,12 +848,18 @@ mz.subset %>%
   ) %>%
   rename(
     `Host Species` = species,
-    `Relative No. of Unobserved Zoonotic Viruses` = relative_zoonoses,
+    `Predicted No. of Unobserved Zoonotic Viruses` = relative_zoonoses,
     `No. of Specimens Collected` = specimen_count,
     `Viruses Detected In-Country?` = viruses_detected
   ) %>%
-  kable(escape = FALSE, align = "c") %>%
-  kable_styling(fixed_thead = TRUE)
+  # kable(escape = FALSE, align = "c") %>%
+  # kable_styling(fixed_thead = TRUE) %>%
+    datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+            options = list(
+              columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
+              pageLength = 20
+            )
+  )
 ```
 </details>
 
