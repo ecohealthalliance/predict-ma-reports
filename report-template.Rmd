@@ -455,6 +455,44 @@ get_country_site_viruses2_concurrent(view = FALSE, animal_virus_summary) %>%
 ```
 </div>
 
+#### Host-Level Summary Table
+
+<button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#host-sum-table" aria-expanded="false" aria-controls="host-sum-table" color="grey">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="host-sum-table">
+\newline  
+
+```{r tables-4}
+
+host.table <- animal_virus_summary %>%
+  group_by(species_scientific_name, taxa_group_mod) %>%
+  summarize(
+    sites = paste(sort(unique(site_name)), collapse = "\n"),
+    n_viruses = length(unique(viral_species)),
+    viruses = paste(sort(unique(viral_species)), collapse = "\n"),
+    n_detections = sum(n_positives)
+  ) %>%
+  ungroup()
+
+colnames(host.table) <- c("Species", "Taxa Group", "Site Name", "Unique Viruses",
+                          "Virus Names", "No. Detections")
+
+host.table %>%
+  mutate_all(
+    cell_spec, format = "html", 
+    bold = TRUE, color = text.color
+  ) %>%
+  datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+            options = list(
+              columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
+              pageLength = 10,
+              scrollX = TRUE
+            )
+  )
+```
+</div>
 
 ```{r viral-host-range-prep, include = FALSE}
 
