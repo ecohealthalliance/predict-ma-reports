@@ -114,13 +114,45 @@ get_country_site_viruses2 <- function(view = FALSE, animal_virus_summary) {
       viruses = paste(unique(viral_species), collapse = "\n"),
       n_detections = sum(n_positives),
       n_taxa_groups = length(unique(taxa_group_mod)),
-      taxa_groups = paste(unique(taxa_group_mod), collapse = "\n"),
+      taxa_groups = paste(sort(unique(taxa_group_mod)), collapse = "\n"),
       n_species = length(unique(species_scientific_name)),
-      species = paste(unique(species_scientific_name), collapse = "\n")
+      species = paste(sort(unique(species_scientific_name)), collapse = "\n")
     ) %>%
     ungroup()
 
   colnames(tmp) <- c("Site Name", "Concurrent Site Status", "Disease Transmission Interfaces", "Human Density Impact",
+                     "Unique Viruses", "Virus Names", "No. Detections",
+                     "No. Taxa Groups", "Taxa Groups", "No. Species", "Species")
+
+  ifelse(view == TRUE,
+         return(datatable_(tmp)),
+         return(tmp)
+  )
+}
+
+
+get_country_site_viruses2_concurrent <- function(view = FALSE, animal_virus_summary) {
+
+  tmp <- animal_virus_summary %>%
+    filter(
+      concurrent_sampling_site != "Independent Site",
+      !is.na(concurrent_sampling_site)
+    ) %>%
+    arrange(concurrent_sampling_site, viral_species, taxa_group_mod, species_scientific_name) %>%
+    group_by(concurrent_sampling_site) %>%
+    summarize(
+      human_density_impact = paste(unique(human_density_impact), collapse = "\n"),
+      n_viruses = length(unique(viral_species)),
+      viruses = paste(unique(viral_species), collapse = "\n"),
+      n_detections = sum(n_positives),
+      n_taxa_groups = length(unique(taxa_group_mod)),
+      taxa_groups = paste(sort(unique(taxa_group_mod)), collapse = "\n"),
+      n_species = length(unique(species_scientific_name)),
+      species = paste(sort(unique(species_scientific_name)), collapse = "\n")
+    ) %>%
+    ungroup()
+
+  colnames(tmp) <- c("Concurrent Site Name", "Human Density Impact(s)",
                      "Unique Viruses", "Virus Names", "No. Detections",
                      "No. Taxa Groups", "Taxa Groups", "No. Species", "Species")
 

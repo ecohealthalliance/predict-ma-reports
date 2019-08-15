@@ -427,6 +427,35 @@ get_country_site_viruses2(view = FALSE, animal_virus_summary) %>%
 ```
 </div>
 
+#### Concurrent Site-Level Summary Table
+
+<button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#con-site-sum-table" aria-expanded="false" aria-controls="con-site-sum-table" color="grey">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="con-site-sum-table">
+\newline  
+
+```{r tables-3}
+
+get_country_site_viruses2_concurrent(view = FALSE, animal_virus_summary) %>% 
+  mutate_all(
+    cell_spec, format = "html", 
+    bold = TRUE, color = text.color
+  ) %>%
+  # kable(escape = FALSE, align = "c") %>%
+  # kable_styling(fixed_thead = TRUE) %>%
+    datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+            options = list(
+              columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
+              pageLength = 10,
+              scrollX = TRUE
+            )
+  )
+```
+</div>
+
+
 ```{r viral-host-range-prep, include = FALSE}
 
 viral.name.harmonization <- read_csv(h("data", "hp3_to_p2_viral_name_harmonization.csv"))
@@ -514,7 +543,7 @@ template.colors <- cb_palette[c(1, 2, 5, 3)]
 plot.colors <- if(sum(str_detect(full.association.table$project, " and ")) > 0) {
   template.colors
 } else {
-  template.colors[c(1, 3)]
+  template.colors[c(1, 3, 4)]
 }
 
 full.association.table %>%
