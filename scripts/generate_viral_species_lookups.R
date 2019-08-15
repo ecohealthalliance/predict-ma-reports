@@ -13,6 +13,27 @@ s2 <- ed2_specimens() %>%
 t2 <- ed2_tests() %>%
   select(-c(integer_id))
 
+a2 <- a2 %>%
+  mutate(
+    class = stringr::str_to_sentence(class),
+    order = stringr::str_to_sentence(order),
+    family = stringr::str_to_sentence(family),
+    taxa_group_mod = case_when(
+      taxa_group == "cats" ~ "carnivores",
+      taxa_group == "dogs" ~ "carnivores",
+      taxa_group == "poultry/other fowl" ~ "birds",
+      family == "Sciuridae" ~ "rodents/shrews",
+      TRUE ~ taxa_group
+    ),
+    species_scientific_name = case_when(
+      species_scientific_name == "Mus musculus cf. castaneus" ~ "Mus musculus",
+      species_scientific_name == "Syncerus Caffer" ~ "Syncerus caffer",
+      str_detect(species_scientific_name, " cf. ") ~ str_replace(species_scientific_name, " cf. ", " "),
+      str_count(species_scientific_name, " ") == 2 ~ word(species_scientific_name, 1, 2),
+      TRUE ~ species_scientific_name
+    )
+  )
+
 t2 <- t2 %>%
   mutate(
     sequence = case_when(
@@ -60,17 +81,6 @@ d2 %>%
 
 
 # Generate lookup table showing viral testing summary data by viral species, host species, and site
-
-# Modify host species names
-
-d2 <- d2 %>%
-  mutate(
-    species_scientific_name = case_when(
-      str_detect(species_scientific_name, " cf. ") ~
-        str_replace(species_scientific_name, " cf. ", " "),
-      TRUE ~ species_scientific_name
-    )
-  )
 
 # Generate a table showing the number of animals detected with a given virus for each species at
 # each site
@@ -120,3 +130,21 @@ left_join(viral_testing_by_species_and_site, viral_detections_by_species_and_sit
   mutate(n_animals_w_detections = ifelse(is.na(n_animals_w_detections), 0, n_animals_w_detections)) %>%
   mutate_at(.vars = c("site_latitude", "site_longitude"), ~as.numeric(.)) %>%
   write_csv(., h("data", "viral_species_testing_by_host_and_site.csv"))
+
+
+# Generate a table showing all P2 mammalian hosts of viruses
+
+# "species" to exclude from P2 associations
+
+species.to.exclude <- c("Chiroptera", "Rhinopomatidae", "Rodentia")
+
+p2.associations <- d2 %>%
+  distinct(country, viral_species, class, species_scientific_name) %>%
+  filter(
+    !is.na(viral_species),
+    class == "Mammalia",
+    !str_detect(species_scientific_name, " sp."),
+    !(species_scientific_name %in% species.to.exclude)
+  ) %>%
+  select(-class) %>%
+  write_csv(., h("data", "P2_virus_mammal_host_associations.csv"))
