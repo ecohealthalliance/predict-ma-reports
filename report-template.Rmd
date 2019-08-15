@@ -28,7 +28,6 @@ library(rnaturalearth)
 library(rnaturalearthdata)
 library(sf)
 library(tidyverse)
-library(wesanderson)
 h <- here::here
 walk(list.files(h("R/"), full.names = TRUE),
      source, echo = FALSE, verbose = FALSE)
@@ -44,9 +43,9 @@ $(function () {
 
 ![](./media/predict-logos.png){width="100%"}
 
-**This report is meant to provide a broad overview of `r report_country` PREDICT-2 viral findings in animals, and present those findings with additional data and analyses to help understand viral host range, geographic risk, and future sampling targets for your country.** *Human viral findings are not addressed here*. Behavioral Risk outputs and data summaries are available via other tools and the Interim Data Review (IDR) report on EIDITH. Additional summaries of `r report_country` surveillance data can also be found via the Surveillance Activities and Risk Characterization reports on EIDITH. This report include all `r report_country` animal data currently available in EIDITH, both government-approved and pending approval, and is designed for country-coordinators and country teams to explore their data further. Please note that, where relevant, information about viral detections in *other countries* are provided for general context and **only include government-approved data** as already publically available on [HealthMap](https://www.healthmap.org/predict/). 
+**This report is meant to provide a broad overview of `r report_country` PREDICT-2 viral findings in animals, and present those findings with additional data and analyses to help understand viral host range, geographic risk, and future sampling targets for your country.** *Human viral findings are not addressed here*. Behavioral Risk outputs and data summaries are available via other tools and the Interim Data Review (IDR) report on EIDITH. Additional summaries of `r report_country` surveillance data can also be found via the Surveillance Activities and Risk Characterization reports on EIDITH. This report include all `r report_country` animal data currently available in EIDITH, both government-approved and pending approval, and is designed for country-coordinators and country teams to explore their data further. Please note that, where relevant, information about viral detections in *other countries* are provided for general context and **only include government-approved data** as already publicly available on [HealthMap](https://www.healthmap.org/predict/). 
 
-#### _Click on the "Expand / Collapse" buttons to expand sections._
+#### _Click on the "Expand / Collapse" buttons to view subsections._
 
 ```{r read-data, include = FALSE}
 
@@ -97,7 +96,10 @@ a2 <- a2 %>%
       TRUE ~ taxa_group
     ),
     species_scientific_name = case_when(
+      species_scientific_name == "Mus musculus cf. castaneus" ~ "Mus musculus",
       species_scientific_name == "Syncerus Caffer" ~ "Syncerus caffer",
+      str_detect(species_scientific_name, " cf. ") ~ str_replace(species_scientific_name, " cf. ", " "),
+      str_count(species_scientific_name, " ") == 2 ~ word(species_scientific_name, 1, 2),
       TRUE ~ species_scientific_name
     )
   )
@@ -165,7 +167,8 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
 </button>
 
 <div class="collapse" id="vir-sum-table">
-\newline
+\newline  
+  
 This table provides an overview of all `r report_country` viral findings in animals. For each unique virus detected in-country, the table indicates the number of times it was detected, the host taxonomic groups and species in which these detections occurred, and the associated sites. Finally, to add broader context to viral findings beyond `r report_country`'s borders, the final column of the table lists other PREDICT-2 countries in which the same virus was found and approved for government release, highlighting the potential geographic range of each virus.
 
 ```{r tables-1}
@@ -173,28 +176,33 @@ This table provides an overview of all `r report_country` viral findings in anim
 animal.grouping.vars <-
   c("country", "concurrent_sampling_site", "site_name", "disease_transmission_interfaces", "human_density_impact", 
     "class", "taxa_group_mod", "species_scientific_name", 
-    "test_requested", "viral_species", "human_threat", "interpretation")
+    "test_requested", "viral_species", "human_threat")
 
 animal_virus_summary <- d2 %>%
   filter(!is.na(viral_species)) %>%
-  mutate(
-    species_scientific_name = case_when(
-      str_detect(species_scientific_name, " cf. ") ~ 
-        str_replace(species_scientific_name, " cf. ", " "),
-      TRUE ~ species_scientific_name
-    )
-  ) %>%
   group_by_at(vars(one_of(animal.grouping.vars))) %>%
   summarize(n_positives = sum(virus_detected)) %>%
   ungroup() %>%
   arrange(country, site_name, taxa_group_mod, 
           species_scientific_name, viral_species, n_positives)
 
+threat.interpretation <- d2 %>%
+  filter(
+    !is.na(viral_species),
+    human_threat == "yes"
+  ) %>%
+  distinct(viral_species, interpretation) %>%
+  mutate(interpretation_length = str_length(interpretation)) %>%
+  arrange(viral_species, interpretation_length) %>%
+  distinct(viral_species, .keep_all = TRUE) %>%
+  select(-interpretation_length)
+
 text.color <- "#787272"
 
 get_country_viruses(view = FALSE, animal_virus_summary) %>%
   left_join(., read_csv(h("data", "viral_species_country_lookup.csv")), 
             by = c(`Virus Name` = "viral_species")) %>%
+  left_join(., threat.interpretation, by = c(`Virus Name` = "viral_species")) %>%
   mutate(country = ifelse(country == !!report_country, NA_character_, country)) %>%
   group_by_at(vars(-country)) %>%
   summarize("Concurrent Detections" = paste(unique(country), collapse = "\n")) %>%
@@ -223,9 +231,9 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
   datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
-              pageLength = 5
-            ),
-            callback = JS("$(function () {$('[data-toggle=\"tooltip\"]').tooltip()})")
+              pageLength = 5,
+              drawCallback = JS("$(function () {$('[data-toggle=\"tooltip\"]').tooltip()})")
+            )
   )
 ```
 </div>
@@ -237,7 +245,8 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
 </button>
 
 <div class="collapse" id="vir-test-heatmap">
-\newline
+\newline  
+  
 Building from the viral summary table above, this heatmap provides more granular information about sampling effort and detection rates across the five priority PREDICT-2 viral groups: Coronaviruses, Filoviruses, Flaviviruses, Influenzas, and Paramyxoviruses. Data are summarized at a host genus level, and broad taxonomic groups are shown in parentheses. Data within the heatmap shows the percentage of viral detections that were confirmed positive (%) and the number of PCR tests conducted (in parentheses). The intensity of red color within the heatmap scales with viral detection rate. Host taxa that never yielded positive viral tests for a given viral group are shown in white, while red coloration indicates increasingly higher rates of viral detection.
 
 ```{r heatmaps-prep}
@@ -395,7 +404,8 @@ plot_grid(heatmap1, heatmap2, nrow = 2, align = "v", rel_heights = c(nrow(tmp1),
 </button>
 
 <div class="collapse" id="site-sum-table">
-\newline
+\newline  
+  
 This table provides a site-level overview of `r report_country` PREDICT-2 viral detections. For each site, the table outlines basic site characteristics as well as a summary of the viruses found and host species that were positive from each site. 
 
 ```{r tables-2}
@@ -436,33 +446,52 @@ hp3.associations <- read_csv(h("data", "associations.csv")) %>%
   mutate(
     viral_species = p2_virus_name,
     species_scientific_name = str_replace_all(host_name, "_", " "),
-    project = rep("Previously Known", nrow(.))
+    project = rep("Previously known", nrow(.))
   )
 
 # "species" to exclude from P2 associations
 
-species.to.exclude <- c("Rodentia")
-
-p2.associations <- animal_virus_summary %>%
-  distinct(viral_species, class, species_scientific_name) %>%
+p2.associations <- read_csv(h("data", "P2_virus_mammal_host_associations.csv")) %>%
   filter(viral_species %in% unique(hp3.associations$viral_species)) %>%
-  mutate(project = rep(paste("PREDICT-2", report_country), nrow(.))) %>%
-  filter(
-    class == "Mammalia",
-    !str_detect(species_scientific_name, " sp."),
-    !(species_scientific_name %in% species.to.exclude)
+  group_by(viral_species, species_scientific_name) %>%
+  summarize(country_list = glue_collapse(country, sep = ", ")) %>%
+  mutate(
+    project = case_when(
+      str_detect(country_list, report_country) & str_detect(country_list, ",") ~ paste("P2", report_country, "and partners"),
+      str_detect(country_list, report_country) ~ paste("P2", report_country),
+      TRUE ~ "P2 partners"
+    )
   ) %>%
-  select(-class)
+  select(-country_list)
+
+viruses.in.country <- p2.associations %>%
+  filter(str_detect(project, report_country)) %>%
+  pull(viral_species) %>%
+  unique()
+
+p2.associations <- filter(p2.associations, viral_species %in% viruses.in.country)
 
 full.association.table <- hp3.associations %>%
   select(viral_species, species_scientific_name, project) %>%
+  filter(viral_species %in% viruses.in.country) %>%
   bind_rows(., p2.associations) %>%
-  filter(viral_species %in% p2.associations$viral_species) %>%
-  arrange(viral_species, species_scientific_name, project) %>%
-  group_by(viral_species, species_scientific_name) %>%
-  summarize(project = glue_collapse(project, sep = " and ")) %>%
-  ungroup() %>%
-  mutate(project = as.factor(project))
+  arrange(viral_species, species_scientific_name, desc(project)) %>%
+  distinct(viral_species, species_scientific_name, .keep_all = TRUE) %>%
+  mutate(
+    project = factor(project, levels = c(paste("P2", report_country), 
+                                         paste("P2", report_country, "and partners"), 
+                                         "P2 partners", 
+                                         "Previously known"))
+  )
+
+viruses.to.keep <- full.association.table %>%
+  group_by(viral_species) %>%
+  summarize(project = glue_collapse(project, sep = ", ")) %>%
+  filter(str_detect(project, "P2")) %>%
+  pull(viral_species) %>%
+  unique()
+
+full.association.table <- filter(full.association.table, viral_species %in% viruses.to.keep)
 ```
 
 #### Expansion of Known Virus Host Range
@@ -472,7 +501,8 @@ full.association.table <- hp3.associations %>%
 </button>
 
 <div class="collapse" id="vir-range-fig">
-\newline
+\newline  
+  
 This table shows the expansion in the number of recognized mammal host species for previously-described viruses as a result of `r report_country` PREDICT-2 sampling. One plot is shown for each previously-described (known) virus, i.e. those named by the International Committee on the Taxonomy of Viruses 8th edition. Previously known host species for each virus are from the dataset of [Olival et al. 2017](https://www.nature.com/articles/nature22975). The number of mammalian hosts for each virus are visualized using stacked bar plots, showing the number of pre-PREDICT-2 recognized host species (blue portion), the number of known host species also found positive by PREDICT-2 `r report_country` (yellow portion), and number of *newly recognized host species* as part of PREDICT-2 `r report_country` sampling efforts (red portion).
 
 ```{r viral-host-range, fig.align = "center", fig.height = 8, fig.width = 12}
@@ -480,7 +510,7 @@ This table shows the expansion in the number of recognized mammal host species f
 axis.title.size <- 22
 axis.text.size <- 16
 legend.text.size <- 18
-template.colors <- cb_palette[c(1, 5, 3)]
+template.colors <- cb_palette[c(1, 2, 5, 3)]
 plot.colors <- if(sum(str_detect(full.association.table$project, " and ")) > 0) {
   template.colors
 } else {
@@ -565,7 +595,8 @@ if(length(i.list) > 0) {i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")}
 </button>
 
 <div class="collapse" id="vir-disc-curves">
-\newline
+\newline  
+  
 To provide model-based estimates of viral sampling completeness within country, here we generate viral discovery curves across four of the five priority PREDICT-2 viral groups. We have excluded influenza testing from this analysis since only one influenza species (Influenza A) was recovered globally in PREDICT-2. In order to preserve interpretability among curves, we have restricted the data included in this portion of the report. Specifically, we report only on specimens that were tested for the same viral test protocol within each viral test type. The viral test protocols considered here are: `r glue_collapse(paste0(protocols.of.interest, " (", tests.of.interest, ")"), sep = "; ")`. Thus, every specimen included in the figure was tested only once, with the viral test protocol indicated, for each viral test type.
 
 ```{r, viral-curves-plot, fig.align = "center", fig.height = 6, fig.width = 8}
@@ -613,7 +644,6 @@ The map below communicates two layers of information:
 -   Note that EcoHealth Alliance PREDICT-2 countries are outlined on the map in white.
 
 For easier viewing, you may use the icon on the top right to launch full-screen mode.  
-
 
 ```{r get-map-data, include=FALSE}
 
@@ -663,6 +693,12 @@ viral.species.detected.in.country <- animal_viral_pairs %>% # identify specues w
 
 animal_viral_pairs <- filter(animal_viral_pairs, viral_species %in% viral.species.detected.in.country)
 ```
+
+<style>
+.leaflet {
+    margin: auto;
+}
+</style>
 
 ```{r maps, fig.align = "center"}
 
@@ -834,20 +870,14 @@ mammals.in.country <- read_csv(h("data", "mammal_country_lookup.csv")) %>%
 mz.subset <- filter(mz, species %in% mammals.in.country)
 
 species.sampled.in.country <- d2 %>%
-  mutate(
-    species_scientific_name = str_replace(species_scientific_name, "cf. ", ""),
-    species_scientific_name = word(species_scientific_name, 1, 2)
-  ) %>%
+  mutate(species_scientific_name = word(species_scientific_name, 1, 2)) %>%
   pull(species_scientific_name) %>%
   unique()
 
 text.color <- ifelse(mz.subset$species %in% species.sampled.in.country, "#1B8925", "#BD0505")
 
 specimen.count <- d2 %>%
-  mutate(
-    species_scientific_name = str_replace(species_scientific_name, "cf. ", ""),
-    species_scientific_name = word(species_scientific_name, 1, 2)
-  ) %>%
+  mutate(species_scientific_name = word(species_scientific_name, 1, 2)) %>%
   group_by(species_scientific_name) %>%
   summarize(
     specimen_count = n_distinct(specimen_id, na.rm = T),
@@ -867,7 +897,8 @@ mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_sc
 </button>
 
 <div class="collapse" id="miss-zoo">
-\newline
+\newline  
+  
 To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). This PREDICT-funded study used a series of mammal host traits to predict the as-of-yet undiscovered (or "missing") viral diversity in mammals. We extended a version of the "missing zoonoses" model from that paper to all mammals, and rank all mammal species based on their probability for harboring the next zoonoses. Below we list all mammal species occurring in `r report_country` and rank them based on model-based estimates of the number of predicted unobserved zoonotic viruses. We have converted these quantitative estimates into broad risk categories here to simplify surveillance prioritization and interpretation. Host species already sampled in-country for PREDICT-2 are indicated in green, along with the number of specimens collected from that species. Host species not yet sampled in `r report_country` under PREDICT-2 efforts, and therefore of possible interest for future viral surveillance work, are highlighted in red.
 
 ```{r, missing-zoonoses-analysis}

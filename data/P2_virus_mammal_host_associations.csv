@@ -1,0 +1,372 @@
+country,viral_species,species_scientific_name
+Vietnam,Murine coronavirus,Rattus argentiventer
+Vietnam,Murine coronavirus,Bandicota indica
+Vietnam,Murine coronavirus,Rattus exulans
+Vietnam,Lonquan Aa mouse coronavirus,Rattus exulans
+Vietnam,Rodent coronavirus,Rattus exulans
+Vietnam,Lonquan Aa mouse coronavirus,Rattus argentiventer
+Tanzania,PREDICT_PMV-150,Mastomys natalensis
+Tanzania,Chaerephon bat coronavirus/Kenya/KY22/2006,Tadarida aegyptiaca
+Tanzania,PREDICT_PMV-15,Tadarida aegyptiaca
+Tanzania,Bat coronavirus HKU9,Rousettus aegyptiacus
+Tanzania,Chaerephon bat coronavirus/Kenya/KY22/2006,Rousettus aegyptiacus
+Tanzania,Eidolon bat coronavirus/Kenya/KY24/2006,Rousettus aegyptiacus
+Tanzania,PREDICT_CoV-97,Rousettus aegyptiacus
+Tanzania,PREDICT_PMV-141,Rousettus aegyptiacus
+Tanzania,PREDICT_PMV-146,Mastomys natalensis
+Thailand,PREDICT_CoV-47,Chaerephon plicatus
+Thailand,PREDICT_CoV-27,Hipposideros lekaguli
+Thailand,Bat coronavirus 1,Miniopterus schreibersii
+Thailand,Murine coronavirus,Rattus exulans
+Thailand,PREDICT_PMV-155,Chaerephon plicatus
+Thailand,PREDICT_CoV-41,Chaerephon plicatus
+Thailand,Murine coronavirus,Rattus tanezumi
+Thailand,Murine coronavirus,Niviventer fulvescens
+Thailand,Murine coronavirus,Maxomys surifer
+Thailand,Murine coronavirus,Mus cervicolor
+Thailand,PREDICT_PMV-159,Mus cervicolor
+Thailand,PREDICT_PMV-86,Rattus exulans
+Thailand,Lonquan Aa mouse coronavirus,Bandicota savilei
+Thailand,PREDICT_PMV-20,Rattus exulans
+Thailand,PREDICT_PMV-86,Rattus losea
+Thailand,Murine coronavirus,Mus cookii
+Thailand,PREDICT_CoV-17,Pteropus lylei
+Thailand,PREDICT_PMV-140,Pteropus lylei
+Thailand,PREDICT_CoV-17,Pteropus giganteus
+Thailand,PREDICT_PMV-6,Pteropus lylei
+Thailand,PREDICT_PMV-5,Pteropus lylei
+Thailand,PREDICT_PMV-10,Pteropus lylei
+Thailand,PREDICT_PMV-10,Pteropus giganteus
+Thailand,PREDICT_PMV-3,Pteropus lylei
+Thailand,PREDICT_PMV-142,Pteropus lylei
+Thailand,PREDICT_PMV-4,Pteropus giganteus
+Thailand,PREDICT_PMV-128,Pteropus lylei
+Thailand,PREDICT_CoV-68,Pteropus lylei
+Thailand,PREDICT_PMV-125,Pteropus giganteus
+Thailand,PREDICT_CoV-68,Pteropus giganteus
+Thailand,Nipah virus,Pteropus lylei
+Thailand,PREDICT_PMV-85,Pteropus lylei
+Thailand,PREDICT_PMV-2,Pteropus lylei
+South Sudan,Kenya bat coronavirus/BtKY56/BtKY55,Epomophorus labiatus
+Senegal,Eidolon bat coronavirus,Eidolon helvum
+Senegal,Bat coronavirus Hipposideros,Pipistrellus inexspectatus
+Senegal,Murine coronavirus,Mus musculus
+Rwanda,PREDICT_CoV-44,Hipposideros caffer
+Rwanda,Coronavirus 229E (Bat strain),Hipposideros caffer
+Rwanda,Eidolon bat coronavirus/Kenya/KY24/2006,Eidolon helvum
+Rwanda,Chaerephon bat coronavirus/Kenya/KY22/2006,Otomops martiensseni
+Rwanda,PREDICT_PMV-56,Eidolon helvum
+Nepal,Murine coronavirus,Rattus rattus
+Nepal,PREDICT_PMV-83,Suncus murinus
+Malaysia,Murine coronavirus,Sundamys muelleri
+Malaysia,Murine coronavirus,Maxomys whiteheadi
+Malaysia,PREDICT_CoV-78,Maxomys whiteheadi
+Malaysia,PREDICT_CoV-78,Maxomys surifer
+Malaysia,PREDICT_CoV-78,Sundamys muelleri
+Malaysia,PREDICT_CoV-78,Leopoldamys sabanus
+Malaysia,Murine coronavirus,Niviventer cremoriventer
+Malaysia,PREDICT_CoV-76,Niviventer cremoriventer
+Malaysia,PREDICT_CoV-78,Sundasciurus hippurus
+Malaysia,PREDICT_PMV-120,Echinosorex gymnura
+Malaysia,PREDICT_CoV-78,Rattus rattus
+Malaysia,PREDICT_CoV-110,Rhinolophus creaghi
+Malaysia,PREDICT_CoV-78,Rhinolophus creaghi
+Malaysia,PREDICT_CoV-105,Rhinolophus creaghi
+Malaysia,Philippines/Diliman1525G2/2008,Megaerops ecaudatus
+Malaysia,PREDICT_CoV-78,Rhinolophus trifoliatus
+Malaysia,Philippines/Diliman1525G2/2008,Cynopterus horsfieldii
+Malaysia,PREDICT_CoV-78,Cynopterus brachyotis
+Malaysia,PREDICT_CoV-101,Kerivoula hardwickii
+Malaysia,PREDICT_CoV-78,Rhinolophus acuminatus
+Malaysia,PREDICT_PMV-137,Rhinolophus trifoliatus
+Malaysia,PREDICT_CoV-78,Rhinolophus arcuatus
+Malaysia,PREDICT_CoV-84,Rhinolophus creaghi
+Malaysia,PREDICT_PMV-110,Hipposideros cervinus
+Malaysia,PREDICT_PMV-106,Rhinolophus creaghi
+Malaysia,PREDICT_CoV-52,Myotis horsfieldii
+Malaysia,PREDICT_CoV-52,Hipposideros diadema
+Malaysia,PREDICT_PMV-72,Hipposideros cervinus
+Malaysia,PREDICT_PMV-81,Hipposideros cervinus
+Malaysia,PREDICT_CoV-76,Hipposideros cervinus
+Malaysia,PREDICT_CoV-78,Hipposideros cervinus
+Malaysia,PREDICT_PMV-105,Rhinolophus creaghi
+Malaysia,PREDICT_CoV-52,Hipposideros cervinus
+Malaysia,PREDICT_PMV-72,Rhinolophus creaghi
+Malaysia,PREDICT_PMV-108,Hipposideros diadema
+Malaysia,PREDICT_Flavi-6,Hipposideros diadema
+Malaysia,PREDICT_PMV-98,Hipposideros cervinus
+Malaysia,PREDICT_PMV-99,Hipposideros cervinus
+Malaysia,PREDICT_PMV-107,Rhinolophus creaghi
+Malaysia,PREDICT_PMV-74,Hipposideros cervinus
+Malaysia,PREDICT_PMV-107,Rhinolophus arcuatus
+Malaysia,PREDICT_CoV-80,Rhinolophus creaghi
+Malaysia,PREDICT_CoV-80,Rhinolophus arcuatus
+Malaysia,PREDICT_CoV-87,Pipistrellus coromandra
+Malaysia,PREDICT_CoV-87,Nycteris tragata
+Malaysia,PREDICT_CoV-104,Tylonycteris pachypus
+Myanmar,PREDICT_PMV-132,Rattus tanezumi
+Myanmar,PREDICT_CoV-96,Hipposideros grandis
+Myanmar,PREDICT_CoV-93,Hipposideros grandis
+Myanmar,PREDICT_CoV-92,Hipposideros grandis
+Myanmar,PREDICT_PMV-48,Hipposideros grandis
+Myanmar,PREDICT_CoV-35,Scotophilus heathii
+Myanmar,PREDICT_CoV-90,Scotophilus heathii
+Cambodia,PREDICT_PMV-63,Scotophilus kuhlii
+Cambodia,PREDICT_PMV-13,Scotophilus kuhlii
+Cambodia,PREDICT_RbdV-27,Scotophilus kuhlii
+Cambodia,PREDICT_PMV-66,Scotophilus kuhlii
+Cambodia,PREDICT_CoV-35,Scotophilus kuhlii
+Cambodia,Bat coronavirus 512/2005,Scotophilus kuhlii
+Cambodia,PREDICT_RbdV-21,Scotophilus kuhlii
+Cambodia,Betacoronavirus 1 (Bovine CoV),Bos taurus
+Cambodia,Bat coronavirus 512/2005,Rattus argentiventer
+Cambodia,PREDICT_RbdV-28,Scotophilus kuhlii
+Cambodia,PREDICT_RbdV-34,Scotophilus kuhlii
+Cambodia,PREDICT_PMV-67,Scotophilus kuhlii
+Cambodia,PREDICT_RbdV-35,Scotophilus kuhlii
+Cambodia,PREDICT_PMV-13,Myotis muricola
+Cambodia,PREDICT_CoV-25,Scotophilus kuhlii
+Cambodia,PREDICT_RbdV-32,Scotophilus kuhlii
+Cambodia,PREDICT_RbdV-31,Scotophilus kuhlii
+Cambodia,PREDICT_RbdV-33,Scotophilus kuhlii
+Cambodia,Thottapalayam virus,Suncus murinus
+Cambodia,Murine coronavirus,Bandicota indica
+Cambodia,Murine coronavirus,Rattus argentiventer
+Cambodia,Lonquan Aa mouse coronavirus,Rattus argentiventer
+Cambodia,Seoul virus,Rattus argentiventer
+Cambodia,Human Coronavirus HKU1,Rattus losea
+Cambodia,Murine coronavirus,Rattus losea
+Cambodia,Rodent coronavirus,Rattus argentiventer
+Cambodia,Betacoronavirus 1 (Canine strain),Canis lupus
+Cambodia,Murine coronavirus,Scotophilus kuhlii
+Cambodia,Lonquan Aa mouse coronavirus,Bandicota indica
+Cambodia,Lonquan Aa mouse coronavirus,Rattus losea
+Cambodia,Murine coronavirus,Mus caroli
+Kenya,Chaerephon bat coronavirus/Kenya/KY22/2006,Chaerephon pumilus
+Kenya,PREDICT_CoV-90,Chaerephon pumilus
+Jordan,Rousettus bat coronavirus/NRC-1,Rousettus aegyptiacus
+Jordan,Rousettus bat coronavirus/NRC-2,Rousettus aegyptiacus
+Jordan,Bat alphacoronavirus/GS2013/HuB2013,Rhinopoma hardwickii
+Jordan,Bat coronavirus BM48-31/BGR/2008,Rhinopoma hardwickii
+Jordan,Bat coronavirus HKU9,Rousettus aegyptiacus
+Jordan,Bat coronavirus HKU9,Rhinopoma hardwickii
+Jordan,Bat coronavirus BM48-31/BGR/2008,Rhinolophus mehelyi
+Jordan,Bat coronavirus BM48-31/BGR/2008,Rhinolophus euryale
+Indonesia,Murine coronavirus,Rattus hoffmanni
+Indonesia,Murine coronavirus,Rattus xanthurus
+Indonesia,Murine coronavirus,Paruromys dominator
+Indonesia,Murine coronavirus,Rattus marmosurus
+Indonesia,Murine coronavirus,Rattus rattus
+Indonesia,PREDICT_PMV-154,Rattus hoffmanni
+Indonesia,PREDICT_CoV-16,Pteropus alecto
+Indonesia,PREDICT_PMV-126,Pteropus alecto
+Indonesia,PREDICT_PMV-124,Pteropus alecto
+Indonesia,PREDICT_PMV-121,Pteropus alecto
+Indonesia,PREDICT_CoV-68,Pteropus alecto
+Indonesia,PREDICT_CoV-67,Pteropus alecto
+Indonesia,PREDICT_CoV-73,Acerodon celebensis
+Indonesia,Influenza A,Acerodon celebensis
+Indonesia,PREDICT_CoV-67,Pteropus conspicillatus
+Indonesia,PREDICT_CoV-83,Pteropus alecto
+Indonesia,Murine coronavirus,Pteropus alecto
+Indonesia,PREDICT_PMV-102,Pteropus alecto
+Indonesia,Influenza A,Pteropus alecto
+Indonesia,PREDICT_PMV-111,Acerodon celebensis
+Indonesia,PREDICT_PMV-95,Acerodon celebensis
+Indonesia,PREDICT_PMV-94,Pteropus alecto
+Indonesia,PREDICT_PMV-100,Pteropus alecto
+Indonesia,PREDICT_CoV-83,Acerodon celebensis
+Indonesia,Pteropus poliocephalus paramyxovirus,Pteropus alecto
+Indonesia,PREDICT_PMV-10,Pteropus alecto
+Indonesia,PREDICT_PMV-93,Acerodon celebensis
+Indonesia,Murine coronavirus,Rattus tanezumi
+Indonesia,PREDICT_CoV-73,Pteropus alecto
+Indonesia,Bat coronavirus HKU9,Rousettus amplexicaudatus
+Indonesia,Philippines/Diliman1525G2/2008,Rousettus amplexicaudatus
+Indonesia,PREDICT_PMV-112,Rousettus amplexicaudatus
+Indonesia,Influenza A,Rousettus amplexicaudatus
+Indonesia,Influenza A,Rattus marmosurus
+Indonesia,Murine coronavirus,Rattus argentiventer
+Indonesia,PREDICT_PMV-122,Thoopterus nigrescens
+Indonesia,Bat coronavirus HKU9,Pteropus alecto
+Ghana,PREDICT_CoV-102,Epomophorus gambianus
+Ghana,Eidolon bat coronavirus,Eidolon helvum
+Ghana,Kenya bat coronavirus/BtKY56/BtKY55,Epomophorus gambianus
+Ghana,Kenya bat coronavirus/BtKY56/BtKY55,Eidolon helvum
+Ghana,Eidolon bat coronavirus,Epomophorus gambianus
+Egypt,Influenza A,Rousettus aegyptiacus
+Egypt,PREDICT_PMV-113,Rousettus aegyptiacus
+Egypt,PREDICT_PMV-118,Pipistrellus kuhlii
+Egypt,PREDICT_PMV-119,Nycteris thebaica
+Egypt,Influenza A,Pipistrellus kuhlii
+Egypt,Influenza A,Taphozous perforatus
+Egypt,PREDICT_PMV-118,Rousettus aegyptiacus
+Egypt,Rousettus bat coronavirus/NRC-1,Rousettus aegyptiacus
+Egypt,Rousettus bat coronavirus/NRC-2,Rousettus aegyptiacus
+Egypt,PREDICT_PMV-115,Rousettus aegyptiacus
+Egypt,Bat coronavirus HKU9,Rousettus aegyptiacus
+Egypt,PREDICT_PMV-116,Rousettus aegyptiacus
+Egypt,PREDICT_PMV-114,Rousettus aegyptiacus
+Egypt,Bat paramyxovirus R_aeg_UPE766/525/122,Rousettus aegyptiacus
+China,Bat coronavirus HKU9,Rousettus leschenaultii
+China,PREDICT_CoV-22,Rousettus leschenaultii
+China,Rousettus bat coronavirus GCCDC1/346/356,Rousettus leschenaultii
+China,Murine coronavirus,Rattus tanezumi
+China,Bat coronavirus RS4125/4259,Rhinolophus thomasi
+China,Bat coronavirus HKU2,Rhinolophus affinis
+China,SARS-related betacoronavirus,Rhinolophus thomasi
+China,Hipposideros bat alphacoronavirus MJ/67C,Aselliscus stoliczkanus
+China,Rhinolophus/Hipposideros alphacoronavirus,Rhinolophus affinis
+China,Hipposideros bat alphacoronavirus MJ/67C,Rhinolophus affinis
+China,PREDICT_PMV-164,Aselliscus stoliczkanus
+China,Bat coronavirus HKU10,Aselliscus stoliczkanus
+China,PREDICT_PMV-135,Aselliscus stoliczkanus
+China,Bat coronavirus HKU2,Aselliscus stoliczkanus
+China,PREDICT_PMV-88,Rhinolophus affinis
+China,Bat coronavirus 1,Miniopterus schreibersii
+China,Bat coronavirus HKU8,Miniopterus schreibersii
+China,Bat coronavirus HKU2,Rhinolophus thomasi
+China,SARS-related betacoronavirus,Miniopterus schreibersii
+China,PREDICT_PMV-157,Miniopterus schreibersii
+China,Bat coronavirus HKU6,Myotis pilosus
+China,PREDICT_PMV-162,Miniopterus schreibersii
+China,Bat paramyxovirus/B16-40,Miniopterus schreibersii
+China,PREDICT_PMV-166,Myotis laniger
+China,Bat coronavirus HKU6,Myotis daubentonii
+China,SARS-related betacoronavirus,Rhinolophus sinicus
+China,Rousettus bat coronavirus GCCDC1/346/356,Rhinolophus sinicus
+China,Bat coronavirus HKU2,Rhinolophus sinicus
+China,Bat coronavirus RS3376,Rhinolophus sinicus
+China,PREDICT_PMV-89,Rhinolophus sinicus
+China,PREDICT_CoV-60,Myotis laniger
+China,PREDICT_CoV-111,Myotis laniger
+China,Myotis alphacoronavirus,Myotis fimbriatus
+China,Bat coronavirus HKU6,Myotis laniger
+China,Rousettus bat coronavirus/NRC-2,Rousettus leschenaultii
+China,PREDICT_PMV-165,Myotis laniger
+China,PREDICT_PMV-47,Ia io
+China,PREDICT_PMV-130,Myotis fimbriatus
+China,PREDICT_CoV-107,Myotis pilosus
+China,Bat coronavirus 512/2005,Myotis pilosus
+China,SARS-related betacoronavirus RsSHC014,Rhinolophus affinis
+China,SARS-related betacoronavirus,Rhinolophus affinis
+China,Bat coronavirus HKU6,Myotis siligorensis
+China,PREDICT_CoV-108,Myotis siligorensis
+China,Bat coronavirus Anlong 57/43,Myotis siligorensis
+China,Bat coronavirus HKU2,Myotis siligorensis
+China,PREDICT_CoV-79,Rhinolophus pusillus
+China,PREDICT_CoV-108,Rhinolophus pusillus
+China,Bat coronavirus HKU2,Rhinolophus pusillus
+China,PREDICT_CoV-95,Hipposideros larvatus
+China,PREDICT_CoV-53,Hipposideros larvatus
+China,Bat paramyxovirus isolate BtHp-ParaV/GD2012,Hipposideros larvatus
+China,Bat coronavirus HKU9,Hipposideros larvatus
+China,PREDICT_PMV-134,Rhinolophus sinicus
+China,Bat coronavirus HKU10,Hipposideros pomona
+China,PREDICT_PMV-49,Taphozous melanopogon
+China,PREDICT_PMV-90,Taphozous melanopogon
+China,Bat coronavirus 1,Miniopterus pusillus
+China,Bat coronavirus HKU6,Miniopterus pusillus
+China,Beilong virus,Rattus norvegicus
+China,Lonquan Aa mouse coronavirus,Rattus norvegicus
+China,Murine coronavirus,Rattus norvegicus
+China,Rodent coronavirus,Rattus norvegicus
+China,PREDICT_PMV-129,Rhinolophus sinicus
+Cameroon,Kenya bat coronavirus BtKY83/59/58,Rhinolophus alcyone
+Cameroon,PREDICT_CoV-109,Rhinolophus alcyone
+Cameroon,PREDICT_CoV-70,Rhinolophus alcyone
+Cameroon,PREDICT_CoV-54,Hipposideros gigas
+Cameroon,Zaria bat coronavirus,Hipposideros gigas
+Cameroon,PREDICT_CoV-54,Hipposideros commersoni
+Cameroon,PREDICT_PMV-80,Hipposideros gigas
+Cameroon,PREDICT_PMV-127,Hipposideros ruber
+Cameroon,Coronavirus 229E (Bat strain),Hipposideros ruber
+Cameroon,PREDICT_CoV-81,Hipposideros fuliginosus
+Cameroon,PREDICT_CoV-81,Hipposideros ruber
+Cameroon,PREDICT_CoV-44,Hipposideros ruber
+Cameroon,PREDICT_PMV-133,Hipposideros ruber
+Cameroon,Bat coronavirus HKU9,Rousettus aegyptiacus
+Cameroon,PREDICT_CoV-97,Rousettus aegyptiacus
+Cameroon,PREDICT_CoV-30,Megaloglossus woermanni
+Cameroon,PREDICT_CoV-35,Scotophilus nux
+Cameroon,PREDICT_PMV-148,Praomys misonnei
+Cameroon,PREDICT_CoV-98,Crocidura goliath
+Cameroon,PREDICT_PMV-148,Crocidura goliath
+Cameroon,PREDICT_PMV-156,Crocidura goliath
+Cameroon,Coronavirus 229E (Bat strain),Hipposideros curtus
+Cameroon,PREDICT_PMV-139,Hipposideros curtus
+Cameroon,PREDICT_PMV-138,Hipposideros ruber
+Cameroon,Bat coronavirus Hipposideros,Hipposideros ruber
+Cameroon,PREDICT_PMV-161,Hipposideros ruber
+Cameroon,PREDICT_PMV-163,Hipposideros ruber
+Cameroon,PREDICT_PMV-152,Hipposideros ruber
+Cameroon,PREDICT_PMV-147,Hipposideros ruber
+Cameroon,PREDICT_CoV-35,Epomops franqueti
+Cameroon,PREDICT_PMV-82,Hipposideros gigas
+Cameroon,PREDICT_PMV-148,Lophuromys nudicaudus
+Cameroon,PREDICT_PMV-160,Lophuromys nudicaudus
+Cameroon,PREDICT_PMV-131,Praomys jacksoni
+Cameroon,Monkey pox,Pan troglodytes
+Cameroon,Eidolon bat coronavirus/Kenya/KY24/2006,Eidolon helvum
+Cameroon,PREDICT_CoV-75,Nandinia binotata
+Cameroon,PREDICT_PMV-79,Hipposideros ruber
+Cameroon,PREDICT_PMV-97,Hipposideros ruber
+Cameroon,PREDICT_CoV-66,Myonycteris torquata
+Ivory Coast,Kenya bat coronavirus/BtKY56/BtKY55,Epomops buettikoferi
+Ivory Coast,Chaerephon bat coronavirus/Kenya/KY22/2006,Chaerephon pumilus
+Republic of Congo,PREDICT_CoV-30,Epomops franqueti
+Republic of Congo,PREDICT_CoV-30,Megaloglossus woermanni
+Republic of Congo,Kenya bat coronavirus/BtKY56/BtKY55,Micropteropus pusillus
+Republic of Congo,Kenya bat coronavirus/BtKY56/BtKY55,Mops condylurus
+DR Congo,Kenya bat coronavirus/BtKY56/BtKY55,Micropteropus pusillus
+DR Congo,PREDICT_PMV-15,Mops condylurus
+DR Congo,Chaerephon bat coronavirus/Kenya/KY22/2006,Mops condylurus
+DR Congo,Eidolon bat coronavirus/Kenya/KY24/2006,Eidolon helvum
+DR Congo,Pan paniscus lymphocryptovirus 1,Pan paniscus
+Bangladesh,Influenza A,Scotophilus heathii
+Bangladesh,PREDICT_CoV-35,Scotophilus heathii
+Bangladesh,PREDICT_CoV-90,Scotophilus heathii
+Bangladesh,PREDICT_CoV-52,Megaderma lyra
+Bangladesh,PREDICT_CoV-103,Megaderma lyra
+Bangladesh,Influenza A,Megaderma lyra
+Bangladesh,Influenza A,Hipposideros cineraceus
+Bangladesh,Alphacoronavirus 1 (Canine coronavirus),Canis lupus
+Bangladesh,Influenza A,Pteropus giganteus
+Bangladesh,Lonquan Aa mouse coronavirus,Bandicota bengalensis
+Bangladesh,Lonquan Aa mouse coronavirus,Suncus murinus
+Bangladesh,Influenza A,Bandicota indica
+Bangladesh,Influenza A,Mus musculus
+Bangladesh,Influenza A,Bandicota bengalensis
+Bangladesh,Influenza A,Rattus tanezumi
+Bangladesh,Influenza A,Suncus murinus
+Bangladesh,Murine coronavirus,Bandicota bengalensis
+Bangladesh,Influenza A,Ovis aries
+Bangladesh,Influenza A,Camelus dromedarius
+Bangladesh,Peste des petits ruminants (PPR),Ovis aries
+Bangladesh,PREDICT_CoV-17,Pteropus giganteus
+Bangladesh,Influenza A,Rhinolophus lepidus
+Bangladesh,PREDICT_PMV-117,Rhinolophus lepidus
+Bangladesh,PREDICT_CoV-88,Tylonycteris pachypus
+Bangladesh,PREDICT_PMV-20,Rattus rattus
+Bangladesh,Murine coronavirus,Mus musculus
+Bangladesh,Murine coronavirus,Rattus rattus
+Bangladesh,PREDICT_PMV-58,Rattus tanezumi
+Bangladesh,Influenza A,Macaca mulatta
+Bangladesh,PREDICT_CoV-89,Rhinolophus lepidus
+Bangladesh,PREDICT_PMV-104,Megaderma lyra
+Bangladesh,PREDICT_PMV-103,Rhinolophus lepidus
+Bangladesh,Influenza A,Rousettus leschenaultii
+Bangladesh,Murine coronavirus,Bandicota indica
+Bangladesh,Murine coronavirus,Rattus tanezumi
+Bangladesh,PREDICT_CoV-24,Cynopterus brachyotis
+Bangladesh,PREDICT_CoV-52,Scotophilus kuhlii
+Bangladesh,PREDICT_PMV-145,Suncus murinus
+Bangladesh,Wencheng Sm shrew coronavirus,Suncus murinus
+Bangladesh,PREDICT_CoV-35,Scotophilus kuhlii
+Bangladesh,PREDICT_PMV-13,Scotophilus kuhlii
+Bangladesh,PREDICT_PMV-149,Mus musculus
+Bangladesh,PREDICT_CoV-68,Pteropus giganteus
+Bangladesh,PREDICT_PMV-20,Mus musculus
+Bangladesh,PREDICT_PMV-20,Suncus murinus
+Bangladesh,Influenza A,Tylonycteris pachypus
+Bangladesh,PREDICT_CoV-86,Tylonycteris pachypus
