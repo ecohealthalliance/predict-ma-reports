@@ -11,7 +11,10 @@ editor_options:
 ---
 
 ```{r setup, include = FALSE, message = FALSE, warning = FALSE}
+
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+# Load packages
 library(CoordinateCleaner)
 library(countrycode)
 library(cowplot)
@@ -28,10 +31,14 @@ library(rnaturalearth)
 library(rnaturalearthdata)
 library(sf)
 library(tidyverse)
+
 h <- here::here
-walk(list.files(h("R/"), full.names = TRUE),
-     source, echo = FALSE, verbose = FALSE)
+walk(list.files(h("R/"), full.names = TRUE), source, echo = FALSE, verbose = FALSE)
+
+# Create a variable defining the country for the report
 report_country <- params$country
+
+# Create a colorblind-friendly color palette for plotting throughout
 cb_palette <- c("#D55E00", "#009E73", "#999999", "#E69F00", "#56B4E9")
 ```
 
@@ -43,9 +50,9 @@ $(function () {
 
 ![](./media/predict-logos.png){width="100%"}
 
-**This report is meant to provide a broad overview of `r report_country` PREDICT-2 viral findings in animals, and present those findings with additional data and analyses to help understand viral host range, geographic risk, and future sampling targets for your country.** *Human viral findings are not addressed here*. Behavioral Risk outputs and data summaries are available via other tools and the Interim Data Review (IDR) report on EIDITH. Additional summaries of `r report_country` surveillance data can also be found via the Surveillance Activities and Risk Characterization reports on EIDITH. This report include all `r report_country` animal data currently available in EIDITH, both government-approved and pending approval, and is designed for country-coordinators and country teams to explore their data further. Please note that, where relevant, information about viral detections in *other countries* are provided for general context and **only include government-approved data** as already publicly available on [HealthMap](https://www.healthmap.org/predict/). 
+**This report is meant to provide a broad overview of `r report_country` PREDICT-2 viral findings in animals, and present those findings with additional data and analyses to help understand viral host range, geographic risk, and future sampling targets for `r report_country`.** *Human viral findings are not addressed here*. Behavioral Risk outputs and data summaries are available via other tools and the Interim Data Review (IDR) report on EIDITH. Additional summaries of `r report_country` surveillance data can also be found via the Surveillance Activities and Risk Characterization reports on EIDITH. This report includes all `r report_country` animal data currently available in EIDITH, both government-approved and pending approval, and is designed for country-coordinators and country teams to explore their data further. Please note that, where relevant, information about viral detections in *other countries* are provided for general context and **only include government-approved data** as already publicly available on [HealthMap](https://www.healthmap.org/predict/). 
 
-#### _Click on the "Expand / Collapse" buttons to view subsections._
+#### _Click on the "Expand / Collapse" buttons to view report subsections._
 
 ```{r read-data, include = FALSE}
 
@@ -247,11 +254,11 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
 <div class="collapse" id="vir-test-heatmap">
 \newline  
   
-Building from the viral summary table above, this heatmap provides more granular information about sampling effort and detection rates across the five priority PREDICT-2 viral groups: Coronaviruses, Filoviruses, Flaviviruses, Influenzas, and Paramyxoviruses. Data are summarized at a host genus level, and broad taxonomic groups are shown in parentheses. Data within the heatmap shows the percentage of viral detections that were confirmed positive (%) and the number of PCR tests conducted (in parentheses). The intensity of red color within the heatmap scales with viral detection rate. Host taxa that never yielded positive viral tests for a given viral group are shown in white, while red coloration indicates increasingly higher rates of viral detection.
+Building from the viral summary table above, these heatmaps provides more granular information about sampling effort and detection rates across the five priority PREDICT-2 viral groups: Coronaviruses, Filoviruses, Flaviviruses, Influenzas, and Paramyxoviruses. First, data are summarized at the host genus level, and broader taxonomic groups are shown in parentheses. Next, data are summarized by reported disease transmission interfaces at the sampling sites. Data within the heatmaps show the percentage of viral detections that were confirmed positive (%) and the number of PCR tests conducted (in parentheses). The intensity of red color within the heatmaps scales with viral detection rate. Host taxa or interfaces that never yielded positive viral tests for a given viral group are shown in white, while red coloration indicates increasingly higher rates of viral detection.
 
 ```{r heatmaps-prep}
 
-# Plot country-level heat maps of viral detections in specimens by animal group
+# Country-level heat maps of viral detections by animal group
 
 tests.of.interest <- c("Coronaviruses", "Filoviruses", "Flaviviruses",
                        "Influenzas", "Paramyxoviruses")
@@ -328,7 +335,7 @@ heatmap1 <- tmp1 %>%
     axis.title.y = element_blank()
   )
 
-# Plot country-level heat maps of viral detections in specimens by interface
+# Country-level heat maps of viral detections by interface
 
 tmp2 <- d2 %>%
   mutate(
@@ -406,7 +413,7 @@ plot_grid(heatmap1, heatmap2, nrow = 2, align = "v", rel_heights = c(nrow(tmp1),
 <div class="collapse" id="site-sum-table">
 \newline  
   
-This table provides a site-level overview of `r report_country` PREDICT-2 viral detections. For each site, the table outlines basic site characteristics as well as a summary of the viruses found and host species that were positive from each site. 
+This table provides a site-level overview of `r report_country` PREDICT-2 viral detections. For each site, the table outlines basic site characteristics as well as a summary of the viruses found and host species that were positive at each site. 
 
 ```{r tables-2}
 
@@ -436,6 +443,8 @@ get_country_site_viruses2(view = FALSE, animal_virus_summary) %>%
 <div class="collapse" id="con-site-sum-table">
 \newline  
 
+This table provides a site-level overview of `r report_country` PREDICT-2 viral detections, considering only the concurrent sampling sites. For each concurrent site, the table shows the human density impact levels recorded as well as a summary of the viruses found and host species that were positive. 
+
 ```{r tables-3}
 
 get_country_site_viruses2_concurrent(view = FALSE, animal_virus_summary) %>% 
@@ -448,7 +457,7 @@ get_country_site_viruses2_concurrent(view = FALSE, animal_virus_summary) %>%
     datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
-              pageLength = 10,
+              pageLength = 5,
               scrollX = TRUE
             )
   )
@@ -464,20 +473,22 @@ get_country_site_viruses2_concurrent(view = FALSE, animal_virus_summary) %>%
 <div class="collapse" id="host-sum-table">
 \newline  
 
+This table provides a host-level overview of `r report_country` PREDICT-2 viral detections. For each host species (or the lowest level taxonomic categorization known), the table provides the unique viruses discovered in-country and the sites where viral detection occurred.
+
 ```{r tables-4}
 
 host.table <- animal_virus_summary %>%
   group_by(species_scientific_name, taxa_group_mod) %>%
   summarize(
-    sites = paste(sort(unique(site_name)), collapse = "\n"),
     n_viruses = length(unique(viral_species)),
     viruses = paste(sort(unique(viral_species)), collapse = "\n"),
-    n_detections = sum(n_positives)
+    n_detections = sum(n_positives),
+    sites = paste(sort(unique(site_name)), collapse = "\n")
   ) %>%
   ungroup()
 
-colnames(host.table) <- c("Species", "Taxa Group", "Site Name", "Unique Viruses",
-                          "Virus Names", "No. Detections")
+colnames(host.table) <- c("Species", "Taxa Group", "Unique Viruses",
+                          "Virus Names", "No. Detections", "Site Name")
 
 host.table %>%
   mutate_all(
@@ -502,6 +513,8 @@ host.table %>%
 
 <div class="collapse" id="host-findings-plot">
 \newline  
+
+This figure summarizes viral detections across four major host taxonomic groups, where applicable in-country: bats, birds, non-human primates, and rodents/shrews. 
 
 ```{r viral-findings-by-taxa, fig.align = "center", fig.height = 8, fig.width = 12}
 
@@ -616,7 +629,7 @@ full.association.table <- filter(full.association.table, viral_species %in% viru
 <div class="collapse" id="vir-range-fig">
 \newline  
   
-This table shows the expansion in the number of recognized mammal host species for previously-described viruses as a result of `r report_country` PREDICT-2 sampling. One plot is shown for each previously-described (known) virus, i.e. those named by the International Committee on the Taxonomy of Viruses 8th edition. Previously known host species for each virus are from the dataset of [Olival et al. 2017](https://www.nature.com/articles/nature22975). The number of mammalian hosts for each virus are visualized using stacked bar plots, showing the number of pre-PREDICT-2 recognized host species (blue portion), the number of known host species also found positive by PREDICT-2 `r report_country` (yellow portion), and number of *newly recognized host species* as part of PREDICT-2 `r report_country` sampling efforts (red portion).
+This table shows the expansion in the number of recognized mammal host species for previously-described viruses as a result of `r report_country` PREDICT-2 sampling. One bar is shown for each previously-described (known) virus, i.e. those named by the International Committee on the Taxonomy of Viruses 8th edition. Previously known host species for each virus are from the dataset of [Olival et al. 2017](https://www.nature.com/articles/nature22975). The number of mammalian hosts for each virus are visualized using stacked bar plots, showing the number of pre-PREDICT-2 recognized host species (gray portion), the number of *newly recognized host species* found by PREDICT-2 `r report_country` (orange portion), and, where applicable, the number of *newly recognized host species* found in both PREDICT-2 `r report_country` and other PREDICT-2 country sampling efforts (green portion) and the number of *newly recognized host species* found in other PREDICT-2 countries. Only previously-described viruses for which PREDICT-2 `r report_country` reported new host species are shown.
 
 ```{r viral-host-range, fig.align = "center", fig.height = 8, fig.width = 12}
 
@@ -710,7 +723,7 @@ if(length(i.list) > 0) {i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")}
 <div class="collapse" id="vir-disc-curves">
 \newline  
   
-To provide model-based estimates of viral sampling completeness within country, here we generate viral discovery curves across four of the five priority PREDICT-2 viral groups. We have excluded influenza testing from this analysis since only one influenza species (Influenza A) was recovered globally in PREDICT-2. In order to preserve interpretability among curves, we have restricted the data included in this portion of the report. Specifically, we report only on specimens that were tested for the same viral test protocol within each viral test type. The viral test protocols considered here are: `r glue_collapse(paste0(protocols.of.interest, " (", tests.of.interest, ")"), sep = "; ")`. Thus, every specimen included in the figure was tested only once, with the viral test protocol indicated, for each viral test type.
+To provide model-based estimates of viral sampling completeness within country, here we generate viral discovery curves across four of the five priority PREDICT-2 viral groups. We have excluded influenza testing from this analysis since only one influenza species (Influenza A) was recovered globally in PREDICT-2. In order to preserve interpretability among curves, we have restricted the data included in this portion of the report. Specifically, we report only on specimens that were tested for the same viral test protocol within each viral test type. The viral test protocols considered here are: `r glue_collapse(paste0(protocols.of.interest, " (", tests.of.interest, ")"), sep = "; ")`. Thus, every specimen included in the figure was tested only once, with the viral test protocol indicated, for each viral test type. **Critically, this analysis should only be interpreted as projected viral diversity _given the particular geographic locations, host species, and testing procedures considered by PREDICT-2 `r report_country`._** Remaining viral diversity to be discovered in-country may be greater if future viral surveillance efforts expand to include other regions, animal taxa, and/or testing methods.
 
 ```{r, viral-curves-plot, fig.align = "center", fig.height = 6, fig.width = 8}
 
@@ -744,19 +757,19 @@ if(length(i.list) > 0) {
 
 The map below communicates two layers of information:
 
-1) Human and livestock population density in `r report_country`.  
+1) Human and livestock population density in `r report_country`.
 
 2) Ranges of mammal host species in which viruses have been detected in `r report_country` under PREDICT surveillance.
 
 **To control the layers visible on the map, click the bottom left icon.**  
 
--   This will bring up a list of viruses that have been detected in mammals in `r report_country`.  Click on a virus to see global ranges from the International Union for Conservation of Nature (IUCN) for the host species positive for that virus.  Hover your cursor over geographic ranges to see the host species names. Points (circles) on the map show where the host species was sampled in `r report_country`.  Solid color circles indicate that the virus was detected in one or more specimen; circles filled with white indicate the virus was not detected.  Hover over points to see counts of animals tested at each site.
+-   This will bring up a list of viruses that have been detected in mammals in `r report_country`. Click on a virus to see global ranges from the International Union for Conservation of Nature (IUCN) for the host species positive for that virus. Hover your cursor over geographic ranges to see the host species names. Points (circles) on the map show where host species were sampled in `r report_country`. Solid color circles indicate that the virus was detected in one or more animals; circles filled with white indicate the virus was not detected. Hover over points to see counts of animals tested at each site.
 
--   At the bottom of the list, you can select whether to show the human population density map or the livestock density map, or you can turn off both maps to more easily view the viral host range layers.  The human population density layer is estimated by the Center for International Earth Science Information Network (CIESIN), and the mammalian livestock density layer is based on a model developed by [Robinson et al. 2014](http://dx.doi.org/10.1371/journal.pone.0096084).
+-   At the bottom of the list, you can select whether to show the human population density map or the livestock density map, or you can turn off both maps to more easily view the viral host range layers. The human population density layer is estimated by the Center for International Earth Science Information Network (CIESIN), and the mammalian livestock density layer is based on a model developed by [Robinson et al. 2014](http://dx.doi.org/10.1371/journal.pone.0096084).
 
 -   Note that EcoHealth Alliance PREDICT-2 countries are outlined on the map in white.
 
-For easier viewing, you may use the icon on the top right to launch full-screen mode.  
+**For easier viewing, you may use the icon on the top right to launch full-screen mode.**    
 
 ```{r get-map-data, include=FALSE}
 
@@ -1003,7 +1016,7 @@ assertthat::assert_that(length(species.sampled.in.country) == nrow(specimen.coun
 mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_scientific_name"))
 ```
 
-#### Sampling Prioritization Based on Predicted 'Missing' Zoonoses
+#### Sampling Prioritization Based on Predicted "Missing" Zoonoses
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#miss-zoo" aria-expanded="false" aria-controls="miss-zoo" color="grey">
     Expand / Collapse
@@ -1012,7 +1025,7 @@ mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_sc
 <div class="collapse" id="miss-zoo">
 \newline  
   
-To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). This PREDICT-funded study used a series of mammal host traits to predict the as-of-yet undiscovered (or "missing") viral diversity in mammals. We extended a version of the "missing zoonoses" model from that paper to all mammals, and rank all mammal species based on their probability for harboring the next zoonoses. Below we list all mammal species occurring in `r report_country` and rank them based on model-based estimates of the number of predicted unobserved zoonotic viruses. We have converted these quantitative estimates into broad risk categories here to simplify surveillance prioritization and interpretation. Host species already sampled in-country for PREDICT-2 are indicated in green, along with the number of specimens collected from that species. Host species not yet sampled in `r report_country` under PREDICT-2 efforts, and therefore of possible interest for future viral surveillance work, are highlighted in red.
+To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). This PREDICT-funded study used a suite of mammal host traits to predict the as-of-yet undiscovered (or "missing") viral diversity in mammals. We extended a version of the "missing zoonoses" model from that paper to all mammals and rank all mammal species based on their probability of harboring unknown zoonoses. Below we list all mammal species occurring in `r report_country` and rank them based on model-based estimates of the number of predicted unobserved zoonotic viruses. We have converted these quantitative estimates into broad risk categories here to simplify surveillance prioritization and interpretation. Host species already sampled in PREDICT-2 `r report_country` are indicated in green, along with the number of specimens collected from that species. Host species not yet sampled in `r report_country` under PREDICT-2 efforts, and therefore of possible interest for future viral surveillance work, are highlighted in red.
 
 ```{r, missing-zoonoses-analysis}
 
