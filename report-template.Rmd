@@ -494,6 +494,52 @@ host.table %>%
 ```
 </div>
 
+#### Viral Findings in Major Host Groups
+
+<button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#host-findings-plot" aria-expanded="false" aria-controls="host-findings-plot" color="grey">
+    Expand / Collapse
+</button>
+
+<div class="collapse" id="host-findings-plot">
+\newline  
+
+```{r viral-findings-by-taxa, fig.align = "center", fig.height = 8, fig.width = 12}
+
+axis.title.size <- 22
+axis.text.size <- 20
+legend.text.size <- 20
+
+tmp <- animal_virus_summary %>%
+  mutate(
+    test_requested = case_when(
+      test_requested == "Nipah Viruses" ~ "Paramyxoviruses",
+      test_requested == "other-Influenza A" ~ "Influenzas",
+      TRUE ~ test_requested
+    )
+  ) %>%
+  filter(taxa_group_mod %in% c("bats", "birds", "non-human primates", "rodents/shrews")) %>%
+  group_by(test_requested, taxa_group_mod) %>%
+  summarize(n_viral_species = n_distinct(viral_species))
+
+y.max <- ceiling(max(tmp$n_viral_species)/5)*5
+
+tmp %>%
+  ggplot(aes(x = test_requested, y = n_viral_species, fill = taxa_group_mod)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  ylab("Number of unique viruses detected") +
+  ylim(0, y.max) +
+  scale_fill_manual(values = cb_palette[c(1, 2, 4, 5)]) +
+  theme_minimal() +
+  theme(axis.title = element_text(size = axis.title.size),
+        axis.title.x = element_blank(),
+        axis.text = element_text(size = axis.text.size),
+        axis.text.x = element_text(size = axis.text.size - 4, face = "bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = legend.text.size),
+        legend.position = "bottom")
+```
+</div>
+
 ```{r viral-host-range-prep, include = FALSE}
 
 viral.name.harmonization <- read_csv(h("data", "hp3_to_p2_viral_name_harmonization.csv"))
@@ -575,8 +621,8 @@ This table shows the expansion in the number of recognized mammal host species f
 ```{r viral-host-range, fig.align = "center", fig.height = 8, fig.width = 12}
 
 axis.title.size <- 22
-axis.text.size <- 16
-legend.text.size <- 18
+axis.text.size <- 18
+legend.text.size <- 20
 template.colors <- cb_palette[c(1, 2, 5, 3)]
 plot.colors <- if(sum(str_detect(full.association.table$project, " and ")) > 0) {
   template.colors
