@@ -4,16 +4,16 @@ h <- here::here
 
 # Download EIDITH database locally to "db" subdirectory
 # (will download into the working directory but delete later)
-# if(file.exists(h("db", "eidith.sqlite")) &&
-#    file.exists(h("db", "last_dl_date.txt")) &&
-#    readLines(h("db", "last_dl_date.txt"), warn = FALSE)[1] == as.character(Sys.Date())) {
-#
-#   cat("Database is current")
-# } else {
-#
-#   ed_db_download(verbose = FALSE, p2_tables = c("Event",  "Animal", "Specimen", "Test", "TestDataInterpreted"))
-#   cat(as.character(Sys.Date()), file = h("db", "last_dl_date.txt"))
-# }
+if(file.exists(h("db", "eidith.sqlite")) &&
+   file.exists(h("db", "last_dl_date.txt")) &&
+   readLines(h("db", "last_dl_date.txt"), warn = FALSE)[1] == as.character(Sys.Date())) {
+
+  cat("Database is current")
+} else {
+
+  ed_db_download(verbose = FALSE, p2_tables = c("Event",  "Animal", "Specimen", "Test", "TestDataInterpreted"))
+  cat(as.character(Sys.Date()), file = h("db", "last_dl_date.txt"))
+}
 
 # Download IUCN terrestrial mammal shapefiles to "data" subdirectory
 if(file.exists(h("data", "TERRESTRIAL_MAMMALS", "TERRESTRIAL_MAMMALS.shp"))) {
