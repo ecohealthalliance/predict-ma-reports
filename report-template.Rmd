@@ -554,20 +554,31 @@ tmp <- animal_virus_summary %>%
 
 y.max <- ceiling(max(tmp$n_viral_species)/5)*5
 
-tmp %>%
-  ggplot(aes(x = test_requested, y = n_viral_species, fill = taxa_group_mod)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  ylab("Number of unique viruses detected") +
-  ylim(0, y.max) +
-  scale_fill_manual(values = cb_palette[c(1, 2, 4, 5)]) +
-  theme_minimal() +
-  theme(axis.title = element_text(size = axis.title.size),
-        axis.title.x = element_blank(),
-        axis.text = element_text(size = axis.text.size),
-        axis.text.x = element_text(size = axis.text.size - 4, face = "bold"),
-        legend.title = element_blank(),
-        legend.text = element_text(size = legend.text.size),
-        legend.position = "bottom")
+if(nrow(tmp) > 0) {
+  
+  tmp %>%
+    ggplot(aes(x = test_requested, y = n_viral_species, fill = taxa_group_mod)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    ylab("Number of unique viruses detected") +
+    ylim(0, y.max) +
+    scale_fill_manual(values = cb_palette[c(1, 2, 4, 5)]) +
+    theme_minimal() +
+    theme(axis.title = element_text(size = axis.title.size),
+          axis.title.x = element_blank(),
+          axis.text = element_text(size = axis.text.size),
+          axis.text.x = element_text(size = axis.text.size - 4, face = "bold"),
+          legend.title = element_blank(),
+          legend.text = element_text(size = legend.text.size),
+          legend.position = "bottom")
+} else {
+  
+  ggplot(data.frame(cbind(x = 1, y = 1)), aes(x = x, y = y)) + 
+    geom_text(label = "No relevant data", size = 20) +
+    theme_minimal() +
+    theme(axis.title = element_blank(),
+          axis.text = element_blank(),
+          panel.grid = element_blank())
+}
 ```
 </div>
 
@@ -661,7 +672,9 @@ plot.colors <- if(sum(str_detect(full.association.table$project, " and ")) > 0) 
   template.colors[c(1, 3, 4)]
 }
 
-full.association.table %>%
+if(nrow(full.association.table) > 0) {
+  
+  full.association.table %>%
   mutate(viral_species = str_replace(viral_species, " \\(", "\n\\(")) %>%
   ggplot(aes(x = viral_species, fill = project)) +
   ylab("Number of known host species") +
@@ -675,6 +688,16 @@ full.association.table %>%
         legend.title = element_blank(),
         legend.text = element_text(size = legend.text.size),
         legend.position = "bottom")
+} else {
+  
+  ggplot(data.frame(cbind(x = 1, y = 1)), aes(x = x, y = y)) + 
+    geom_text(label = "No relevant data", size = 20) +
+    theme_minimal() +
+    theme(axis.title = element_blank(),
+          axis.text = element_blank(),
+          panel.grid = element_blank())
+}
+
 ```
 </div>
 
