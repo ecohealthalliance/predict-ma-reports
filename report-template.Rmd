@@ -790,6 +790,14 @@ if(length(i.list) > 0) {
           legend.title = element_blank(),
           legend.text = element_text(size = legend.text.size),
           legend.position = "bottom")
+} else {
+  
+  ggplot(data.frame(cbind(x = 1, y = 1)), aes(x = x, y = y)) + 
+    geom_text(label = "No relevant data", size = 20) +
+    theme_minimal() +
+    theme(axis.title = element_blank(),
+          axis.text = element_blank(),
+          panel.grid = element_blank())
 }
 ```
 </div>
