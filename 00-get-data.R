@@ -11,7 +11,7 @@ if(file.exists(h("db", "eidith.sqlite")) &&
   cat("Database is current")
 } else {
 
-  ed_db_download(verbose = TRUE,
+  ed_db_download(verbose = FALSE,
                  country = eha_countries(),
                  p2_tables = c("Event",  "Animal", "Specimen", "Test", "TestDataInterpreted")
                  )
