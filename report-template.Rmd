@@ -178,6 +178,8 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
   
 This table provides an overview of all `r report_country` viral findings in animals. For each unique virus detected in-country, the table indicates the number of times it was detected, the host taxonomic groups and species in which these detections occurred, and the associated sites. Finally, to add broader context to viral findings beyond `r report_country`'s borders, the final column of the table lists other PREDICT-2 countries in which the same virus was found and approved for government release, highlighting the potential geographic range of each virus.
 
+**Please note you may need to scroll horizontally within the table to view all columns.**
+
 ```{r tables-1}
 
 animal.grouping.vars <-
@@ -239,7 +241,8 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
               pageLength = 5,
-              drawCallback = JS("$(function () {$('[data-toggle=\"tooltip\"]').tooltip()})")
+              drawCallback = JS("$(function () {$('[data-toggle=\"tooltip\"]').tooltip()})"),
+              scrollX = TRUE
             )
   )
 ```
@@ -329,9 +332,9 @@ heatmap1 <- tmp1 %>%
   theme(
     panel.grid = element_blank(),
     legend.position = "none",
-    axis.text.x = element_text(size = 14),
+    axis.text.x = element_text(size = 12, face = "bold"),
     axis.title.x = element_text(size = 20),
-    text = element_text(size = 13),
+    text = element_text(size = 12),
     axis.title.y = element_blank()
   )
 
@@ -369,8 +372,19 @@ tmp2 <- d2 %>%
   ) %>%
   ungroup() %>%
   filter(!is.na(disease_transmission_interfaces)) %>%
-  arrange(disease_transmission_interfaces) %>%
-  mutate(
+  arrange(disease_transmission_interfaces)
+
+# Split up disease transmission interface row labels into two lines if they're long
+pos <- str_locate_all(tmp2$disease_transmission_interfaces, ";")
+list <- lapply(pos, function(x) ifelse(nrow(x) >= 3, return(x[3, ]), return(c(NA, NA))))
+list <- do.call(rbind, list)
+for(i in 1:nrow(list)) {
+  
+  if(!is.na(list[i, 1])) str_sub(tmp2$disease_transmission_interfaces[i], list[i, 1], list[i, 2]) <- ";\n"
+}
+
+tmp2 <- tmp2 %>%
+   mutate(
     disease_transmission_interfaces = 
       factor(disease_transmission_interfaces, rev(unique(disease_transmission_interfaces)))
   )
@@ -389,18 +403,19 @@ heatmap2 <- tmp2 %>%
   theme(
     panel.grid = element_blank(),
     legend.position = "none",
-    axis.text.x = element_text(size = 14),
+    axis.text.x = element_text(size = 12, face = "bold"),
     axis.title.x = element_blank(),
-    text = element_text(size = 13),
+    text = element_text(size = 12),
     axis.title.y = element_blank()
   )
 
 fig.height <- sum(nrow(tmp1) + nrow(tmp2))/16
+if(fig.height < 4.5) {fig.height <- 4.5}
 ```
 
 ```{r heatmaps-plot, fig.align = "center", fig.width = 10, fig.height = fig.height}
 
-plot_grid(heatmap1, heatmap2, nrow = 2, align = "v", rel_heights = c(nrow(tmp1), nrow(tmp2)))
+plot_grid(heatmap1, heatmap2, nrow = 2, align = "v", rel_heights = c(nrow(tmp1), 2*nrow(tmp2)))
 ```
 </div>
 
@@ -414,6 +429,8 @@ plot_grid(heatmap1, heatmap2, nrow = 2, align = "v", rel_heights = c(nrow(tmp1),
 \newline  
   
 This table provides a site-level overview of `r report_country` PREDICT-2 viral detections. For each site, the table outlines basic site characteristics as well as a summary of the viruses found and host species that were positive at each site. 
+
+**Please note you may need to scroll horizontally within the table to view all columns.**
 
 ```{r tables-2}
 
@@ -444,6 +461,8 @@ get_country_site_viruses2(view = FALSE, animal_virus_summary) %>%
 \newline  
 
 This table provides a site-level overview of `r report_country` PREDICT-2 viral detections, considering only the concurrent sampling sites. For each concurrent site, the table shows the human density impact levels recorded as well as a summary of the viruses found and host species that were positive. 
+
+**Please note you may need to scroll horizontally within the table to view all columns.**
 
 ```{r tables-3}
 
@@ -498,8 +517,7 @@ host.table %>%
   datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
-              pageLength = 10,
-              scrollX = TRUE
+              pageLength = 10
             )
   )
 ```
