@@ -1065,7 +1065,7 @@ assertthat::assert_that(length(species.sampled.in.country) == nrow(specimen.coun
 mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_scientific_name"))
 ```
 
-#### Sampling Prioritization Based on Predicted "Missing" Zoonoses
+#### Host Sampling Prioritization Based on Predicted "Missing" Zoonoses
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#miss-zoo" aria-expanded="false" aria-controls="miss-zoo" color="grey">
     Expand / Collapse
@@ -1110,7 +1110,7 @@ mz.subset %>%
 ```
 </div>
 
-#### Global Viral Project (GVP) Sampling Prioritization
+#### Geographic Sampling Prioritization Based on Global Virome Project Spatial Analyses
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#gvp" aria-expanded="false" aria-controls="gvp" color="grey">
     Expand / Collapse
@@ -1119,7 +1119,9 @@ mz.subset %>%
 <div class="collapse" id="gvp">
 \newline  
 
-```{r, gvp-maps, fig.width = 8, fig.height = 7, fig.align = "center"}
+The [Global Virome Project](https://www.globalviromeproject.org/) aims to build a comprehensive viral database and identify zoonotic viruses with the greatest potential to infect humans in hopes of ultimately reducing the likelihood of viral spillover events. This map shows viral sampling priority areas in `r report_country`, ranked from most optimal (white) to least optimal (dark blue). We used the Zonation Conservation Planning Software to select and rank sites of highest sampling value based on the number of unique zoonotic viruses predicted to occupy each grid cell (derived from [Olival et al. 2017](https://www.nature.com/articles/nature22975)) and the relative cost of accessing each site from nearby cities of greater than 50,000 people ([Weiss et al. 2018](https://www.nature.com/articles/nature25181)). We identified optimal areas for viral sampling using a decision support system for spatial planning that allocates resources (e.g. sampling costs) and prioritizes areas. The result is a ranking of all potential sampling sites in `r report_country` based on the highest return on investment for sampling in a particular area.
+
+```{r, gvp-maps, fig.align = "center", out.width = "600px"}
 
 gvp.filename <- read_csv(h("data", "country_GVP_map_lookup.csv")) %>%
   filter(country == report_country) %>%
@@ -1148,6 +1150,8 @@ Center for International Earth Science Information Network - CIESIN - Columbia U
 
 IUCN v6.2. The IUCN Red List of Threatened Species. Version 6.2. http://www.iucnredlist.org. Downloaded on 24 July 2019.
 
-Olival, K.J., Hosseini, P.R., Zambrana-Torrelio, C., Ross, N., Bogich, T.L. and Daszak, P. 2017. Host and viral traits predict zoonotic spillover from mammals. Nature 546: 646-650. http://dx.doi.org/10.1038/nature22975
+Olival, K.J. *et al.* 2017. Host and viral traits predict zoonotic spillover from mammals. Nature 546: 646-650. http://dx.doi.org/10.1038/nature22975
 
-Robinson, T.P., Wint, G.R.W., Conchedda, G., Van Boeckel, T.P., Ercoli, V., Palamara, E., Cinardi, G., D’Aietti, L., Hay, S.I. and Gilbert, M. 2014. Mapping the global distribution of livestock. PLoS ONE 9: e96084. http://dx.doi.org/10.1371/journal.pone.0096084
+Robinson, T.P. *et al.* 2014. Mapping the global distribution of livestock. PLoS ONE 9: e96084. http://dx.doi.org/10.1371/journal.pone.0096084
+
+Weiss, D.J. *et al.* 2018. A global map of travel time to cities to assess inequalities in accessibility in 2015. Nature 553: 333-336. http://dx.doi.org/10.1038/nature25181
