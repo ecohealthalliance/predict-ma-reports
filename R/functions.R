@@ -281,7 +281,7 @@ get_layers <- function(filename, admin){
 
 mod_country <- function(country){
   country_mod <- map(country,
-                     ~switch(., "China" = c("China"),#, "Taiwan"),
+                     ~switch(., "China" = c("China", "Taiwan"),
                              "Republic of Congo" =  "Republic of the Congo",
                              "Malaysia, Peninsular"  = "Malaysia",
                              "Malaysia, Sabah"  = "Malaysia",
