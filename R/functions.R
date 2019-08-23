@@ -280,17 +280,12 @@ get_layers <- function(filename, admin){
 }
 
 mod_country <- function(country){
-  str_replace_all(country,
-                  c("\\-.*" = "",
-                    "^DR" = "Democratic Republic of the",
-                    "PDR" = "People's Democratic Republic",
-                    "Myanmar" = "Burma",
-                    "Vietnam" = "Viet Nam",
-                    "Tanzania" = "United Republic of Tanzania",
-                  # "Ivory Coast" = "Cote d'Ivoire",
-                    "Republic of Congo" =  "Republic of the Congo",
-                  # "South Sudan"= "Sudan",
-                    ", Peninsular" = "",
-                    ", Sabah" = ""
-                  ))
+  country_mod <- map(country,
+                     ~switch(., "China" = c("China"),#, "Taiwan"),
+                             "Republic of Congo" =  "Republic of the Congo",
+                             "Malaysia, Peninsular"  = "Malaysia",
+                             "Malaysia, Sabah"  = "Malaysia",
+                             .)
+  )
+  unlist(country_mod)
 }
