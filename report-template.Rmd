@@ -44,7 +44,7 @@ cb_palette <- c("#D55E00", "#009E73", "#999999", "#E69F00", "#56B4E9")
 
 <script>
 $(function () {
-  $('[data-toggle="tooltip"]').tooltip()
+$('[data-toggle="tooltip"]').tooltip()
 })
 </script>
 
@@ -170,12 +170,12 @@ d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
 #### Virus-Level Summary Table 
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#vir-sum-table" aria-expanded="false" aria-controls="vir-sum-table" color="grey">
-    Expand / Collapse
+Expand / Collapse
 </button>
 
 <div class="collapse" id="vir-sum-table">
 \newline  
-  
+
 This table provides an overview of all `r report_country` viral findings in animals. For each unique virus detected in-country, the table indicates the number of times it was detected, the host taxonomic groups and species in which these detections occurred, and the associated sites. Finally, to add broader context to viral findings beyond `r report_country`'s borders, the final column of the table lists other PREDICT-2 countries in which the same virus was found and approved for government release, highlighting the potential geographic range of each virus.
 
 **Please note you may need to scroll horizontally within the table to view all columns.**
@@ -251,12 +251,12 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
 #### Viral Testing Heatmap
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#vir-test-heatmap" aria-expanded="false" aria-controls="vir-test-heatmap" color="grey">
-    Expand / Collapse
+Expand / Collapse
 </button>
 
 <div class="collapse" id="vir-test-heatmap">
 \newline  
-  
+
 Building from the viral summary table above, these heatmaps provides more granular information about sampling effort and detection rates across the five priority PREDICT-2 viral groups: Coronaviruses, Filoviruses, Flaviviruses, Influenzas, and Paramyxoviruses. First, data are summarized at the host genus level, and broader taxonomic groups are shown in parentheses. Next, data are summarized by reported disease transmission interfaces at the sampling sites. Data within the heatmaps show the percentage of viral detections that were confirmed positive (%) and the number of PCR tests conducted (in parentheses). The intensity of red color within the heatmaps scales with viral detection rate. Host taxa or interfaces that never yielded positive viral tests for a given viral group are shown in white, while red coloration indicates increasingly higher rates of viral detection.
 
 ```{r heatmaps-prep}
@@ -384,7 +384,7 @@ for(i in 1:nrow(list)) {
 }
 
 tmp2 <- tmp2 %>%
-   mutate(
+  mutate(
     disease_transmission_interfaces = 
       factor(disease_transmission_interfaces, rev(unique(disease_transmission_interfaces)))
   )
@@ -422,12 +422,12 @@ plot_grid(heatmap1, heatmap2, nrow = 2, align = "v", rel_heights = c(nrow(tmp1),
 #### Site-Level Summary Table
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#site-sum-table" aria-expanded="false" aria-controls="site-sum-table" color="grey">
-    Expand / Collapse
+Expand / Collapse
 </button>
 
 <div class="collapse" id="site-sum-table">
 \newline  
-  
+
 This table provides a site-level overview of `r report_country` PREDICT-2 viral detections. For each site, the table outlines basic site characteristics as well as a summary of the viruses found and host species that were positive at each site. 
 
 **Please note you may need to scroll horizontally within the table to view all columns.**
@@ -441,7 +441,7 @@ get_country_site_viruses2(view = FALSE, animal_virus_summary) %>%
   ) %>%
   # kable(escape = FALSE, align = "c") %>%
   # kable_styling(fixed_thead = TRUE) %>%
-    datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+  datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
               pageLength = 5,
@@ -454,7 +454,7 @@ get_country_site_viruses2(view = FALSE, animal_virus_summary) %>%
 #### Concurrent Site-Level Summary Table
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#con-site-sum-table" aria-expanded="false" aria-controls="con-site-sum-table" color="grey">
-    Expand / Collapse
+Expand / Collapse
 </button>
 
 <div class="collapse" id="con-site-sum-table">
@@ -473,7 +473,7 @@ get_country_site_viruses2_concurrent(view = FALSE, animal_virus_summary) %>%
   ) %>%
   # kable(escape = FALSE, align = "c") %>%
   # kable_styling(fixed_thead = TRUE) %>%
-    datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+  datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
               pageLength = 5,
@@ -486,7 +486,7 @@ get_country_site_viruses2_concurrent(view = FALSE, animal_virus_summary) %>%
 #### Host-Level Summary Table
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#host-sum-table" aria-expanded="false" aria-controls="host-sum-table" color="grey">
-    Expand / Collapse
+Expand / Collapse
 </button>
 
 <div class="collapse" id="host-sum-table">
@@ -526,7 +526,7 @@ host.table %>%
 #### Viral Findings in Major Host Groups
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#host-findings-plot" aria-expanded="false" aria-controls="host-findings-plot" color="grey">
-    Expand / Collapse
+Expand / Collapse
 </button>
 
 <div class="collapse" id="host-findings-plot">
@@ -652,12 +652,12 @@ full.association.table <- filter(full.association.table, viral_species %in% viru
 #### Expansion of Known Virus Host Range
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#vir-range-fig" aria-expanded="false" aria-controls="vir-range-fig" color="grey">
-    Expand / Collapse
+Expand / Collapse
 </button>
 
 <div class="collapse" id="vir-range-fig">
 \newline  
-  
+
 This table shows the expansion in the number of recognized mammal host species for previously-described viruses as a result of `r report_country` PREDICT-2 sampling. One bar is shown for each previously-described (known) virus, i.e. those named by the International Committee on the Taxonomy of Viruses 8th edition. Previously known host species for each virus are from the dataset of [Olival et al. 2017](https://www.nature.com/articles/nature22975). The number of mammalian hosts for each virus are visualized using stacked bar plots, showing the number of pre-PREDICT-2 recognized host species (gray portion), the number of *newly recognized host species* found by PREDICT-2 `r report_country` (orange portion), and, where applicable, the number of *newly recognized host species* found in both PREDICT-2 `r report_country` and other PREDICT-2 country sampling efforts (green portion) and the number of *newly recognized host species* found in other PREDICT-2 countries. Only previously-described viruses for which PREDICT-2 `r report_country` reported new host species are shown.
 
 ```{r viral-host-range, fig.align = "center", fig.height = 8, fig.width = 12}
@@ -675,19 +675,19 @@ plot.colors <- if(sum(str_detect(full.association.table$project, " and ")) > 0) 
 if(nrow(full.association.table) > 0) {
   
   full.association.table %>%
-  mutate(viral_species = str_replace(viral_species, " \\(", "\n\\(")) %>%
-  ggplot(aes(x = viral_species, fill = project)) +
-  ylab("Number of known host species") +
-  geom_bar() +
-  scale_fill_manual(values = plot.colors) +
-  theme_minimal() +
-  theme(axis.title = element_text(size = axis.title.size),
-        axis.title.x = element_blank(),
-        axis.text = element_text(size = axis.text.size),
-        axis.text.x = element_text(size = axis.text.size - 4, face = "bold"),
-        legend.title = element_blank(),
-        legend.text = element_text(size = legend.text.size),
-        legend.position = "bottom")
+    mutate(viral_species = str_replace(viral_species, " \\(", "\n\\(")) %>%
+    ggplot(aes(x = viral_species, fill = project)) +
+    ylab("Number of known host species") +
+    geom_bar() +
+    scale_fill_manual(values = plot.colors) +
+    theme_minimal() +
+    theme(axis.title = element_text(size = axis.title.size),
+          axis.title.x = element_blank(),
+          axis.text = element_text(size = axis.text.size),
+          axis.text.x = element_text(size = axis.text.size - 4, face = "bold"),
+          legend.title = element_blank(),
+          legend.text = element_text(size = legend.text.size),
+          legend.position = "bottom")
 } else {
   
   ggplot(data.frame(cbind(x = 1, y = 1)), aes(x = x, y = y)) + 
@@ -758,12 +758,12 @@ if(length(i.list) > 0) {i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")}
 #### Viral Discovery Curves
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#vir-disc-curves" aria-expanded="false" aria-controls="vir-disc-curves" color="grey">
-    Expand / Collapse
+Expand / Collapse
 </button>
 
 <div class="collapse" id="vir-disc-curves">
 \newline  
-  
+
 To provide model-based estimates of viral sampling completeness within country, here we generate viral discovery curves across four of the five priority PREDICT-2 viral groups. We have excluded influenza testing from this analysis since only one influenza species (Influenza A) was recovered globally in PREDICT-2. In order to preserve interpretability among curves, we have restricted the data included in this portion of the report. Specifically, we report only on specimens that were tested for the same viral test protocol within each viral test type. The viral test protocols considered here are: `r glue_collapse(paste0(protocols.of.interest, " (", tests.of.interest, ")"), sep = "; ")`. Thus, every specimen included in the figure was tested only once, with the viral test protocol indicated, for each viral test type. **Critically, this analysis should only be interpreted as projected viral diversity _given the particular geographic locations, host species, and testing procedures considered by PREDICT-2 `r report_country`._** Remaining viral diversity to be discovered in-country may be greater if future viral surveillance efforts expand to include other regions, animal taxa, and/or testing methods.
 
 ```{r, viral-curves-plot, fig.align = "center", fig.height = 6, fig.width = 8}
@@ -871,24 +871,21 @@ animal_viral_pairs <- filter(animal_viral_pairs, viral_species %in% viral.specie
 
 <style>
 .leaflet {
-    margin: auto;
+margin: auto;
 }
 </style>
 
 ```{r maps, fig.align = "center"}
 
-# set palettes
+# Set palettes
 max_val_human <- ceiling(maxValue(human_dens))
 pal_human <- colorBin(palette =
                         c("white","gray50", "black"),
-                      #c("azure4", "yellow", "coral2"),
-                      #c("mistyrose1", "coral", "darkred"),
                       domain = -1:max_val_human, na.color = "transparent")
 
 max_val_mammal <- ceiling(maxValue(mammal_dens))
 min_val_mammal <- floor(minValue(mammal_dens))
 pal_mammal <- colorBin( c("white","gray50", "black"),
-                        #palette = c("azure4", "yellow", "coral2"), 
                         domain = min_val_mammal:max_val_mammal, 
                         na.color = "transparent", pretty = TRUE, 
                         bins = 5)
@@ -896,85 +893,64 @@ pal_mammal <- colorBin( c("white","gray50", "black"),
 opac <- 0.3
 rad <- 5
 
-# initiate leaflet map
+# Initiate leaflet map
 lf <- leaflet() %>%
   addProviderTiles("CartoDB.DarkMatter") %>%
   addPolygons(data = admin_eha, fill = FALSE, stroke = TRUE, weight = 1, color = "white", opacity = 0.5) %>% # EHA outlines
   addFullscreenControl(position = "topright")
 
+# Add viruses to leaflet
 for(vir in viral.species.detected.in.country) {
   
-  species_detects <- animal_viral_pairs %>%
-    filter(
-      viral_species == vir, 
-      n_animals_w_detections > 0
-    ) 
+  # subset detect and non-detect data
+  species_dat <- animal_viral_pairs %>%
+    filter(viral_species == vir) %>%
+    arrange(n_animals_w_detections)
   
-  species <- unique(species_detects$species_scientific_name)
+  # get unique species hosts for given virus
+  species <- species_dat %>% 
+    filter(n_animals_w_detections>0) %>% 
+    pull(species_scientific_name) %>% 
+    unique()
   
-  species_non_detects <- animal_viral_pairs %>%
-    filter(
-      viral_species == vir, 
-      n_animals_w_detections == 0
-    )
+  # set palette 
+  ifelse(length(species) < 11,
+    pal_spec <- suppressWarnings(brewer.pal(length(species), "Set3")),
+    pal_spec <- rep("#7FC97F", length(species))
+  )
+  names(pal_spec) <- species
   
-  pal_spec <- suppressWarnings(brewer.pal(length(species), "Set3"))
+  # add color and labels to species data
+  species_dat <- species_dat %>%
+    mutate(color = ifelse(n_animals_w_detections>0,
+                          unname(pal_spec[species_scientific_name]),
+                          "#ffffff"))  %>%
+    mutate(lab = ifelse(n_animals_w_detections>0, 
+                        paste0("PREDICT ", species_scientific_name, " (", n_animals_tested, " animals tested, ", n_animals_w_detections, " animals positive)"),
+                        paste0("PREDICT ", species_scientific_name, " non-detect (", n_animals_tested, " animals tested)")))
   
-  if(length(species) < 11) {
+  # add species layes
+  for(spec in species) {
     
-    names(pal_spec) <- species
-    
-    for(spec in species) {
-      
-      iucn_sub <- iucn %>% filter(binomial==spec)
-      
-      lf <- lf %>%
-        addPolygons(data = iucn_sub,
-                    stroke = TRUE, color = unname(pal_spec[spec]), weight = 2, opacity = opac,
-                    fill = TRUE, fillColor = unname(pal_spec[spec]), fillOpacity = opac,
-                    label = spec,
-                    group = vir) 
-    }
-    
-    lf <- lf %>%
-      addCircleMarkers(data = species_non_detects, radius = rad,
-                       lng = ~jitter(site_longitude), lat = ~jitter(site_latitude), 
-                       stroke = TRUE, color = ~unname(pal_spec[species_scientific_name]), weight = 1.5, opacity = 1,
-                       fill = TRUE, fillColor = "#ffffff", fillOpacity = 1,
-                       label = ~paste0("PREDICT ", species_scientific_name, " non-detect (", n_animals_tested, " animals tested)"),
-                       group = vir) %>%
-            addCircleMarkers(data = species_detects, radius = rad, 
-                       lng = ~jitter(site_longitude), lat = ~jitter(site_latitude), 
-                       stroke = FALSE, 
-                       fill = TRUE, fillColor = ~unname(pal_spec[species_scientific_name]), fillOpacity = 1,
-                       label = ~paste0("PREDICT ", species_scientific_name, " (", n_animals_tested, " animals tested, ", n_animals_w_detections, " animals positive)"),
-                       group = vir) 
-
-    
-  } else { # n species > 10
-    
-    iucn_sub <- iucn %>% filter(binomial %in% species)
+    iucn_sub <- iucn %>% filter(binomial==spec)
     
     lf <- lf %>%
       addPolygons(data = iucn_sub,
-                  stroke = TRUE, color = "#7FC97F", weight = 2, opacity = opac,
-                  fill = TRUE, fillColor = "#7FC97F", fillOpacity = opac,
-                  label = htmltools::HTML(glue_collapse(species, "<br/>")),
-                  group = vir) %>%
-          addCircleMarkers(data = species_non_detects, radius = rad,
-                       lng = ~jitter(site_longitude), lat = ~jitter(site_latitude), 
-                       stroke = TRUE, color =  "#7FC97F", weight = 1.5, opacity = 1,
-                       fill = TRUE, fillColor = "#ffffff", fillOpacity = 1,
-                       label = ~paste0("PREDICT ", species_scientific_name, " non-detect (", n_animals_tested, " animals tested)"),
-                       group = vir) %>%
-            addCircleMarkers(data = species_detects, radius = rad, 
-                       lng = ~jitter(site_longitude), lat = ~jitter(site_latitude), 
-                       stroke = FALSE, 
-                       fill = TRUE, fillColor = "#7FC97F", fillOpacity = 1,
-                       label = ~paste0("PREDICT ", species_scientific_name, " (", n_animals_tested, " animals tested, ", n_animals_w_detections, " animals positive)"),
-                       group = vir) 
-    
+                  stroke = TRUE, color = unname(pal_spec[spec]), weight = 2, opacity = opac,
+                  fill = TRUE, fillColor = unname(pal_spec[spec]), fillOpacity = opac,
+                  label = spec,
+                  group = vir) 
   }
+  
+  # add points
+  lf <- lf %>%
+    addCircleMarkers(data = species_dat, radius = rad,
+                     lng = ~jitter(site_longitude), lat = ~jitter(site_latitude), 
+                     stroke = TRUE, color = ~color, weight = 1.5, opacity = 1,
+                     fill = TRUE, fillColor = ~color, fillOpacity = 1,
+                     label = ~lab,
+                     group = vir) 
+  
 }
 
 lf <- lf %>%
@@ -1068,12 +1044,12 @@ mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_sc
 #### Host Sampling Prioritization Based on Predicted "Missing" Zoonoses
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#miss-zoo" aria-expanded="false" aria-controls="miss-zoo" color="grey">
-    Expand / Collapse
+Expand / Collapse
 </button>
 
 <div class="collapse" id="miss-zoo">
 \newline  
-  
+
 To help prioritize future viral surveillance in-country, we draw on the modeling work of [Olival et al. 2017](https://www.nature.com/articles/nature22975). This PREDICT-funded study used a suite of mammal host traits to predict the as-of-yet undiscovered (or "missing") viral diversity in mammals. We extended a version of the "missing zoonoses" model from that paper to all mammals and rank all mammal species based on their probability of harboring unknown zoonoses. Below we list all mammal species occurring in `r report_country` and rank them based on model-based estimates of the number of predicted unobserved zoonotic viruses. We have converted these quantitative estimates into broad risk categories here to simplify surveillance prioritization and interpretation. Host species already sampled in PREDICT-2 `r report_country` are indicated in green, along with the number of specimens collected from that species. Host species not yet sampled in `r report_country` under PREDICT-2 efforts, and therefore of possible interest for future viral surveillance work, are highlighted in red.
 
 ```{r, missing-zoonoses-analysis}
@@ -1101,7 +1077,7 @@ mz.subset %>%
   ) %>%
   # kable(escape = FALSE, align = "c") %>%
   # kable_styling(fixed_thead = TRUE) %>%
-    datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+  datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
               pageLength = 20
@@ -1113,7 +1089,7 @@ mz.subset %>%
 #### Geographic Sampling Prioritization Based on Global Virome Project Spatial Analyses
 
 <button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#gvp" aria-expanded="false" aria-controls="gvp" color="grey">
-    Expand / Collapse
+Expand / Collapse
 </button>
 
 <div class="collapse" id="gvp">
