@@ -19,6 +19,8 @@ library(base64enc)
 
 token <- decrypt(readRDS("token.rds.encrypted"), key = key_sodium(base64decode(Sys.getenv("SODIUM_KEY"))))
 to_upload <- list.files("outputs", pattern = ".html", full.names = TRUE)
+to_upload <- grep("Malaysia", to_upload, value = TRUE, invert = TRUE)
 for (f in to_upload) {
+
   drop_upload(f, path  = "predict-ma-reports", dtoken = token, autorename = FALSE)
 }
