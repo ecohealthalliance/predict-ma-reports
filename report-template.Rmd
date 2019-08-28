@@ -237,12 +237,19 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
   select(-interpretation) %>%
   # kable(escape = FALSE, align = "c") %>%
   # kable_styling(fixed_thead = TRUE)
-  datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+  datatable(class = "row-border", escape = FALSE, rownames = FALSE, extensions = "Buttons",
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
               pageLength = 5,
               drawCallback = JS("$(function () {$('[data-toggle=\"tooltip\"]').tooltip()})"),
-              scrollX = TRUE
+              scrollX = TRUE,
+              dom = 'Bfrtip',
+              buttons = 
+                list(list(
+                  extend = "collection",
+                  buttons = c('csv', 'excel'),
+                  text = "Download Table Data"
+                ))
             )
   )
 ```
@@ -441,11 +448,18 @@ get_country_site_viruses2(view = FALSE, animal_virus_summary) %>%
   ) %>%
   # kable(escape = FALSE, align = "c") %>%
   # kable_styling(fixed_thead = TRUE) %>%
-  datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+  datatable(class = "row-border", escape = FALSE, rownames = FALSE, extensions = "Buttons",
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
               pageLength = 5,
-              scrollX = TRUE
+              scrollX = TRUE,
+              dom = 'Bfrtip',
+              buttons = 
+                list(list(
+                  extend = "collection",
+                  buttons = c('csv', 'excel'),
+                  text = "Download Table Data"
+                ))
             )
   )
 ```
@@ -473,11 +487,18 @@ get_country_site_viruses2_concurrent(view = FALSE, animal_virus_summary) %>%
   ) %>%
   # kable(escape = FALSE, align = "c") %>%
   # kable_styling(fixed_thead = TRUE) %>%
-  datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+  datatable(class = "row-border", escape = FALSE, rownames = FALSE, extensions = "Buttons", 
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
               pageLength = 5,
-              scrollX = TRUE
+              scrollX = TRUE,
+              dom = 'Bfrtip',
+              buttons = 
+                list(list(
+                  extend = "collection",
+                  buttons = c('csv', 'excel'),
+                  text = "Download Table Data"
+                ))
             )
   )
 ```
@@ -514,10 +535,17 @@ host.table %>%
     cell_spec, format = "html", 
     bold = TRUE, color = text.color
   ) %>%
-  datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+  datatable(class = "row-border", escape = FALSE, rownames = FALSE, extensions = "Buttons", 
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
-              pageLength = 10
+              pageLength = 10,
+              dom = 'Bfrtip',
+              buttons = 
+                list(list(
+                  extend = "collection",
+                  buttons = c('csv', 'excel'),
+                  text = "Download Table Data"
+                ))
             )
   )
 ```
@@ -1077,10 +1105,17 @@ mz.subset %>%
   ) %>%
   # kable(escape = FALSE, align = "c") %>%
   # kable_styling(fixed_thead = TRUE) %>%
-  datatable(class = "row-border", escape = FALSE, rownames = FALSE, 
+  datatable(class = "row-border", escape = FALSE, rownames = FALSE, extensions = "Buttons",
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
-              pageLength = 20
+              pageLength = 20,
+              dom = 'Bfrtip',
+              buttons = 
+                list(list(
+                  extend = "collection",
+                  buttons = c('csv', 'excel'),
+                  text = "Download Table Data"
+                ))
             )
   )
 ```
