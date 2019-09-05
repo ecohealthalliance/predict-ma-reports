@@ -859,9 +859,10 @@ admin_eha <- ne_countries(country = country_eha, type='countries', scale = 'larg
 
 # Centroids for setting view in leaflet
 country_centroid <- CoordinateCleaner::countryref %>% 
-  filter(name == countrycode(sourcevar = country_mod,
+  filter(type == "country",
+         iso3 == countrycode(sourcevar = country_mod,
                              origin = "country.name",
-                             destination = "country.name")) %>%
+                             destination = "iso3c")) %>%
   slice(1)
 
 # Get population density rasters
@@ -943,8 +944,8 @@ for(vir in viral.species.detected.in.country) {
   
   # set palette 
   ifelse(length(species) < 11,
-    pal_spec <- suppressWarnings(brewer.pal(length(species), "Set3")),
-    pal_spec <- rep("#7FC97F", length(species))
+         pal_spec <- suppressWarnings(brewer.pal(length(species), "Set3")),
+         pal_spec <- rep("#7FC97F", length(species))
   )
   names(pal_spec) <- species
   
