@@ -1,6 +1,6 @@
 ---
 params:
-  country: "Mongolia"
+  country: "Vietnam"
 title: 'EcoHealth Alliance PREDICT M&A Report: `r params$country`'
 date: "`r Sys.Date()`"
 output:
@@ -635,7 +635,6 @@ hp3.associations <- read_csv(h("data", "associations.csv")) %>%
 # "species" to exclude from P2 associations
 
 p2.associations <- read_csv(h("data", "P2_virus_mammal_host_associations.csv")) %>%
-  rename(scientific_name = species_scientific_name) %>%
   filter(viral_species %in% unique(hp3.associations$viral_species)) %>%
   group_by(viral_species, scientific_name) %>%
   summarize(country_list = glue_collapse(country, sep = ", ")) %>%
@@ -849,18 +848,16 @@ The map below communicates two layers of information:
 
 -   At the bottom of the list, you can select whether to show the human population density map or the livestock density map, or you can turn off both maps to more easily view the viral host range layers. The human population density layer is estimated by the Center for International Earth Science Information Network (CIESIN), and the mammalian livestock density layer is based on a model developed by [Robinson et al. 2014](http://dx.doi.org/10.1371/journal.pone.0096084).
 
--   Note that EcoHealth Alliance PREDICT-2 countries are outlined on the map in white.
-
 **For easier viewing, you may use the icon on the top right to launch full-screen mode.**    
 
 ```{r get-map-data, include=FALSE}
 
 # Get administrative borders of countries of interest
 country_mod <-  mod_country(report_country) # for density rasters
-country_eha <-  mod_country(eidith::eha_countries()) %>% unique() # for range layers
+#country_eha <-  mod_country(eidith::eha_countries()) %>% unique() # for range layers
 
 admin <- ne_countries(country = country_mod, type='countries', scale = 'large')
-admin_eha <- ne_countries(country = country_eha, type='countries', scale = 'large')
+#admin_eha <- ne_countries(country = country_eha, type='countries', scale = 'large')
 
 # Centroids for setting view in leaflet
 country_centroid <- CoordinateCleaner::countryref %>% 
@@ -892,7 +889,6 @@ iucn <- iucn %>%
 
 # Viral-species pairs
 animal_viral_pairs <- read_csv(h("data", "viral_species_testing_by_host_and_site.csv")) %>%
-  rename(scientific_name = species_scientific_name) %>%
   filter(country == !!report_country,
          scientific_name %in% unique(iucn$binomial)) # only keep host species that have ranges
 
@@ -931,7 +927,7 @@ rad <- 5
 # Initiate leaflet map
 lf <- leaflet() %>%
   addProviderTiles("CartoDB.DarkMatter") %>%
-  addPolygons(data = admin_eha, fill = FALSE, stroke = TRUE, weight = 1, color = "white", opacity = 0.5) %>% # EHA outlines
+  #addPolygons(data = admin_eha, fill = FALSE, stroke = TRUE, weight = 1, color = "white", opacity = 0.5) %>% # EHA outlines
   addFullscreenControl(position = "topright")
 
 # Add viruses to leaflet

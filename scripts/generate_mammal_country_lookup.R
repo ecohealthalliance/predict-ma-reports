@@ -4,7 +4,7 @@ h <- here::here
 
 # Establish countries of interest
 
-eha.countries <- c(eidith::eha_countries()[-c(10, 11)], "Malaysia")
+countries <- c("Mongolia", "Vietnam")
 
 # Import all terrestrial mammal shapefiles from IUCN
 
@@ -33,15 +33,16 @@ borders <- st_read(h("data", "TM_WORLD_BORDERS-0.3")) %>%
       NAME == "Cote d'Ivoire" ~ "Ivory Coast",
       NAME == "Congo" ~ "Republic of Congo",
       NAME == "Sudan" ~ "South Sudan",
+      NAME == "Viet Nam" ~ "Vietnam",
       TRUE ~ as.character(NAME)
     )
   )
 
-eha.borders <- filter(borders, country %in% eha.countries)
+countries.borders <- filter(borders, country %in% countries)
 
 # Do a spatial join across the country borders and mammals
 
-joined <- st_join(eha.borders, mammals)
+joined <- st_join(countries.borders, mammals)
 
 # Generate a lookup table
 
@@ -90,6 +91,7 @@ mz <- read_csv(h("data", "hp3_zoo_predictions.csv")) %>%
   arrange(desc(pred_mean))
 
 assertthat::assert_that(sum(lookup.table$binomial %in% unique(mz$species)) == nrow(lookup.table))
+lookup.table$binomial[!lookup.table$binomial %in% unique(mz$species)]
 
 # Write lookup table to a CSV file
 

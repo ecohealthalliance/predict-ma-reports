@@ -2,8 +2,7 @@
 library(purrr)
 h <- here::here
 
-countries <- eidith::eha_countries()[-c(10, 11)]
-countries <- c(countries, "Malaysia")
+countries <- c("Mongolia", "Vietnam")
 reports <- list()
 
 for(country in countries) {
