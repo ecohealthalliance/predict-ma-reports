@@ -20,8 +20,8 @@ get_virus_summary <- function(x, view = FALSE) {
 
   tmp <- animal_virus_summary %>%
     filter(viral_species == x) %>%
-    distinct(country, taxa_group_mod, species_scientific_name) %>%
-    arrange(country, taxa_group_mod, species_scientific_name)
+    distinct(country, taxa_group_mod, scientific_name) %>%
+    arrange(country, taxa_group_mod, scientific_name)
 
   ifelse(view == TRUE,
          return(datatable_(tmp, x)),
@@ -34,13 +34,13 @@ get_virus_summary2 <- function(x, view = FALSE) {
 
   tmp <- animal_virus_summary %>%
     filter(viral_species == x) %>%
-    arrange(country, taxa_group_mod, species_scientific_name) %>%
+    arrange(country, taxa_group_mod, scientific_name) %>%
     group_by(country) %>%
     summarize(
       n_taxa_groups = length(unique(taxa_group_mod)),
       taxa_groups = paste(unique(taxa_group_mod), collapse = "\n"),
-      n_species = length(unique(species_scientific_name)),
-      species = paste(unique(species_scientific_name), collapse = "\n")
+      n_species = length(unique(scientific_name)),
+      species = paste(unique(scientific_name), collapse = "\n")
     ) %>%
     ungroup()
 
@@ -54,7 +54,7 @@ get_virus_summary2 <- function(x, view = FALSE) {
 get_host_viruses <- function(x, view = FALSE) {
 
   tmp <- animal_virus_summary %>%
-    filter(species_scientific_name == x) %>%
+    filter(scientific_name == x) %>%
     distinct(country, viral_species) %>%
     arrange(country, viral_species)
 
@@ -68,13 +68,13 @@ get_host_viruses <- function(x, view = FALSE) {
 get_country_viruses <- function(view = FALSE, animal_virus_summary) {
 
   tmp <- animal_virus_summary %>%
-    arrange(test_requested, viral_species, taxa_group_mod, species_scientific_name, site_name) %>%
+    arrange(test_requested, viral_species, taxa_group_mod, scientific_name, site_name) %>%
     filter(!is.na(viral_species)) %>%
     group_by(viral_species, test_requested, human_threat) %>%
     summarize(
       n_detections = sum(n_positives),
       taxa_groups = paste(unique(taxa_group_mod), collapse = "\n"),
-      species = paste(unique(species_scientific_name), collapse = "\n"),
+      species = paste(unique(scientific_name), collapse = "\n"),
       site_names = paste(unique(site_name), collapse = "\n")
     ) %>%
     ungroup()
@@ -106,7 +106,7 @@ get_country_site_viruses <- function(view = FALSE, animal_virus_summary) {
 get_country_site_viruses2 <- function(view = FALSE, animal_virus_summary) {
 
   tmp <- animal_virus_summary %>%
-    arrange(site_name, viral_species, taxa_group_mod, species_scientific_name) %>%
+    arrange(site_name, viral_species, taxa_group_mod, scientific_name) %>%
     filter(!is.na(site_name)) %>%
     group_by(site_name, concurrent_sampling_site, disease_transmission_interfaces, human_density_impact) %>%
     summarize(
@@ -115,8 +115,8 @@ get_country_site_viruses2 <- function(view = FALSE, animal_virus_summary) {
       n_detections = sum(n_positives),
       n_taxa_groups = length(unique(taxa_group_mod)),
       taxa_groups = paste(sort(unique(taxa_group_mod)), collapse = "\n"),
-      n_species = length(unique(species_scientific_name)),
-      species = paste(sort(unique(species_scientific_name)), collapse = "\n")
+      n_species = length(unique(scientific_name)),
+      species = paste(sort(unique(scientific_name)), collapse = "\n")
     ) %>%
     ungroup()
 
@@ -138,7 +138,7 @@ get_country_site_viruses2_concurrent <- function(view = FALSE, animal_virus_summ
       concurrent_sampling_site != "Independent Site",
       !is.na(concurrent_sampling_site)
     ) %>%
-    arrange(concurrent_sampling_site, viral_species, taxa_group_mod, species_scientific_name) %>%
+    arrange(concurrent_sampling_site, viral_species, taxa_group_mod, scientific_name) %>%
     group_by(concurrent_sampling_site) %>%
     summarize(
       human_density_impact = paste(unique(human_density_impact), collapse = "\n"),
@@ -147,8 +147,8 @@ get_country_site_viruses2_concurrent <- function(view = FALSE, animal_virus_summ
       n_detections = sum(n_positives),
       n_taxa_groups = length(unique(taxa_group_mod)),
       taxa_groups = paste(sort(unique(taxa_group_mod)), collapse = "\n"),
-      n_species = length(unique(species_scientific_name)),
-      species = paste(sort(unique(species_scientific_name)), collapse = "\n")
+      n_species = length(unique(scientific_name)),
+      species = paste(sort(unique(scientific_name)), collapse = "\n")
     ) %>%
     ungroup()
 
