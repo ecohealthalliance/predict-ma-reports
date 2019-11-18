@@ -635,7 +635,6 @@ hp3.associations <- read_csv(h("data", "associations.csv")) %>%
 # "species" to exclude from P2 associations
 
 p2.associations <- read_csv(h("data", "P2_virus_mammal_host_associations.csv")) %>%
-  rename(scientific_name = species_scientific_name) %>%
   filter(viral_species %in% unique(hp3.associations$viral_species)) %>%
   group_by(viral_species, scientific_name) %>%
   summarize(country_list = glue_collapse(country, sep = ", ")) %>%
@@ -892,7 +891,6 @@ iucn <- iucn %>%
 
 # Viral-species pairs
 animal_viral_pairs <- read_csv(h("data", "viral_species_testing_by_host_and_site.csv")) %>%
-  rename(scientific_name = species_scientific_name) %>%
   filter(country == !!report_country,
          scientific_name %in% unique(iucn$binomial)) # only keep host species that have ranges
 
