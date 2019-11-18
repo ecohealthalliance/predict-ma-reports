@@ -82,7 +82,7 @@ ti <- ed2_test_interpreted() %>%
   arrange(desc(integer_id)) %>%
   distinct(gains4_test_id, .keep_all = TRUE) %>%
   select(
-    -c(integer_id, is_outbreak_testing, season,
+    -c(integer_id, is_outbreak_testing,
        lab_name, real_time_positive_control_value_1, real_time_positive_control_value_2,
        real_time_internal_control_value, real_time_ct_value, lab_name_confirmation,
        test_status, date_govt_approved_release)
@@ -102,12 +102,12 @@ a2 <- a2 %>%
       family == "Sciuridae" ~ "rodents/shrews",
       TRUE ~ taxa_group
     ),
-    species_scientific_name = case_when(
-      species_scientific_name == "Mus musculus cf. castaneus" ~ "Mus musculus",
-      species_scientific_name == "Syncerus Caffer" ~ "Syncerus caffer",
-      str_detect(species_scientific_name, " cf. ") ~ str_replace(species_scientific_name, " cf. ", " "),
-      str_count(species_scientific_name, " ") == 2 ~ word(species_scientific_name, 1, 2),
-      TRUE ~ species_scientific_name
+    scientific_name = case_when(
+      scientific_name == "Mus musculus cf. castaneus" ~ "Mus musculus",
+      scientific_name == "Syncerus Caffer" ~ "Syncerus caffer",
+      str_detect(scientific_name, " cf. ") ~ str_replace(scientific_name, " cf. ", " "),
+      str_count(scientific_name, " ") == 2 ~ word(scientific_name, 1, 2),
+      TRUE ~ scientific_name
     )
   )
 
@@ -184,7 +184,7 @@ This table provides an overview of all `r report_country` viral findings in anim
 
 animal.grouping.vars <-
   c("country", "concurrent_sampling_site", "site_name", "disease_transmission_interfaces", "human_density_impact", 
-    "class", "taxa_group_mod", "species_scientific_name", 
+    "class", "taxa_group_mod", "scientific_name", 
     "test_requested", "viral_species", "human_threat")
 
 animal_virus_summary <- d2 %>%
@@ -193,7 +193,7 @@ animal_virus_summary <- d2 %>%
   summarize(n_positives = sum(virus_detected)) %>%
   ungroup() %>%
   arrange(country, site_name, taxa_group_mod, 
-          species_scientific_name, viral_species, n_positives)
+          scientific_name, viral_species, n_positives)
 
 threat.interpretation <- d2 %>%
   filter(
@@ -518,7 +518,7 @@ This table provides a host-level overview of `r report_country` PREDICT-2 viral 
 ```{r tables-4}
 
 host.table <- animal_virus_summary %>%
-  group_by(species_scientific_name, taxa_group_mod) %>%
+  group_by(scientific_name, taxa_group_mod) %>%
   summarize(
     n_viruses = length(unique(viral_species)),
     viruses = paste(sort(unique(viral_species)), collapse = "\n"),
@@ -628,15 +628,16 @@ hp3.associations <- read_csv(h("data", "associations.csv")) %>%
   filter(!is.na(p2_virus_name)) %>%
   mutate(
     viral_species = p2_virus_name,
-    species_scientific_name = str_replace_all(host_name, "_", " "),
+    scientific_name = str_replace_all(host_name, "_", " "),
     project = rep("Previously known", nrow(.))
   )
 
 # "species" to exclude from P2 associations
 
 p2.associations <- read_csv(h("data", "P2_virus_mammal_host_associations.csv")) %>%
+  rename(scientific_name = species_scientific_name) %>%
   filter(viral_species %in% unique(hp3.associations$viral_species)) %>%
-  group_by(viral_species, species_scientific_name) %>%
+  group_by(viral_species, scientific_name) %>%
   summarize(country_list = glue_collapse(country, sep = ", ")) %>%
   mutate(
     project = case_when(
@@ -655,11 +656,11 @@ viruses.in.country <- p2.associations %>%
 p2.associations <- filter(p2.associations, viral_species %in% viruses.in.country)
 
 full.association.table <- hp3.associations %>%
-  select(viral_species, species_scientific_name, project) %>%
+  select(viral_species, scientific_name, project) %>%
   filter(viral_species %in% viruses.in.country) %>%
   bind_rows(., p2.associations) %>%
-  arrange(viral_species, species_scientific_name, desc(project)) %>%
-  distinct(viral_species, species_scientific_name, .keep_all = TRUE) %>%
+  arrange(viral_species, scientific_name, desc(project)) %>%
+  distinct(viral_species, scientific_name, .keep_all = TRUE) %>%
   mutate(
     project = factor(project, levels = c(paste("P2", report_country), 
                                          paste("P2", report_country, "and partners"), 
@@ -887,8 +888,9 @@ iucn <- iucn %>%
 
 # Viral-species pairs
 animal_viral_pairs <- read_csv(h("data", "viral_species_testing_by_host_and_site.csv")) %>%
+  rename(scientific_name = species_scientific_name) %>%
   filter(country == !!report_country,
-         species_scientific_name %in% unique(iucn$binomial)) # only keep host species that have ranges
+         scientific_name %in% unique(iucn$binomial)) # only keep host species that have ranges
 
 viral.species.detected.in.country <- animal_viral_pairs %>% # identify specues with detects
   filter(n_animals_w_detections > 0) %>%
@@ -939,7 +941,7 @@ for(vir in viral.species.detected.in.country) {
   # get unique species hosts for given virus
   species <- species_dat %>% 
     filter(n_animals_w_detections>0) %>% 
-    pull(species_scientific_name) %>% 
+    pull(scientific_name) %>% 
     unique()
   
   # set palette 
@@ -952,11 +954,11 @@ for(vir in viral.species.detected.in.country) {
   # add color and labels to species data
   species_dat <- species_dat %>%
     mutate(color = ifelse(n_animals_w_detections>0,
-                          unname(pal_spec[species_scientific_name]),
+                          unname(pal_spec[scientific_name]),
                           "#ffffff"))  %>%
     mutate(lab = ifelse(n_animals_w_detections>0, 
-                        paste0("PREDICT ", species_scientific_name, " (", n_animals_tested, " animals tested, ", n_animals_w_detections, " animals positive)"),
-                        paste0("PREDICT ", species_scientific_name, " non-detect (", n_animals_tested, " animals tested)")))
+                        paste0("PREDICT ", scientific_name, " (", n_animals_tested, " animals tested, ", n_animals_w_detections, " animals positive)"),
+                        paste0("PREDICT ", scientific_name, " non-detect (", n_animals_tested, " animals tested)")))
   
   # add species layes
   for(spec in species) {
@@ -1050,15 +1052,15 @@ mammals.in.country <- read_csv(h("data", "mammal_country_lookup.csv")) %>%
 mz.subset <- filter(mz, species %in% mammals.in.country)
 
 species.sampled.in.country <- d2 %>%
-  mutate(species_scientific_name = word(species_scientific_name, 1, 2)) %>%
-  pull(species_scientific_name) %>%
+  mutate(scientific_name = word(scientific_name, 1, 2)) %>%
+  pull(scientific_name) %>%
   unique()
 
 text.color <- ifelse(mz.subset$species %in% species.sampled.in.country, "#1B8925", "#BD0505")
 
 specimen.count <- d2 %>%
-  mutate(species_scientific_name = word(species_scientific_name, 1, 2)) %>%
-  group_by(species_scientific_name) %>%
+  mutate(scientific_name = word(scientific_name, 1, 2)) %>%
+  group_by(scientific_name) %>%
   summarize(
     specimen_count = n_distinct(specimen_id, na.rm = T),
     virus_count = n_distinct(viral_species, na.rm = T),
@@ -1067,7 +1069,7 @@ specimen.count <- d2 %>%
 
 assertthat::assert_that(length(species.sampled.in.country) == nrow(specimen.count))
 
-mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "species_scientific_name"))
+mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "scientific_name"))
 ```
 
 #### Host Sampling Prioritization Based on Predicted "Missing" Zoonoses
