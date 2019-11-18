@@ -1,6 +1,6 @@
 ---
 params:
-  country: "Thailand"
+  country: "Mongolia"
 title: 'EcoHealth Alliance PREDICT M&A Report: `r params$country`'
 date: "`r Sys.Date()`"
 output:
@@ -778,10 +778,14 @@ assertthat::assert_that(n_distinct(d.subset$specimen_id) == length(unique(specim
 
 # Create iNEXT objects
 
-i.list <- create_ilist(d.subset, "test_requested", "specimen_id")
-if(length(i.list) == 1) {x <- as.matrix(i.list[[1]])}
-if(length(i.list) > 1) {x <- i.list}
-if(length(i.list) > 0) {i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")}
+if(nrow(d.subset) > 0){
+  i.list <- create_ilist(d.subset, "test_requested", "specimen_id")
+  if(length(i.list) == 1) {x <- as.matrix(i.list[[1]])}
+  if(length(i.list) > 1) {x <- i.list}
+  if(length(i.list) > 0) {i.out <- iNEXT(x, q = 0, datatype = "incidence_raw")}
+}else{
+  i.list <- NULL
+}
 ```
 
 #### Viral Discovery Curves
@@ -1143,7 +1147,7 @@ gvp.filename <- read_csv(h("data", "country_GVP_map_lookup.csv")) %>%
 
 gvp.filename.full <- h("data", "predictGVPmaps", gvp.filename)
 
-if(!is.na(gvp.filename)) {
+if(length(gvp.filename)>0) {
   
   knitr::include_graphics(gvp.filename.full)
 } else {
