@@ -12,8 +12,7 @@ if(file.exists(h("db", "eidith.sqlite")) &&
 } else {
   ed_db_delete(path = normalizePath(file.path("db", "eidith.sqlite"))) # May throw a warning if no database is present
   ed_db_download(verbose = FALSE,
-                 country = eha_countries(),
-                 #country = c("Vietnam", "Mongolia"),
+                 country = c("Vietnam", "Mongolia"),
                  p2_tables = c("Event", "Animal", "Specimen", "Test", "TestDataInterpreted"))
   cat(as.character(Sys.Date()), file = h("db", "last_dl_date.txt"))
 }
