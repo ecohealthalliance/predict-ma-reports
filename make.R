@@ -2,7 +2,7 @@
 library(purrr)
 h <- here::here
 
-countries <- c("Mongolia", "Vietnam")
+countries <- c("Thailand")
 reports <- list()
 
 for(country in countries) {

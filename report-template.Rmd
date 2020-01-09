@@ -1,6 +1,6 @@
 ---
 params:
-  country: "Vietnam"
+  country: "Thailand"
 title: 'EcoHealth Alliance PREDICT M&A Report: `r params$country`'
 date: "`r Sys.Date()`"
 output:
