@@ -4,7 +4,8 @@ h <- here::here
 
 # Establish countries of interest
 
-countries <- c("Mongolia", "Vietnam")
+#eha.countries <- c(eidith::eha_countries()[-c(10, 11)], "Malaysia")
+countries <- c("Thailand")
 
 # Import all terrestrial mammal shapefiles from IUCN
 
@@ -38,10 +39,12 @@ borders <- st_read(h("data", "TM_WORLD_BORDERS-0.3")) %>%
     )
   )
 
+#eha.borders <- filter(borders, country %in% eha.countries)
 countries.borders <- filter(borders, country %in% countries)
 
 # Do a spatial join across the country borders and mammals
 
+#joined <- st_join(eha.borders, mammals)
 joined <- st_join(countries.borders, mammals)
 
 # Generate a lookup table
