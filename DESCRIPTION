@@ -32,4 +32,5 @@ Depends:
     wesanderson
 Remotes:
     ecohealthalliance/eidith,
-    wilkelab/cowplot
+    wilkelab/cowplot,
+    JohnsonHsieh/iNEXT
