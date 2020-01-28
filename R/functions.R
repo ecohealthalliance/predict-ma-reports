@@ -194,7 +194,7 @@ i_matrix <- function(dataframe, matrix.of, matrix.of.var, column.var) {
   labels <- pull(i.matrix, 1)
 
   # Remove the first matrix column
-  i.matrix <- select(i.matrix, -1) %>%
+  i.matrix <- dplyr::select(i.matrix, -1) %>%
     as.matrix()
 
   # Set rownames
