@@ -26,6 +26,7 @@ Depends:
     rdrop2,
     rnaturalearth,
     rnaturalearthdata,
+    rnaturalearthhires,
     sf,
     sodium,
     tidyverse,
@@ -33,4 +34,6 @@ Depends:
 Remotes:
     ecohealthalliance/eidith,
     wilkelab/cowplot,
-    JohnsonHsieh/iNEXT
+    JohnsonHsieh/iNEXT,
+    url::http://packages.ropensci.org/job/rnaturalearthhires/ws/*zip*/rnaturalearthhires.zip
+    
