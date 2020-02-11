@@ -33,7 +33,7 @@ Depends:
     wesanderson
 Remotes:
     ecohealthalliance/eidith,
+    cran/iNEXT@2.0.19,
     wilkelab/cowplot,
-    JohnsonHsieh/iNEXT,
     url::http://packages.ropensci.org/job/rnaturalearthhires/ws/*zip*/rnaturalearthhires.zip
     
