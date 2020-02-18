@@ -1,0 +1,202 @@
+---
+params:
+  country:   "Thailand"
+title: 'EcoHealth Alliance PREDICT M&A Report: `r params$country`'
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    keep_md: false
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE, message = FALSE, warning = FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+# Load packages
+library(CoordinateCleaner)
+library(countrycode)
+library(cowplot)
+library(DT)
+library(eidith)
+library(glue)
+library(iNEXT)
+library(kableExtra)
+library(leaflet)
+library(leaflet.extras)
+library(raster)
+library(RColorBrewer)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(sf)
+library(tidyverse)
+
+h <- here::here
+walk(list.files(h("R/"), full.names = TRUE), source, echo = FALSE, verbose = FALSE)
+
+# Create a variable defining the country for the report
+report_country <- "Thailand"#params$country
+
+# Create a colorblind-friendly color palette for plotting throughout
+cb_palette <- c("#D55E00", "#009E73", "#999999", "#E69F00", "#56B4E9")
+```
+
+<script>
+$(function () {
+$('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+
+![](./media/predict-logos.png){width="100%"}
+
+#### _Click on the "Expand / Collapse" buttons to view report subsections._
+
+```{r read-data, include = FALSE}
+# Load EIDITH data tables
+
+e2 <- ed2_events() %>%
+  mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
+  #filter(country == !!report_country) %>% # events filtered to country
+  arrange(desc(integer_id)) %>%
+  distinct(event_name, .keep_all = TRUE) %>% 
+  dplyr::select(-c(integer_id))
+h2 <- ed2_human()
+s2 <- ed2_specimens() %>% 
+  dplyr::select(-integer_id, -starts_with("season"))
+t2 <- ed2_tests() %>%
+  dplyr::select(-c(integer_id))
+ti <- ed2_test_interpreted() %>%
+  arrange(desc(integer_id)) %>%
+  distinct(gains4_test_id, .keep_all = TRUE) %>%
+  dplyr::select(
+    -c(integer_id, is_outbreak_testing,
+       lab_name, real_time_positive_control_value_1, real_time_positive_control_value_2,
+       real_time_internal_control_value, real_time_ct_value, lab_name_confirmation,
+       test_status, date_govt_approved_release)
+  )
+# Split out P2 viral co-infection data
+t2 <- t2 %>%
+  mutate(
+    sequence = case_when(
+      str_detect(sequence, "\\|") & !(str_detect(virus, "\\|")) ~ 
+        str_replace(sequence, "\\|", ";"),
+      str_detect(sequence, "\\|") & is.na(virus) ~ 
+        str_replace(sequence, "\\|", ";"),
+      TRUE ~ sequence
+    )
+  )
+t2 <- separate_rows(t2, virus, sequence, sep = "\\|")
+
+t2 <- t2 %>%
+  mutate(
+    virus = case_when(
+      virus == "" ~ NA_character_,
+      TRUE ~ virus
+    ),
+    viral_species = stringi::stri_replace_first_regex(virus, "(new\\s)?strain\\sof\\s", ""),
+    viral_species = ifelse(str_detect(viral_species, "(OC43)"), "Betacoronavirus 1 (OC43)", viral_species),
+    viral_species = ifelse(str_detect(viral_species, "MJ/67C"), "Hipposideros bat alphacoronavirus MJ/67C", viral_species),
+    viral_species = ifelse(str_detect(viral_species, "(PPR)"), "Peste des petits ruminants (PPR)", viral_species),
+    viral_species = ifelse(viral_species == "Human Coronavirus 229E (Human strain)", "Coronavirus 229E (Human strain)", viral_species),
+    viral_species = str_replace(viral_species, "Bat Coronavirus", "Bat coronavirus"),
+    viral_species = str_replace(viral_species, " Bat ", " bat "),
+    virus_detected = ifelse(confirmation_result == "Positive", 1, 0)
+  ) %>%
+  left_join(., read_csv(h("data", "viral_species_modifications.csv")), by = "viral_species") %>%
+  mutate(viral_species = ifelse(!is.na(viral_species_mod), viral_species_mod, viral_species)) %>%
+  dplyr::select(-viral_species_mod)
+
+# Join across all tables to get complete data
+
+d2 <- left_join(e2, h2, by = c("gains4_event_id", "event_name")) %>%
+  left_join(s2, by = c("gains4_sample_unit_id", "project")) %>%
+  left_join(t2, by = c("specimen_id", "gains4_specimen_id", "project")) %>%
+  left_join(ti, by = c("gains4_specimen_id", "gains4_test_id", "project"))
+
+country_virus_lookup <- d2 %>%
+  filter(
+    !is.na(viral_species),
+    !is.na(date_govt_approved_release),
+    country %in% eha_countries()
+  ) %>%
+  distinct(viral_species, country) %>%
+  arrange(viral_species, country) 
+
+d2_country <- d2 %>% 
+  filter(country == !!report_country) # events filtered to country
+
+```
+
+### Section 1: Summary of Viral Findings
+
+#### Virus-Level Summary Table 
+
+<button class="btn btn-primary btn-block" type="button" data-toggle="collapse" data-target="#vir-sum-table" aria-expanded="false" aria-controls="vir-sum-table" color="grey">
+Expand / Collapse
+</button>
+
+<div class="collapse" id="vir-sum-table">
+\newline  
+
+This table provides an overview of all `r report_country` viral findings in humans For each unique virus detected in-country, the table indicates the number of times it was detected and the associated sites. Finally, to add broader context to viral findings beyond `r report_country`'s borders, the final column of the table lists other PREDICT-2 countries in which the same virus was found and approved for government release, highlighting the potential geographic range of each virus.
+
+**Please note you may need to scroll horizontally within the table to view all columns.**
+
+```{r tables-1}
+
+human.grouping.vars <-
+  c("country", "concurrent_sampling_site", "site_name", "disease_transmission_interfaces", "human_density_impact", 
+    "test_requested", "viral_species")
+
+human_virus_summary <- d2_country %>%
+  filter(!is.na(viral_species)) %>%
+  group_by_at(vars(one_of(human.grouping.vars))) %>%
+  summarize(n_positives = sum(virus_detected)) %>%
+  ungroup() %>%
+  arrange(country, site_name,  n_positives)
+
+# note number of detections includes multiple specimen per participant
+# test = d2 %>% filter(concurrent_sampling_site == "Clinic Concurrent Site 3", site_name == "Loei-Hospital", viral_species == "Influenza A")
+# test %>% janitor::get_dupes(participant_id) %>% select(participant_id, specimen_id)
+
+text.color <- "#787272"
+
+human_virus_summary %>%
+  arrange(test_requested, viral_species, site_name) %>%
+  filter(!is.na(viral_species)) %>%
+  group_by(viral_species, test_requested) %>%
+  summarize(
+    n_detections = sum(n_positives),
+    site_names = paste(unique(site_name), collapse = "\n")
+  ) %>%
+  ungroup() %>% 
+  left_join(country_virus_lookup) %>%
+  mutate(country = ifelse(country == !!report_country, NA_character_, country)) %>%
+  group_by_at(vars(-country)) %>%
+  summarize("Concurrent Detections" = paste(unique(na.omit(country)), collapse = ", ")) %>%
+  ungroup() %>%
+  arrange(viral_species,  test_requested) %>%
+  rename(`Concurrent Detections\n(Gov. Approved)` = `Concurrent Detections`,
+         `Virus Name` = viral_species, 
+         `Viral Test Type` = test_requested,
+         `Number of Detections` = n_detections,
+         `Site Names` = site_names) %>%
+  datatable(class = "row-border", escape = FALSE, rownames = FALSE, extensions = "Buttons",
+            options = list(
+              columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
+              pageLength = 10,
+              drawCallback = JS("$(function () {$('[data-toggle=\"tooltip\"]').tooltip()})"),
+              scrollX = TRUE,
+              dom = 'Bfrtip',
+              buttons = 
+                list(list(
+                  extend = "collection",
+                  buttons = c('csv', 'excel'),
+                  text = "Download Table Data"
+                ))
+            )
+  )
+
+```
+</div>
