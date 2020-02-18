@@ -1,6 +1,6 @@
 ---
 params:
-  country: "Thailand"
+  country:   "Thailand"
 title: 'EcoHealth Alliance PREDICT M&A Report: `r params$country`'
 date: "`r Sys.Date()`"
 output:
@@ -57,7 +57,6 @@ $('[data-toggle="tooltip"]').tooltip()
 ```{r read-data, include = FALSE}
 
 # Load EIDITH data tables
-
 e <- ed_events() %>% 
   mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
   filter(country == !!report_country) # events filtered to country
@@ -66,16 +65,16 @@ s <- ed_specimens()
 t <- ed_tests()
 v <- ed_viruses()
 ts <- ed_testspecimen()
-
 e2 <- ed2_events() %>%
   mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
   filter(country == !!report_country) %>% # events filtered to country
   arrange(desc(integer_id)) %>%
-  distinct(event_name, .keep_all = TRUE)
+  distinct(event_name, .keep_all = TRUE) %>% 
+  dplyr::select(-c(integer_id))
 a2 <- ed2_animals() %>% 
-  dplyr::select(-c(integer_id, gains4_event_id, gains4_sample_unit_id))
+  dplyr::select(-integer_id)
 s2 <- ed2_specimens() %>% 
-  dplyr::select(-c(integer_id, gains4_sample_unit_id))
+  dplyr::select(-integer_id, -starts_with("season"))
 t2 <- ed2_tests() %>%
   dplyr::select(-c(integer_id))
 ti <- ed2_test_interpreted() %>%
@@ -87,9 +86,7 @@ ti <- ed2_test_interpreted() %>%
        real_time_internal_control_value, real_time_ct_value, lab_name_confirmation,
        test_status, date_govt_approved_release)
   )
-
 # Modify animal taxonomy information
-
 a2 <- a2 %>%
   mutate(
     class = stringr::str_to_sentence(class),
@@ -110,9 +107,7 @@ a2 <- a2 %>%
       TRUE ~ scientific_name
     )
   )
-
 # Split out P2 viral co-infection data
-
 t2 <- t2 %>%
   mutate(
     sequence = case_when(
@@ -123,15 +118,11 @@ t2 <- t2 %>%
       TRUE ~ sequence
     )
   )
-
 t2 <- separate_rows(t2, virus, sequence, sep = "\\|")
-
 # Modify virus name (in new "viral_species" column) and detection data
-
 v <- v %>%
   mutate(viral_species = stringi::stri_replace_first_regex(
     virus_name, "(new\\s)?strain\\sof\\s", ""))
-
 t2 <- t2 %>%
   mutate(
     virus = case_when(
@@ -150,18 +141,15 @@ t2 <- t2 %>%
   left_join(., read_csv(h("data", "viral_species_modifications.csv")), by = "viral_species") %>%
   mutate(viral_species = ifelse(!is.na(viral_species_mod), viral_species_mod, viral_species)) %>%
   dplyr::select(-viral_species_mod)
-
 # Join across all tables to get complete data
-
 d <- left_join(e, a, by = "event_id") %>%
   left_join(s, by = "animal_id") %>%
   left_join(ts, by = "specimen_id") %>%
   left_join(t, by = "test_id") %>%
   left_join(v, by = "test_id")
-
-d2 <- left_join(e2, a2, by = c("event_name", "project")) %>%
-  left_join(s2, by = c("animal_id" = "animal_human_id", "project")) %>%
-  left_join(t2, by = c("specimen_id", "gains4_specimen_id", "project")) %>%
+d2 <- left_join(e2, a2, by = c("gains4_event_id", "event_name", "project")) %>%
+  left_join(s2, by = c("gains4_sample_unit_id", "project")) %>%
+  left_join(t2, by = c("specimen_id", "gains4_specimen_id", "animal_id", "project")) %>%
   left_join(ti, by = c("gains4_specimen_id", "gains4_test_id", "project"))
 ```
 
