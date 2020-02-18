@@ -36,7 +36,7 @@ h <- here::here
 walk(list.files(h("R/"), full.names = TRUE), source, echo = FALSE, verbose = FALSE)
 
 # Create a variable defining the country for the report
-report_country <- "Thailand"#params$country
+report_country <- params$country
 
 # Create a colorblind-friendly color palette for plotting throughout
 cb_palette <- c("#D55E00", "#009E73", "#999999", "#E69F00", "#56B4E9")
