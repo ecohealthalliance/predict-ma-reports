@@ -139,7 +139,7 @@ Expand / Collapse
 <div class="collapse" id="vir-sum-table">
 \newline  
 
-This table provides an overview of all `r report_country` viral findings in humans For each unique virus detected in-country, the table indicates the number of times it was detected and the associated sites. Finally, to add broader context to viral findings beyond `r report_country`'s borders, the final column of the table lists other PREDICT-2 countries in which the same virus was found and approved for government release, highlighting the potential geographic range of each virus.
+This table provides an overview of all `r report_country` viral findings in humans. For each unique virus detected in-country, the table indicates the number of times it was detected and the associated sites. Finally, to add broader context to viral findings beyond `r report_country`'s borders, the final column of the table lists other PREDICT-2 countries in which the same virus was found and approved for government release, highlighting the potential geographic range of each virus.
 
 **Please note you may need to scroll horizontally within the table to view all columns.**
 
@@ -147,7 +147,7 @@ This table provides an overview of all `r report_country` viral findings in huma
 
 human.grouping.vars <-
   c("country", "concurrent_sampling_site", "site_name", "disease_transmission_interfaces", "human_density_impact", 
-    "test_requested", "viral_species")
+    "test_requested", "viral_species", "specimen_type")
 
 human_virus_summary <- d2_country %>%
   filter(!is.na(viral_species)) %>%
@@ -160,15 +160,14 @@ human_virus_summary <- d2_country %>%
 # test = d2 %>% filter(concurrent_sampling_site == "Clinic Concurrent Site 3", site_name == "Loei-Hospital", viral_species == "Influenza A")
 # test %>% janitor::get_dupes(participant_id) %>% select(participant_id, specimen_id)
 
-text.color <- "#787272"
-
 human_virus_summary %>%
   arrange(test_requested, viral_species, site_name) %>%
   filter(!is.na(viral_species)) %>%
   group_by(viral_species, test_requested) %>%
   summarize(
     n_detections = sum(n_positives),
-    site_names = paste(unique(site_name), collapse = "\n")
+    site_names = paste(unique(site_name), collapse = "\n"),
+    specimen_types =  paste(unique(specimen_type), collapse = ", ")
   ) %>%
   ungroup() %>% 
   left_join(country_virus_lookup) %>%
@@ -180,6 +179,7 @@ human_virus_summary %>%
   rename(`Concurrent Detections\n(Gov. Approved)` = `Concurrent Detections`,
          `Virus Name` = viral_species, 
          `Viral Test Type` = test_requested,
+         `Specimen Types` = specimen_types,
          `Number of Detections` = n_detections,
          `Site Names` = site_names) %>%
   datatable(class = "row-border", escape = FALSE, rownames = FALSE, extensions = "Buttons",
