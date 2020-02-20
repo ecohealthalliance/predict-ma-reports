@@ -1,3 +1,5 @@
+h <- here::here
+
 pre_process_data <- function(){
 
   # Load EIDITH data tables
@@ -94,55 +96,55 @@ merge_data <- function(report, eidith){
   })
 
   if(report == "animal"){
-    d2 <- left_join(e2, a2, by = c("gains4_event_id", "event_name", "project")) %>%
-      left_join(s2, by = c("gains4_sample_unit_id", "project")) %>%
-      left_join(t2, by = c("specimen_id", "gains4_specimen_id", "animal_id", "project")) %>%
-      left_join(ti, by = c("gains4_specimen_id", "gains4_test_id", "project"))
-  }
+    d2 <- left_join(e2, a2, by = c("event_name", "project")) %>% # excluding gains4_event_id because of inconsistencies
+      left_join(s2, by = c("gains4_sample_unit_id", "animal_id" = "animal_human_id", "project")) %>%
+      left_join(t2, by = c("specimen_id", "animal_id", "project")) %>%  # excluding gains4_specimen_id because of inconsistencies
+      left_join(ti, by = c("gains4_test_id", "project")) # excluding gains4_specimen_id because of inconsistencies
+  d2 <- d2 %>%
+    dplyr::select(-starts_with("gains4_specimen_id"), -starts_with("gains4_event_id"))
+    }
   if(report == "human"){
     d2 <- left_join(e2, h2, by = c("gains4_event_id", "event_name")) %>%
-      left_join(s2, by = c("gains4_sample_unit_id", "project")) %>%
-      left_join(t2, by = c("specimen_id", "gains4_specimen_id", "project")) %>%
-      left_join(ti, by = c("gains4_specimen_id", "gains4_test_id", "project"))
+      left_join(s2, by = c("gains4_sample_unit_id", "participant_id" = "animal_human_id", "project")) %>%
+      left_join(t2, by = c("specimen_id",  "participant_id" = "animal_id", "project")) %>% # excluding gains4_specimen_id because of inconsistencies
+      left_join(ti, by = c("gains4_test_id", "project")) # excluding gains4_specimen_id because of inconsistencies
+    d2 <- d2 %>%
+      dplyr::select(-starts_with("gains4_specimen_id"))
   }
+    }
   return(d2)
 }
 
+# QA ----------------------------------------------------------------------
+
+# ### in animal but not event
+# setdiff(unique(a2$gains4_event_id), unique(e2$gains4_event_id))
+# a2 %>% filter(gains4_event_id == 363) %>% pull(event_name)
+# e2 %>% filter(event_name == "ID-Bolaang Mongondow-Barat-Tengah-2016Mar09") %>% pull(gains4_event_id)
+# a2 %>% filter(gains4_event_id == 387) %>% pull(event_name)
+#
+# setdiff(unique(h2$gains4_event_id), unique(e2$gains4_event_id))
+#
+# setdiff(unique(a2$event_name), unique(e2$event_name))
+#
+# ### in specimen but not animal or human
+# setdiff(unique(s2$gains4_sample_unit_id), unique(c(a2$gains4_sample_unit_id, h2$gains4_sample_unit_id)))
+# setdiff(unique(s2$animal_human_id), unique(c(a2$animal_id, h2$participant_id)))
+#
+# ### in test but not specimen
+# setdiff(unique(t2$gains4_specimen_id), unique(s2$gains4_specimen_id))
+# setdiff(unique(t2$specimen_id), unique(s2$specimen_id))
+#
+# diffs = setdiff(unique(t2$gains4_specimen_id), unique(s2$gains4_specimen_id))
+# t2 %>% filter(gains4_specimen_id %in% diffs) %>% pull(specimen_id)
+# t2_unfiltered <- ed2_tests()
+# t2_unfiltered %>%
+#   filter(gains4_specimen_id %in% diffs) %>%
+#   pull(specimen_id) %>% unique()
+#
+# ### in test interp but not test
+# setdiff(unique(ti$gains4_test_id), unique(t2$gains4_test_id))
+# setdiff(unique(ti$gains4_specimen_id), unique(t2$gains4_specimen_id))
 
 
 
-
-
-
-  # # find diff ids
-  # ### in animal but not event
-  # setdiff(unique(a2$gains4_event_id), unique(e2$gains4_event_id))
-  # a2 %>% filter(gains4_event_id == 363) %>% pull(event_name)
-  # e2 %>% filter(event_name == "ID-Bolaang Mongondow-Barat-Tengah-2016Mar09")
-  # a2 %>% filter(gains4_event_id == 387) %>% pull(event_name)
-  #
-  # setdiff(unique(a2$event_name), unique(e2$event_name))
-  #
-  # ### in specimen but not animal or human
-  # setdiff(unique(s2$gains4_sample_unit_id), unique(c(a2$gains4_sample_unit_id, h2$gains4_sample_unit_id)))
-  # setdiff(unique(s2$animal_human_id), unique(c(a2$animal_id, h2$participant_id)))
-  #
-  # ### in test but not specimen
-  # setdiff(unique(t2$gains4_specimen_id), unique(s2$gains4_specimen_id))
-  # setdiff(unique(t2$specimen_id), unique(s2$specimen_id))
-  #
-  # t2 %>% filter(gains4_specimen_id == 801971)
-  # s2 %>% filter(gains4_specimen_id == 801971)
-  # s2 %>% filter(specimen_id == "PMH00311NT")
-  # h2 %>% filter(participant_id == "PMH00311")
-  # s2 %>% filter(animal_human_id == "PMH00311")
-  # t3 <- t2 %>%
-  #   separate_rows(specimen_id, sep = ",")
-  # setdiff(unique(t3$specimen_id), unique(s2$specimen_id))
-  #
-  # ### in test interp but not test
-  # setdiff(unique(ti$gains4_test_id), unique(t2$gains4_test_id))
-  # setdiff(unique(ti$gains4_specimen_id), unique(t2$gains4_specimen_id))
-  #
-  #
-  #
