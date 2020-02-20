@@ -55,64 +55,10 @@ $('[data-toggle="tooltip"]').tooltip()
 ```{r read-data, include = FALSE}
 # Load EIDITH data tables
 
-e2 <- ed2_events() %>%
-  mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
-  #filter(country == !!report_country) %>% # events filtered to country
-  arrange(desc(integer_id)) %>%
-  distinct(event_name, .keep_all = TRUE) %>% 
-  dplyr::select(-c(integer_id))
-h2 <- ed2_human()
-s2 <- ed2_specimens() %>% 
-  dplyr::select(-integer_id, -starts_with("season"))
-t2 <- ed2_tests() %>%
-  dplyr::select(-c(integer_id))
-ti <- ed2_test_interpreted() %>%
-  arrange(desc(integer_id)) %>%
-  distinct(gains4_test_id, .keep_all = TRUE) %>%
-  dplyr::select(
-    -c(integer_id, is_outbreak_testing,
-       lab_name, real_time_positive_control_value_1, real_time_positive_control_value_2,
-       real_time_internal_control_value, real_time_ct_value, lab_name_confirmation,
-       test_status, date_govt_approved_release)
-  )
-# Split out P2 viral co-infection data
-t2 <- t2 %>%
-  mutate(
-    sequence = case_when(
-      str_detect(sequence, "\\|") & !(str_detect(virus, "\\|")) ~ 
-        str_replace(sequence, "\\|", ";"),
-      str_detect(sequence, "\\|") & is.na(virus) ~ 
-        str_replace(sequence, "\\|", ";"),
-      TRUE ~ sequence
-    )
-  )
-t2 <- separate_rows(t2, virus, sequence, sep = "\\|")
+d2 <- read_rds(h("data", "human.rds"))
 
-t2 <- t2 %>%
-  mutate(
-    virus = case_when(
-      virus == "" ~ NA_character_,
-      TRUE ~ virus
-    ),
-    viral_species = stringi::stri_replace_first_regex(virus, "(new\\s)?strain\\sof\\s", ""),
-    viral_species = ifelse(str_detect(viral_species, "(OC43)"), "Betacoronavirus 1 (OC43)", viral_species),
-    viral_species = ifelse(str_detect(viral_species, "MJ/67C"), "Hipposideros bat alphacoronavirus MJ/67C", viral_species),
-    viral_species = ifelse(str_detect(viral_species, "(PPR)"), "Peste des petits ruminants (PPR)", viral_species),
-    viral_species = ifelse(viral_species == "Human Coronavirus 229E (Human strain)", "Coronavirus 229E (Human strain)", viral_species),
-    viral_species = str_replace(viral_species, "Bat Coronavirus", "Bat coronavirus"),
-    viral_species = str_replace(viral_species, " Bat ", " bat "),
-    virus_detected = ifelse(confirmation_result == "Positive", 1, 0)
-  ) %>%
-  left_join(., read_csv(h("data", "viral_species_modifications.csv")), by = "viral_species") %>%
-  mutate(viral_species = ifelse(!is.na(viral_species_mod), viral_species_mod, viral_species)) %>%
-  dplyr::select(-viral_species_mod)
-
-# Join across all tables to get complete data
-
-d2 <- left_join(e2, h2, by = c("gains4_event_id", "event_name")) %>%
-  left_join(s2, by = c("gains4_sample_unit_id", "project")) %>%
-  left_join(t2, by = c("specimen_id", "gains4_specimen_id", "project")) %>%
-  left_join(ti, by = c("gains4_specimen_id", "gains4_test_id", "project"))
+d2_country <- d2 %>% 
+  filter(country == !!report_country) # events filtered to country
 
 country_virus_lookup <- d2 %>%
   filter(
@@ -128,7 +74,7 @@ d2_country <- d2 %>%
 
 ```
 
-### Section 1: Summary of Viral Findings
+### Section 1: Summary of Human Viral Findings
 
 #### Virus-Level Summary Table 
 

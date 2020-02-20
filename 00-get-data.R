@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
 library(eidith)
+library(tidyverse)
 h <- here::here
 
 # Download EIDITH database locally to "db" subdirectory
@@ -17,6 +18,14 @@ if(file.exists(h("db", "eidith.sqlite")) &&
   cat(as.character(Sys.Date()), file = h("db", "last_dl_date.txt"))
 }
 
+# Pre-process eidith data
+source(h("R", "pre_process_data.R"))
+eidith <- pre_process_data()
+write_rds(eidith, h("data", "eidith.rds"))
+animal <- merge_data("animal", eidith)
+write_rds(animal, h("data", "animal.rds"))
+human <- merge_data("human", eidith)
+write_rds(human, h("data", "human.rds"))
 
 # Download IUCN terrestrial mammal shapefiles to "data" subdirectory
 if(file.exists(h("data", "TERRESTRIAL_MAMMALS", "TERRESTRIAL_MAMMALS.shp"))) {
