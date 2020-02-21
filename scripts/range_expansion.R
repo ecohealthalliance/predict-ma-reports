@@ -68,7 +68,7 @@ full.association.table <- hp3.associations %>%
   select(-expansion)
 
 # Load wildlife-country associations
-wildlife <- read_rds(here("data-raw/iucn-wildlife.rds")) %>%
+wildlife <- read_rds(here("data/iucn-wildlife.rds")) %>%
   as_tibble() %>%
   select(scientific_name, country) %>%
   distinct() %>%
