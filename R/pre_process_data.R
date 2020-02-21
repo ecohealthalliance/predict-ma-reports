@@ -111,7 +111,6 @@ merge_data <- function(report, eidith){
     d2 <- d2 %>%
       dplyr::select(-starts_with("gains4_specimen_id"))
   }
-    }
   return(d2)
 }
 
