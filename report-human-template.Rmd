@@ -122,7 +122,7 @@ human_virus_summary %>%
   summarize("Concurrent Detections" = paste(unique(na.omit(country)), collapse = ", ")) %>%
   ungroup() %>%
   arrange(viral_species,  test_requested) %>%
-  rename(`Concurrent Detections\n(Gov. Approved)` = `Concurrent Detections`,
+  rename(`Other PREDICT Detections\n(Gov. Approved)` = `Concurrent Detections`,
          `Virus Name` = viral_species, 
          `Viral Test Type` = test_requested,
          `Specimen Types` = specimen_types,

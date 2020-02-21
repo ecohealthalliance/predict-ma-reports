@@ -124,7 +124,7 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
     `Concurrent Detections` = str_replace(`Concurrent Detections`, "\nNA", ""),
     `Known Human Threat?` = ifelse(`Known Human Threat?` == "yes", "yes\n(scroll over for details)", `Known Human Threat?`)
   ) %>%
-  rename(`Concurrent Detections\n(Gov. Approved)` = `Concurrent Detections`) %>%
+  rename(`Other PREDICT Detections\n(Gov. Approved)` = `Concurrent Detections`) %>%
   arrange(`Viral Test Type`, `Virus Name`) %>%
   mutate_at(
     vars(-interpretation),
