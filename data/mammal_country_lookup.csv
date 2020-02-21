@@ -27,7 +27,6 @@ Bangladesh,Dremomys lokriah
 Bangladesh,Eonycteris spelaea
 Bangladesh,Eptesicus pachyotis
 Bangladesh,Eptesicus serotinus
-Bangladesh,Falsistrellus affinis
 Bangladesh,Felis chaus
 Bangladesh,Golunda ellioti
 Bangladesh,Harpiocephalus harpia
@@ -44,6 +43,7 @@ Bangladesh,Hipposideros larvatus
 Bangladesh,Hipposideros pomona
 Bangladesh,Hoolock hoolock
 Bangladesh,Hylopetes alboniger
+Bangladesh,Hypsugo affinis
 Bangladesh,Hystrix brachyura
 Bangladesh,Ia io
 Bangladesh,Kerivoula hardwickii
@@ -71,7 +71,6 @@ Bangladesh,Muntiacus vaginalis
 Bangladesh,Murina aurata
 Bangladesh,Murina cyclotis
 Bangladesh,Murina huttoni
-Bangladesh,Murina tubinaris
 Bangladesh,Mus booduga
 Bangladesh,Mus cervicolor
 Bangladesh,Mus cookii
@@ -115,6 +114,7 @@ Bangladesh,Rattus nitidus
 Bangladesh,Rattus pyctoris
 Bangladesh,Rattus tanezumi
 Bangladesh,Ratufa bicolor
+Bangladesh,Rhinoceros unicornis
 Bangladesh,Rhinolophus affinis
 Bangladesh,Rhinolophus ferrumequinum
 Bangladesh,Rhinolophus lepidus
@@ -298,6 +298,7 @@ China,Episoriculus macrurus
 China,Eptesicus bottae
 China,Eptesicus gobiensis
 China,Eptesicus nilssonii
+China,Eptesicus pachyomus
 China,Eptesicus pachyotis
 China,Eptesicus serotinus
 China,Equus ferus
@@ -311,12 +312,12 @@ China,Euroscaptor longirostris
 China,Euroscaptor micrura
 China,Euroscaptor parvidens
 China,Eutamias sibiricus
-China,Falsistrellus affinis
 China,Falsistrellus mordax
 China,Felis bieti
 China,Felis chaus
 China,Felis silvestris
 China,Gazella subgutturosa
+China,Glischropus bucephalus
 China,Glischropus tylopus
 China,Gulo gulo
 China,Hadromys yunnanensis
@@ -335,12 +336,16 @@ China,Hipposideros larvatus
 China,Hipposideros lylei
 China,Hipposideros pomona
 China,Hipposideros pratti
+China,Hoolock tianxing
 China,Hydropotes inermis
 China,Hylobates lar
 China,Hylomys suillus
 China,Hylopetes alboniger
 China,Hylopetes phayrei
+China,Hypsugo affinis
+China,Hypsugo alaschanicus
 China,Hypsugo anthonyi
+China,Hypsugo cadornae
 China,Hypsugo savii
 China,Hystrix brachyura
 China,Hystrix indica
@@ -348,6 +353,7 @@ China,Ia io
 China,Kerivoula hardwickii
 China,Kerivoula kachinensis
 China,Kerivoula picta
+China,Kerivoula titania
 China,Lagurus lagurus
 China,Lasiopodomys brandtii
 China,Lasiopodomys fuscus
@@ -433,7 +439,6 @@ China,Murina harrisoni
 China,Murina hilgendorfi
 China,Murina huttoni
 China,Murina leucogaster
-China,Murina tubinaris
 China,Murina ussuriensis
 China,Mus caroli
 China,Mus cervicolor
@@ -460,6 +465,7 @@ China,Myospalax myospalax
 China,Myospalax psilurus
 China,Myotis altarium
 China,Myotis annectans
+China,Myotis badius
 China,Myotis blythii
 China,Myotis bombinus
 China,Myotis brandtii
@@ -471,6 +477,7 @@ China,Myotis formosus
 China,Myotis frater
 China,Myotis horsfieldii
 China,Myotis ikonnikovi
+China,Myotis indochinensis
 China,Myotis laniger
 China,Myotis longipes
 China,Myotis macrodactylus
@@ -543,6 +550,7 @@ China,Otocolobus manul
 China,Ovis ammon
 China,Paguma larvata
 China,Panthera pardus
+China,Panthera pardus ssp. delacouri
 China,Panthera tigris
 China,Panthera uncia
 China,Pantholops hodgsonii
@@ -562,8 +570,7 @@ China,Philetor brachypterus
 China,Phodopus campbelli
 China,Phodopus roborovskii
 China,Pipistrellus abramus
-China,Pipistrellus alaschanicus
-China,Pipistrellus cadornae
+China,Pipistrellus aladdin
 China,Pipistrellus ceylonicus
 China,Pipistrellus coromandra
 China,Pipistrellus javanicus
@@ -571,6 +578,8 @@ China,Pipistrellus paterculus
 China,Pipistrellus pipistrellus
 China,Pipistrellus pulveratus
 China,Pipistrellus tenuis
+China,Plecotus ariel
+China,Plecotus homochrous
 China,Plecotus ognevi
 China,Prionailurus bengalensis
 China,Prionodon pardicolor
@@ -594,6 +603,7 @@ China,Rattus norvegicus
 China,Rattus pyctoris
 China,Rattus tanezumi
 China,Ratufa bicolor
+China,Rhinoceros unicornis
 China,Rhinolophus affinis
 China,Rhinolophus ferrumequinum
 China,Rhinolophus hipposideros
@@ -607,7 +617,7 @@ China,Rhinolophus paradoxolophus
 China,Rhinolophus pearsonii
 China,Rhinolophus pusillus
 China,Rhinolophus rex
-China,Rhinolophus rouxii
+China,Rhinolophus schnitzleri
 China,Rhinolophus shameli
 China,Rhinolophus shortridgei
 China,Rhinolophus siamensis
@@ -682,7 +692,6 @@ China,Stylodipus telum
 China,Suncus etruscus
 China,Suncus murinus
 China,Suncus stoliczkanus
-China,Tadarida insignis
 China,Tadarida latouchei
 China,Tadarida teniotis
 China,Tamiops macclellandii
@@ -690,6 +699,7 @@ China,Tamiops maritimus
 China,Tamiops swinhoei
 China,Taphozous melanopogon
 China,Taphozous nudiventris
+China,Taphozous theobaldi
 China,Trachypithecus francoisi
 China,Trachypithecus phayrei
 China,Trachypithecus poliocephalus
@@ -895,13 +905,13 @@ India,Episoriculus macrurus
 India,Eptesicus bottae
 India,Eptesicus dimissus
 India,Eptesicus gobiensis
+India,Eptesicus pachyomus
 India,Eptesicus pachyotis
 India,Eptesicus serotinus
 India,Eptesicus tatei
 India,Equus hemionus
 India,Equus kiang
 India,Euroscaptor micrura
-India,Falsistrellus affinis
 India,Felis chaus
 India,Felis silvestris
 India,Feroculus feroculus
@@ -944,6 +954,8 @@ India,Hylopetes alboniger
 India,Hylopetes phayrei
 India,Hyperacrius fertilis
 India,Hyperacrius wynnei
+India,Hypsugo affinis
+India,Hypsugo cadornae
 India,Hypsugo savii
 India,Hystrix brachyura
 India,Hystrix indica
@@ -1019,6 +1031,7 @@ India,Mustela erminea
 India,Mustela kathiah
 India,Mustela sibirica
 India,Mustela strigidorsa
+India,Myotis altarium
 India,Myotis annectans
 India,Myotis blythii
 India,Myotis csorbai
@@ -1086,7 +1099,7 @@ India,Petaurista xanthotis
 India,Petinomys fuscocapillus
 India,Phaiomys leucurus
 India,Philetor brachypterus
-India,Pipistrellus cadornae
+India,Pipistrellus aladdin
 India,Pipistrellus ceylonicus
 India,Pipistrellus coromandra
 India,Pipistrellus javanicus
@@ -1095,6 +1108,7 @@ India,Pipistrellus paterculus
 India,Pipistrellus pipistrellus
 India,Pipistrellus tenuis
 India,Platacanthomys lasiurus
+India,Plecotus homochrous
 India,Porcula salvania
 India,Prionailurus bengalensis
 India,Prionailurus rubiginosus
@@ -1650,8 +1664,10 @@ Indonesia,Prionailurus bengalensis
 Indonesia,Prionailurus planiceps
 Indonesia,Prionodon linsang
 Indonesia,Prosciurillus abstrusus
+Indonesia,Prosciurillus alstoni
 Indonesia,Prosciurillus leucomus
 Indonesia,Prosciurillus murinus
+Indonesia,Prosciurillus topapuensis
 Indonesia,Prosciurillus weberi
 Indonesia,Pseudochirops albertisii
 Indonesia,Pseudochirops corinnae
@@ -1900,6 +1916,7 @@ Ivory Coast,Crocidura jouvenetae
 Ivory Coast,Crocidura lamottei
 Ivory Coast,Crocidura muricauda
 Ivory Coast,Crocidura nimbae
+Ivory Coast,Crocidura nimbasilvanus
 Ivory Coast,Crocidura obscurior
 Ivory Coast,Crocidura olivieri
 Ivory Coast,Crocidura poensis
@@ -1921,7 +1938,9 @@ Ivory Coast,Erythrocebus patas
 Ivory Coast,Felis silvestris
 Ivory Coast,Funisciurus pyrropus
 Ivory Coast,Galago senegalensis
+Ivory Coast,Galago senegalensis ssp. senegalensis
 Ivory Coast,Galagoides demidoff
+Ivory Coast,Galagoides demidoff ssp. demidoff
 Ivory Coast,Galagoides thomasi
 Ivory Coast,Genetta bourloni
 Ivory Coast,Genetta genetta
@@ -2209,6 +2228,7 @@ Liberia,Crocidura jouvenetae
 Liberia,Crocidura lamottei
 Liberia,Crocidura muricauda
 Liberia,Crocidura nimbae
+Liberia,Crocidura nimbasilvanus
 Liberia,Crocidura obscurior
 Liberia,Crocidura olivieri
 Liberia,Crocidura poensis
@@ -2227,7 +2247,9 @@ Liberia,Epomops buettikoferi
 Liberia,Erythrocebus patas
 Liberia,Funisciurus pyrropus
 Liberia,Galago senegalensis
+Liberia,Galago senegalensis ssp. senegalensis
 Liberia,Galagoides demidoff
+Liberia,Galagoides demidoff ssp. demidoff
 Liberia,Galagoides thomasi
 Liberia,Genetta bourloni
 Liberia,Genetta johnstoni
@@ -2434,6 +2456,7 @@ Malaysia,Glyphotes simus
 Malaysia,Haeromys margarettae
 Malaysia,Haeromys pusillus
 Malaysia,Hapalomys longicaudatus
+Malaysia,Harpiocephalus harpia
 Malaysia,Helarctos malayanus
 Malaysia,Hemigalus derbyanus
 Malaysia,Herpestes brachyurus
@@ -2542,6 +2565,7 @@ Malaysia,Nycticebus coucang
 Malaysia,Nycticebus menagensis
 Malaysia,Paguma larvata
 Malaysia,Panthera pardus
+Malaysia,Panthera pardus ssp. delacouri
 Malaysia,Panthera tigris
 Malaysia,Paradoxurus hermaphroditus
 Malaysia,Pardofelis marmorata
@@ -2678,9 +2702,14 @@ Republic of Congo,Cephalophus weynsi
 Republic of Congo,Cercocebus agilis
 Republic of Congo,Cercocebus torquatus
 Republic of Congo,Cercopithecus ascanius
+Republic of Congo,Cercopithecus ascanius ssp. ascanius
+Republic of Congo,Cercopithecus ascanius ssp. schmidti
+Republic of Congo,Cercopithecus ascanius ssp. whitesidei
 Republic of Congo,Cercopithecus cephus
 Republic of Congo,Cercopithecus neglectus
 Republic of Congo,Cercopithecus nictitans
+Republic of Congo,Cercopithecus pogonias ssp. nigripes
+Republic of Congo,Cercopithecus wolfi
 Republic of Congo,Chaerephon aloysiisabaudiae
 Republic of Congo,Chaerephon chapini
 Republic of Congo,Chaerephon pumilus
@@ -2690,6 +2719,7 @@ Republic of Congo,Civettictis civetta
 Republic of Congo,Coleura afra
 Republic of Congo,Colobus angolensis
 Republic of Congo,Colobus guereza
+Republic of Congo,Colobus guereza ssp. occidentalis
 Republic of Congo,Colobus satanas
 Republic of Congo,Colomys goslingi
 Republic of Congo,Congosorex verheyeni
@@ -2732,6 +2762,7 @@ Republic of Congo,Funisciurus isabella
 Republic of Congo,Funisciurus lemniscatus
 Republic of Congo,Funisciurus pyrropus
 Republic of Congo,Galagoides demidoff
+Republic of Congo,Galagoides demidoff ssp. demidoff
 Republic of Congo,Galagoides thomasi
 Republic of Congo,Genetta maculata
 Republic of Congo,Genetta poensis
@@ -2785,7 +2816,9 @@ Republic of Congo,Lemniscomys striatus
 Republic of Congo,Leptailurus serval
 Republic of Congo,Lissonycteris angolensis
 Republic of Congo,Lophocebus albigena
+Republic of Congo,Lophocebus albigena ssp. albigena
 Republic of Congo,Lophocebus aterrimus
+Republic of Congo,Lophocebus aterrimus ssp. aterrimus
 Republic of Congo,Lophuromys nudicaudus
 Republic of Congo,Lophuromys sikapusi
 Republic of Congo,Loxodonta africana
@@ -2797,6 +2830,7 @@ Republic of Congo,Mellivora capensis
 Republic of Congo,Micropteropus pusillus
 Republic of Congo,Mimetillus moloneyi
 Republic of Congo,Miopithecus ogouensis
+Republic of Congo,Miopithecus talapoin
 Republic of Congo,Mops brachypterus
 Republic of Congo,Mops congicus
 Republic of Congo,Mops nanulus
@@ -2841,6 +2875,7 @@ Republic of Congo,Paraxerus poensis
 Republic of Congo,Pelomys campanae
 Republic of Congo,Perodicticus edwardsi
 Republic of Congo,Perodicticus ibeanus
+Republic of Congo,Perodicticus ibeanus ssp. ibeanus
 Republic of Congo,Phataginus tetradactyla
 Republic of Congo,Phataginus tricuspis
 Republic of Congo,Philantomba monticola
@@ -2922,7 +2957,9 @@ South Sudan,Cephalophus weynsi
 South Sudan,Ceratotherium simum
 South Sudan,Cercocebus agilis
 South Sudan,Cercopithecus ascanius
+South Sudan,Cercopithecus ascanius ssp. schmidti
 South Sudan,Cercopithecus mitis
+South Sudan,Cercopithecus mitis ssp. stuhlmanni
 South Sudan,Cercopithecus neglectus
 South Sudan,Chaerephon aloysiisabaudiae
 South Sudan,Chaerephon ansorgei
@@ -2934,10 +2971,12 @@ South Sudan,Chaerephon nigeriae
 South Sudan,Chaerephon pumilus
 South Sudan,Chlorocebus aethiops
 South Sudan,Chlorocebus pygerythrus
+South Sudan,Chlorocebus pygerythrus ssp. hilgerti
 South Sudan,Chlorocebus tantalus
 South Sudan,Civettictis civetta
 South Sudan,Coleura afra
 South Sudan,Colobus guereza
+South Sudan,Colobus guereza ssp. occidentalis
 South Sudan,Colomys goslingi
 South Sudan,Crocidura foxi
 South Sudan,Crocidura fulvastra
@@ -2980,6 +3019,8 @@ South Sudan,Eudorcas rufifrons
 South Sudan,Felis silvestris
 South Sudan,Fukomys ochraceocinereus
 South Sudan,Galago senegalensis
+South Sudan,Galago senegalensis ssp. dunni
+South Sudan,Galago senegalensis ssp. senegalensis
 South Sudan,Gazella dorcas
 South Sudan,Genetta abyssinica
 South Sudan,Genetta genetta
@@ -3142,6 +3183,7 @@ South Sudan,Rhinolophus landeri
 South Sudan,Rhinolophus simulator
 South Sudan,Rhinopoma cystops
 South Sudan,Rhinopoma hardwickii
+South Sudan,Rhinopoma macinnesi
 South Sudan,Rhinopoma microphyllum
 South Sudan,Rousettus aegyptiacus
 South Sudan,Rousettus lanosus
@@ -3247,13 +3289,14 @@ Thailand,Emballonura monticola
 Thailand,Eonycteris spelaea
 Thailand,Eothenomys melanogaster
 Thailand,Eptesicus dimissus
+Thailand,Eptesicus pachyomus
 Thailand,Eptesicus pachyotis
 Thailand,Eptesicus serotinus
 Thailand,Eudiscopus denticulus
 Thailand,Euroscaptor klossi
-Thailand,Falsistrellus affinis
 Thailand,Felis chaus
 Thailand,Galeopterus variegatus
+Thailand,Glischropus bucephalus
 Thailand,Glischropus tylopus
 Thailand,Harpiocephalus harpia
 Thailand,Helarctos malayanus
@@ -3275,10 +3318,10 @@ Thailand,Hipposideros khaokhouayensis
 Thailand,Hipposideros larvatus
 Thailand,Hipposideros lekaguli
 Thailand,Hipposideros lylei
+Thailand,Hipposideros pendlebury
 Thailand,Hipposideros pomona
 Thailand,Hipposideros ridleyi
 Thailand,Hipposideros rotalis
-Thailand,Hipposideros turpis
 Thailand,Hylobates agilis
 Thailand,Hylobates lar
 Thailand,Hylobates pileatus
@@ -3287,6 +3330,9 @@ Thailand,Hylopetes alboniger
 Thailand,Hylopetes phayrei
 Thailand,Hylopetes platyurus
 Thailand,Hylopetes spadiceus
+Thailand,Hypsugo affinis
+Thailand,Hypsugo cadornae
+Thailand,Hypsugo dolichodon
 Thailand,Hystrix brachyura
 Thailand,Ia io
 Thailand,Kerivoula hardwickii
@@ -3335,8 +3381,8 @@ Thailand,Murina aenea
 Thailand,Murina aurata
 Thailand,Murina cyclotis
 Thailand,Murina harrisoni
+Thailand,Murina huttoni
 Thailand,Murina suilla
-Thailand,Murina tubinaris
 Thailand,Mus caroli
 Thailand,Mus cookii
 Thailand,Mus fragilicauda
@@ -3353,6 +3399,7 @@ Thailand,Myotis chinensis
 Thailand,Myotis hasseltii
 Thailand,Myotis hermani
 Thailand,Myotis horsfieldii
+Thailand,Myotis indochinensis
 Thailand,Myotis montivagus
 Thailand,Myotis muricola
 Thailand,Myotis ridleyi
@@ -3373,6 +3420,7 @@ Thailand,Nycticebus coucang
 Thailand,Nycticebus pygmaeus
 Thailand,Paguma larvata
 Thailand,Panthera pardus
+Thailand,Panthera pardus ssp. delacouri
 Thailand,Panthera tigris
 Thailand,Paradoxurus hermaphroditus
 Thailand,Pardofelis marmorata
@@ -3385,7 +3433,6 @@ Thailand,Petinomys setosus
 Thailand,Philetor brachypterus
 Thailand,Phoniscus atrox
 Thailand,Phoniscus jagorii
-Thailand,Pipistrellus cadornae
 Thailand,Pipistrellus coromandra
 Thailand,Pipistrellus javanicus
 Thailand,Pipistrellus paterculus
