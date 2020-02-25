@@ -97,9 +97,9 @@ human.grouping.vars <-
 
 human_virus_summary <- d2_country %>%
   filter(!is.na(viral_species)) %>%
-  group_by_at(vars(one_of(human.grouping.vars))) %>%
-  summarize(n_positives = sum(virus_detected)) %>%
-  ungroup() %>%
+  group_by_at(vars(human.grouping.vars)) %>% 
+  summarize(n_positives = n_distinct(specimen_id)) %>% 
+  ungroup() %>% 
   arrange(country, site_name,  n_positives)
 
 # note number of detections includes multiple specimen per participant
