@@ -9,4 +9,4 @@ data/P2_virus_mammal_host_associations.csv
 data/viral_species_testing_by_host_and_site.csv
 data/viral_species_country_lookup.csv
 data/iucn-wildlife.rds
-
+data/*.rds
