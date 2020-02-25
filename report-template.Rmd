@@ -83,20 +83,15 @@ This table provides an overview of all `r report_country` viral findings in anim
 
 animal.grouping.vars <-
   c("country", "concurrent_sampling_site", "site_name", "disease_transmission_interfaces", "human_density_impact", 
-    "class", "taxa_group_mod", "scientific_name", 
-    "test_requested", "viral_species", "human_threat")
+    "class", "taxa_group_mod", "scientific_name", "test_requested", "viral_species", "human_threat", "specimen_type")
 
 animal_virus_summary <- d2_country %>%
   filter(!is.na(viral_species)) %>%
-  group_by_at(vars(one_of(animal.grouping.vars))) %>%
-  summarize(n_positives = sum(virus_detected)) %>%
-  ungroup() %>%
+  group_by_at(vars(animal.grouping.vars)) %>% 
+  summarize(n_positives = n_distinct(specimen_id)) %>% 
+  ungroup() %>% 
   arrange(country, site_name, taxa_group_mod, 
           scientific_name, viral_species, n_positives)
-
-# note number of detections includes multiple specimen per participant
-# test = d2_country %>% filter(concurrent_sampling_site == "Concurrent Site 1", site_name == "Chonburi-Wat Luang Temple", viral_species == "Nipah virus")
-# test %>% janitor::get_dupes(animal_human_id) %>% select(animal_human_id, specimen_id)
 
 threat.interpretation <- d2_country %>%
   filter(
@@ -111,10 +106,19 @@ threat.interpretation <- d2_country %>%
 
 text.color <- "#787272"
 
-get_country_viruses(view = FALSE, animal_virus_summary) %>%
+animal_virus_summary %>%
+  group_by(test_requested, viral_species, human_threat) %>%
+  summarize(
+    n_detections = sum(n_positives),
+    taxa_groups = paste(unique(taxa_group_mod), collapse = "\n"),
+    species = paste(unique(scientific_name), collapse = "\n"),
+    site_names = paste(unique(site_name), collapse = "\n"),
+    specimen_type = paste(unique(specimen_type), collapse = "\n"),
+  ) %>%
+  ungroup() %>% 
   left_join(., read_csv(h("data", "viral_species_country_lookup.csv")), 
-            by = c(`Virus Name` = "viral_species")) %>%
-  left_join(., threat.interpretation, by = c(`Virus Name` = "viral_species")) %>%
+            by = "viral_species") %>%
+  left_join(., threat.interpretation, by = "viral_species") %>%
   mutate(country = ifelse(country == !!report_country, NA_character_, country)) %>%
   group_by_at(vars(-country)) %>%
   summarize("Concurrent Detections" = paste(unique(country), collapse = "\n")) %>%
@@ -122,10 +126,18 @@ get_country_viruses(view = FALSE, animal_virus_summary) %>%
   mutate(
     `Concurrent Detections` = str_replace(`Concurrent Detections`, "NA\n", ""),
     `Concurrent Detections` = str_replace(`Concurrent Detections`, "\nNA", ""),
-    `Known Human Threat?` = ifelse(`Known Human Threat?` == "yes", "yes\n(scroll over for details)", `Known Human Threat?`)
+    human_threat = ifelse(human_threat == "yes", "yes\n(scroll over for details)", human_threat)
   ) %>%
-  rename(`Other PREDICT Detections\n(Gov. Approved)` = `Concurrent Detections`) %>%
-  arrange(`Viral Test Type`, `Virus Name`) %>%
+    arrange(test_requested, viral_species) %>%
+  rename("Other PREDICT Detections\n(Gov. Approved)" = `Concurrent Detections`,
+         "Viral Test Type" = test_requested,
+         "Virus Name" = viral_species,
+         "Known Human Threat?" = human_threat,
+         "Specimen" = specimen_type,
+         "Number of Detections" = n_detections,
+         "Taxa Groups" = taxa_groups,
+         "Species Names" = species,
+         "Site Names" = site_names) %>%
   mutate_at(
     vars(-interpretation),
     cell_spec, format = "html", 
