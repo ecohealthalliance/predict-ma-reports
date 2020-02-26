@@ -57,14 +57,10 @@ $('[data-toggle="tooltip"]').tooltip()
 
 d2 <- read_rds(h("data", "human.rds"))
 
-d2_country <- d2 %>% 
-  filter(country == !!report_country) # events filtered to country
-
 country_virus_lookup <- d2 %>%
   filter(
     !is.na(viral_species),
-    !is.na(date_govt_approved_release),
-    country %in% eha_countries()
+    !is.na(date_govt_approved_release)
   ) %>%
   distinct(viral_species, country) %>%
   arrange(viral_species, country) 

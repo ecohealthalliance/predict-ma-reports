@@ -59,8 +59,16 @@ eidith <- read_rds(h("data", "eidith.rds"))
 t2 <- eidith[["t2"]]
 
 d2 <- read_rds(h("data", "animal.rds"))
+
 d2_country <- d2 %>% 
   filter(country == !!report_country) # events filtered to country
+
+country_virus_lookup <- d2 %>%
+  filter(
+    !is.na(viral_species),
+    !is.na(date_govt_approved_release)) %>%
+  distinct(viral_species, country) %>%
+  arrange(viral_species, country) 
 
 ```
 
@@ -116,7 +124,7 @@ animal_virus_summary %>%
     specimen_type = paste(unique(specimen_type), collapse = "\n"),
   ) %>%
   ungroup() %>% 
-  left_join(., read_csv(h("data", "viral_species_country_lookup.csv")), 
+  left_join(country_virus_lookup, 
             by = "viral_species") %>%
   left_join(., threat.interpretation, by = "viral_species") %>%
   mutate(country = ifelse(country == !!report_country, NA_character_, country)) %>%
