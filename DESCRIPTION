@@ -13,6 +13,7 @@ Depends:
     cowplot,
     cyphr,
     DT,
+    ehalasso,
     eidith,
     glue,
     here,
@@ -33,6 +34,7 @@ Depends:
     wesanderson
 Remotes:
     ecohealthalliance/eidith,
+    ecohealthalliance/ehalasso,
     cran/iNEXT@2.0.19,
     wilkelab/cowplot,
     url::http://packages.ropensci.org/job/rnaturalearthhires/ws/*zip*/rnaturalearthhires.zip

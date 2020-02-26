@@ -15,21 +15,8 @@ editor_options:
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 # Load packages
-library(CoordinateCleaner)
-library(countrycode)
-library(cowplot)
-library(DT)
 library(eidith)
-library(glue)
-library(iNEXT)
-library(kableExtra)
-library(leaflet)
-library(leaflet.extras)
-library(raster)
-library(RColorBrewer)
-library(rnaturalearth)
-library(rnaturalearthdata)
-library(sf)
+library(ehalasso)
 library(tidyverse)
 
 h <- here::here
@@ -47,16 +34,18 @@ $('[data-toggle="tooltip"]').tooltip()
 
 ![](./media/predict-logos.png){width="100%"}
 
-```{r read-data, include = FALSE}
+```{r read-data}
+
 eidith <- read_rds(h("data", "eidith.rds"))
 
 d2 <- read_rds(h("data", "animal.rds"))
 d2_country <- d2 %>% 
   filter(country == !!report_country) %>%  # events filtered to country
   as_tibble()
+
 ```
 
-```{r viral-species, include = FALSE}
+```{r viral-species}
 
 animal_virus_summary <- d2_country %>%
   filter(!is.na(viral_species)) %>%
@@ -65,43 +54,130 @@ animal_virus_summary <- d2_country %>%
   ungroup() %>% 
   filter(n>=30)
 
+viral_species_include <- animal_virus_summary$viral_species
+
 ```
 
-```{r lasso-prep, include = FALSE}
+```{r lasso-prep}
 
-d2_lasso <- d2_country %>% 
-  select(specimen_id, scientific_name, concurrent_sampling_site, age_class, sex, specimen_type, test_requested_protocol, viral_species, virus_detected) %>% 
-  drop_na(scientific_name, test_requested_protocol) %>% 
-  mutate(virus_detected = ifelse(viral_species %in% animal_virus_summary$viral_species,
-                                 virus_detected,
-                                 0),
-         viral_species = ifelse(viral_species %in% animal_virus_summary$viral_species,
-                                viral_species,
-                                NA)) %>% 
-  select(-test_requested_protocol) %>% 
-  distinct()
+lasso_dat_split <- map(viral_species_include, function(virus){
+  
+  # which specimen had detects
+  viral_detects <- d2_country %>% 
+    filter(viral_species == !!virus) %>% 
+    distinct(specimen_id, scientific_name, test_requested_protocol) 
+  
+  viral_detects %>% 
+    group_by(scientific_name) %>% count
+  
+  d2_lasso <- d2_country %>% 
+    filter(scientific_name %in% unique(viral_detects$scientific_name), # relevant species
+           test_requested_protocol %in% unique(viral_detects$test_requested_protocol)) %>%  # relevant lab tests
+    distinct(specimen_id, scientific_name, concurrent_sampling_site, age_class, sex, specimen_type) %>% 
+    mutate(!!virus := specimen_id %in% unique(viral_detects$specimen_id)) %>% 
+    ed2_expand_wide(scientific_name, clean_names = FALSE) %>%
+    ed2_expand_wide(concurrent_sampling_site, clean_names = FALSE) %>%
+    ed2_expand_wide(age_class, clean_names = FALSE) %>%
+    ed2_expand_wide(sex, clean_names = FALSE) %>%
+    ed2_expand_wide(specimen_type, clean_names = FALSE) %>% 
+    select(-scientific_name, -concurrent_sampling_site, -age_class, -sex, -specimen_type, -specimen_id) 
+  
+  names(d2_lasso) <- str_remove(names(d2_lasso), "scientific_name_|concurrent_sampling_site_")
+  
+  d2_lasso %>% 
+    summarise_at(vars(!!virus), ~sum(., na.rm = T))  %>% 
+    pull(1) %>% 
+    assertthat::are_equal(., animal_virus_summary$n[animal_virus_summary$viral_species == virus])
+  
+  return(d2_lasso)
+}) %>% 
+  set_names(viral_species_include)
 
-d2_lasso <- d2_lasso %>% 
-  ed2_expand_wide(scientific_name) %>%
-  ed2_expand_wide(concurrent_sampling_site) %>%
-  ed2_expand_wide(age_class) %>%
-  ed2_expand_wide(sex) %>%
-  ed2_expand_wide(specimen_type) %>%
-  pivot_wider(names_from = viral_species, values_from = virus_detected) %>%
-  select(-`NA`, -scientific_name, -concurrent_sampling_site, -age_class, -sex, -specimen_type)
+prevalence <- imap(lasso_dat_split, ~sum(pull(.x, !!.y))/nrow(.x))
 
-d2_lasso_check <- d2_lasso %>% 
-  summarise_at(vars(!!animal_virus_summary$viral_species), ~sum(., na.rm = T)) %>%
-  gather(key = "viral_species", value = "n") %>% 
-  mutate(n = as.integer(n))
-
-assertthat::assert_that(identical(d2_lasso_check, animal_virus_summary))
-
-d2_lasso <- d2_lasso %>% 
-  mutate_at(vars(!!animal_virus_summary$viral_species), ~as.logical(.)) %>% 
-  select(-specimen_id)
-            
 ```
-            
-            
-            
+
+```{r lasso-fit}
+map(viral_species_include, function(virus){
+  
+  dat <- lasso_dat_split[[virus]] %>% 
+    janitor::clean_names() %>% 
+    mutate_all(~as.integer(.)) %>% 
+    mutate(predict_co_v_17 = ifelse(predict_co_v_17 == 1, "detect", "nondetect"))
+  
+  dat2 <- recipes::recipe(predict_co_v_17 ~ ., data = dat) %>% 
+    themis::step_smote(predict_co_v_17) %>% 
+    prep() %>% 
+    juice()
+  
+  dat3 <- dat2 %>% 
+    mutate(predict_co_v_17 = predict_co_v_17 == "detect") %>% 
+    mutate_all(~as.logical(.))
+  
+  matrices <- dat3 %>% 
+    make_matrix(., outcome_var = "predict_co_v_17",  interactions = TRUE)
+  
+  model_matrix <- remove_colinear_columns(matrices$model_matrix)
+  
+  d2_lasso_fit <- fit_lasso_model(model_matrix$intermediate_matrix,
+                                  matrices$outcome_matrix)
+  
+  write_rds(d2_lasso_fit, h("lassos", paste0(report_country, "_", virus, ".rds")))
+})
+```
+
+```{r}
+
+coefs <- coef(d2_lasso_fit) %>%
+    as.matrix() %>%
+    as.data.frame() %>%
+    rownames_to_column(var = "variable") %>%
+    rename(effect=s0) %>%
+    filter(effect != 0) %>%
+    filter(stringi::stri_detect_fixed(variable, "Intercept", negate=TRUE))
+
+  in_mod <- coefs$variable
+  in_mod_int <- in_mod[grepl(":", in_mod)] #identify interaction terms
+  in_mod_int_split <- stringr::str_split(in_mod_int, ":") #split interaction terms
+
+  #add interaction columns to data
+  for(i in seq_along(in_mod_int)){
+    dat3 <- dat3 %>%
+      mutate(!!in_mod_int[i] := !!as.name(in_mod_int_split[[i]][1]) & !!as.name(in_mod_int_split[[i]][2]))
+  }
+
+  #summarize n TRUE responses
+  dat_sum <-  dat3 %>%
+    select(!!in_mod) %>%
+    sapply(., table) %>%
+    t() %>%
+    as.data.frame() %>%
+    rownames_to_column("field") %>%
+    mutate(prop_pos = `TRUE`/(`FALSE` + `TRUE`))
+
+
+  if(!is.null(attr(d2_lasso_fit, "bootstrap_support"))) {
+    support <- attr(d2_lasso_fit, "bootstrap_support")
+    support <- support[in_mod]
+    n_pos <- dat_sum$`TRUE`
+    coefs$variable <- paste0(coefs$variable, "  (s = ", round(support, 2), "; n = ", n_pos, ")")
+  }
+
+  coefs <- coefs %>%
+    arrange(desc(effect)) %>%
+    mutate(variable = fct_reorder(variable, effect)) %>%
+    mutate(pred = plogis(d2_lasso_fit$a0 + effect),
+           positive = effect > 0)
+
+  out_plot <- ggplot(coefs, aes(x = variable, y = effect, fill=positive)) +
+    geom_point(pch = 21, stroke = 0.75, size = 4) +
+    scale_fill_manual(values = c("#7E03A8FF", "#F89441FF")) +
+    scale_y_continuous(breaks = log(c(0.1, 0.25, 0.5, .75, 1, 1.5, 2, 4, 10)), labels = exp) +
+    coord_flip() +
+    ggthemes::theme_fivethirtyeight() +
+    theme(legend.position = "none") +
+    theme(axis.title = element_text()) +
+    ylab("Odds Ratios (log-odds scale)") +
+    xlab("")
+```
+
