@@ -61,51 +61,47 @@ d2_country <- d2 %>%
 animal_virus_summary <- d2_country %>%
   filter(!is.na(viral_species)) %>%
   group_by(viral_species) %>%
-  count() %>%
+  summarize(n = n_distinct(specimen_id)) %>% 
   ungroup() %>% 
-  arrange(-n) %>% 
   filter(n>=30)
+
 ```
 
 ```{r lasso-prep, include = FALSE}
 
 d2_lasso <- d2_country %>% 
-  select(specimen_id, scientific_name, concurrent_sampling_site, age_class, sex, specimen_type, test_requested_protocol, viral_species) %>% 
-   drop_na(scientific_name, test_requested_protocol) 
+  select(specimen_id, scientific_name, concurrent_sampling_site, age_class, sex, specimen_type, test_requested_protocol, viral_species, virus_detected) %>% 
+  drop_na(scientific_name, test_requested_protocol) %>% 
+  mutate(virus_detected = ifelse(viral_species %in% animal_virus_summary$viral_species,
+                                 virus_detected,
+                                 0),
+         viral_species = ifelse(viral_species %in% animal_virus_summary$viral_species,
+                                viral_species,
+                                NA)) %>% 
+  select(-test_requested_protocol) %>% 
+  distinct()
 
-virus_test_type <- d2_lasso %>% 
-  distinct(viral_species, test_requested_protocol) %>% 
-  arrange(test_requested_protocol) %>% 
-  filter(viral_species %in% animal_virus_summary$viral_species)
+d2_lasso <- d2_lasso %>% 
+  ed2_expand_wide(scientific_name) %>%
+  ed2_expand_wide(concurrent_sampling_site) %>%
+  ed2_expand_wide(age_class) %>%
+  ed2_expand_wide(sex) %>%
+  ed2_expand_wide(specimen_type) %>%
+  pivot_wider(names_from = viral_species, values_from = virus_detected) %>%
+  select(-`NA`, -scientific_name, -concurrent_sampling_site, -age_class, -sex, -specimen_type)
 
-d2_detects <- d2_lasso %>% 
-  drop_na(viral_species) %>% 
-  mutate(virus_detected = TRUE)
+d2_lasso_check <- d2_lasso %>% 
+  summarise_at(vars(!!animal_virus_summary$viral_species), ~sum(., na.rm = T)) %>%
+  gather(key = "viral_species", value = "n") %>% 
+  mutate(n = as.integer(n))
 
-janitor::get_dupes(d2_detects, specimen_id, test_requested_protocol)
-#Can we assume if a sample is positive for one cov, it's negative for others??
+assertthat::assert_that(identical(d2_lasso_check, animal_virus_summary))
 
-d2_lasso <- d2_lasso %>%
-  select(-viral_species) %>% 
-  distinct() %>% 
-  inner_join(virus_test_type, by = "test_requested_protocol") %>% # all test - virus combos
-  left_join(d2_detects) %>%  # get detects
-  mutate(virus_detected = replace_na(virus_detected, FALSE))
-
-lasso_check <- d2_lasso %>% 
-  group_by(viral_species) %>%
-  summarize(n = sum(virus_detected)) %>%
-  ungroup() %>% 
-  arrange(-n) 
-
-assertthat::assert_that(identical(lasso_check, animal_virus_summary))
-
-  # ed2_expand_wide(scientific_name) %>% 
-  #   ed2_expand_wide(concurrent_sampling_site) %>% 
-  #   ed2_expand_wide(age_class) %>% 
-  #     ed2_expand_wide(sex) %>% 
-  #   ed2_expand_wide(specimen_type) %>% 
-  #   ed2_expand_wide(test_requested_protocol) 
-
+d2_lasso <- d2_lasso %>% 
+  mutate_at(vars(!!animal_virus_summary$viral_species), ~as.logical(.)) %>% 
+  select(-specimen_id)
+            
 ```
-
+            
+            
+            
