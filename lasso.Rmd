@@ -18,6 +18,13 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 library(eidith)
 library(ehalasso)
 library(tidyverse)
+library(recipes)
+library(themis)
+library(ggthemes)
+library(tidymodels)
+library(parsnip)
+library(tune)
+library(rsample)
 
 h <- here::here
 walk(list.files(h("R/"), full.names = TRUE), source, echo = FALSE, verbose = FALSE)
@@ -98,86 +105,129 @@ prevalence <- imap(lasso_dat_split, ~sum(pull(.x, !!.y))/nrow(.x))
 ```
 
 ```{r lasso-fit}
+library(caret)
 map(viral_species_include, function(virus){
   
-  dat <- lasso_dat_split[[virus]] %>% 
-    janitor::clean_names() %>% 
-    mutate_all(~as.integer(.)) %>% 
-    mutate(predict_co_v_17 = ifelse(predict_co_v_17 == 1, "detect", "nondetect"))
+  # Make model matrix with interactions
+  matrices <-  lasso_dat_split[[virus]] %>% 
+    make_matrix(., outcome_var = virus,  interactions = TRUE)
   
-  dat2 <- recipes::recipe(predict_co_v_17 ~ ., data = dat) %>% 
-    themis::step_smote(predict_co_v_17) %>% 
-    prep() %>% 
-    juice()
-  
-  dat3 <- dat2 %>% 
-    mutate(predict_co_v_17 = predict_co_v_17 == "detect") %>% 
-    mutate_all(~as.logical(.))
-  
-  matrices <- dat3 %>% 
-    make_matrix(., outcome_var = "predict_co_v_17",  interactions = TRUE)
-  
+  # Remove colinear columns prior to running the model
   model_matrix <- remove_colinear_columns(matrices$model_matrix)
   
-  d2_lasso_fit <- fit_lasso_model(model_matrix$intermediate_matrix,
-                                  matrices$outcome_matrix)
+  # Final data processing before modelling 
+  model_tibble <- model_matrix$intermediate_matrix %>% 
+    as_tibble() %>% 
+    mutate(outcome_var = matrices$outcome_matrix[,virus]) %>% 
+    janitor::clean_names() %>% 
+    mutate_all(~as.integer(.)) %>% 
+    mutate(outcome_var = ifelse(outcome_var==1, "detect", "nondetect"))
   
-  write_rds(d2_lasso_fit, h("lassos", paste0(report_country, "_", virus, ".rds")))
+  # Test/train split
+  # train_test_split <- initial_split(model_tibble, strata = "outcome_var")
+  # train <- training(train_test_split)
+  # test <- testing(train_test_split)
+  
+  # Define formula + recipe
+  model_recipe <- recipe(outcome_var ~ ., data = model_tibble) %>% 
+    step_smote(outcome_var) 
+  
+  cctrl1 <- trainControl(method = "cv", number = 10, returnResamp = "all",
+                       classProbs = TRUE, summaryFunction = twoClassSummary)
+  
+  test_class_rec <- train(x = model_recipe,
+                        data = model_tibble,
+                        method = "glmnet", 
+                        family = "binomial",
+                        type.measure = "deviance", 
+                        standardize = FALSE,
+                        trControl = cctrl1,
+                        metric = "ROC",
+                        tuneGrid = expand.grid(alpha = seq(.05, 1, length = 15),
+                                               lambda = c((1:5)/10)))
+
+  ### ^ uhh did this work? - read SO question about this approach. 
+  ###   also, understand caret versus parsnip. could this have been done with parsnip?
+  ###   could it be done with tune?
+  
+  
+  # old method
+    lambda.fit <- glmnet::cv.glmnet(x =  model_matrix$intermediate_matrix,
+                                  y = matrices$outcome_matrix ,
+                                  nfolds = 20, #5-fold CV
+                                  family = 'binomial',
+                                  type.measure = "deviance",
+                                  alpha = 1,
+                                  standardize = FALSE)
+  
+  lambda.fit$lambda.min
+  
+  
+
+  
+  # Parsnip Define model
+  lasso_mod <- linear_reg() %>% 
+    set_engine("glmnet", family = "binomial", type.measure = "deviance", standardize = FALSE)
+  
+  # Create CV splits
+  cv_splits <- vfold_cv(model_tibble, v = 10, strata = "outcome_var")
+  
+  # tune
+  ames_res <- tune_grid(model_recipe, model = lasso_mod, resamples = cv_splits)
+  
+  # eha function approach:
+  
+  lasso_fit <- fit_lasso_model(model_matrix$intermediate_matrix,
+                               matrices$outcome_matrix)
+  
+  write_rds(lasso_fit, h("lassos", paste0(report_country, "_", virus, ".rds")))
 })
 ```
 
-```{r}
+```{r plots}
 
-coefs <- coef(d2_lasso_fit) %>%
+walk(viral_species_include, function(virus){
+  
+  lasso_fit <- read_rds(h("lassos", paste0(report_country, "_", virus, ".rds")))
+  support <- attr(lasso_fit, "bootstrap_support")
+  
+  coefs <- coef(lasso_fit) %>%
     as.matrix() %>%
     as.data.frame() %>%
     rownames_to_column(var = "variable") %>%
     rename(effect=s0) %>%
     filter(effect != 0) %>%
-    filter(stringi::stri_detect_fixed(variable, "Intercept", negate=TRUE))
-
-  in_mod <- coefs$variable
-  in_mod_int <- in_mod[grepl(":", in_mod)] #identify interaction terms
-  in_mod_int_split <- stringr::str_split(in_mod_int, ":") #split interaction terms
-
-  #add interaction columns to data
-  for(i in seq_along(in_mod_int)){
-    dat3 <- dat3 %>%
-      mutate(!!in_mod_int[i] := !!as.name(in_mod_int_split[[i]][1]) & !!as.name(in_mod_int_split[[i]][2]))
-  }
-
-  #summarize n TRUE responses
-  dat_sum <-  dat3 %>%
-    select(!!in_mod) %>%
-    sapply(., table) %>%
-    t() %>%
-    as.data.frame() %>%
-    rownames_to_column("field") %>%
-    mutate(prop_pos = `TRUE`/(`FALSE` + `TRUE`))
-
-
-  if(!is.null(attr(d2_lasso_fit, "bootstrap_support"))) {
-    support <- attr(d2_lasso_fit, "bootstrap_support")
-    support <- support[in_mod]
-    n_pos <- dat_sum$`TRUE`
-    coefs$variable <- paste0(coefs$variable, "  (s = ", round(support, 2), "; n = ", n_pos, ")")
-  }
-
-  coefs <- coefs %>%
+    filter(stringi::stri_detect_fixed(variable, "Intercept", negate=TRUE)) %>% 
+    mutate(support = support[variable]) %>% 
+    filter(support >= 0.8) %>% 
+    mutate(variable = str_replace_all(variable, "_", " ")) %>% 
+    mutate(variable = paste0(variable, " (s = ", round(support, 2), ")")) %>% 
     arrange(desc(effect)) %>%
     mutate(variable = fct_reorder(variable, effect)) %>%
-    mutate(pred = plogis(d2_lasso_fit$a0 + effect),
+    mutate(pred = plogis(lasso_fit$a0 + effect),
            positive = effect > 0)
-
-  out_plot <- ggplot(coefs, aes(x = variable, y = effect, fill=positive)) +
+  
+  ggplot(coefs, aes(x = variable, y = effect, fill=positive)) +
+    geom_hline(yintercept = 0, lty=2, lwd=1, color = "gray50") +
     geom_point(pch = 21, stroke = 0.75, size = 4) +
-    scale_fill_manual(values = c("#7E03A8FF", "#F89441FF")) +
-    scale_y_continuous(breaks = log(c(0.1, 0.25, 0.5, .75, 1, 1.5, 2, 4, 10)), labels = exp) +
+    annotate("segment", x = nrow(coefs), xend = nrow(coefs), y = 0.1*max(coefs$effect), yend = 0.3 * max(coefs$effect), arrow = arrow(length = unit(0.1, "inches"))) +
+    annotate("segment", x = nrow(coefs), xend = nrow(coefs), y = -0.1*max(coefs$effect), yend = -0.3 * max(coefs$effect), arrow = arrow(length = unit(0.1, "inches"))) +
+    annotate("text", label = "positive association", x = nrow(coefs), y = 0.35 * max(coefs$effect), hjust = 0) +
+    scale_fill_manual(values = c(`FALSE` = "#7E03A8FF", `TRUE` = "#F89441FF")) +
     coord_flip() +
-    ggthemes::theme_fivethirtyeight() +
-    theme(legend.position = "none") +
-    theme(axis.title = element_text()) +
-    ylab("Odds Ratios (log-odds scale)") +
-    xlab("")
+    labs(x = "", y = "", title = str_replace(virus, "_", " ")) +
+    theme_minimal() +
+    theme(legend.position = "none", 
+          panel.grid = element_blank(),
+          axis.ticks = element_blank(),
+          axis.text.x = element_blank(),
+          axis.text.y = element_text(size =12),
+          axis.line.y.left = element_line(),
+          axis.line.x.bottom =  element_line()
+    ) 
+  
+  ggsave(h("lassos", "plots", paste0(report_country, "_", virus, ".png")), width = 12)
+})
+
 ```
 
