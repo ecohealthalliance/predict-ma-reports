@@ -7,7 +7,10 @@ h <- here::here
 # Read in joined data -----------------------------------------------------
 animal_eidith <- read_rds(h("data", "animal.rds"))
 human_eidith <- read_rds(h("data", "human.rds"))
-site_names <- read_csv(h("site-name-lookup.csv"))
+site_names <- read_csv(h("site-name-lookup.csv")) %>%
+  group_by(country) %>%
+  mutate(order = row_number())
+countries <- recode(eidith::eha_countries(), "Malaysia, Peninsular" =  "Malaysia", "Malaysia, Sabah" = "Malaysia") %>% unique()
 
 # Filter data  -----------------------------------------------------
 taxa <- animal_eidith %>%
@@ -34,29 +37,19 @@ dat <- bind_rows(taxa, humans) %>%
   left_join(., site_names, by = c("country", "concurrent_sampling_site" = "old"))
 
 # For each country  -----------------------------------------------------
-for(cntry in eha_countries()){
+for(cntry in countries){
 
-  # Get country data
+  # Get and process country data
   cdat <- dat %>%
     filter(country == cntry) %>%
-    group_by(concurrent_sampling_site, new, season, taxa_group) %>%
+    group_by(concurrent_sampling_site, new, order, season, taxa_group) %>%
     count() %>%
-    ungroup()
-
-  # Create site ranking factor
-  sites <- cdat %>%
-    distinct(concurrent_sampling_site, new) %>%
-    mutate(rank = rank(gsub("Clinic ", "", concurrent_sampling_site), ties = "last")) %>%
-    arrange(rank)
-
-  # Calculate sums
-  cdat <- cdat %>%
-    mutate(concurrent_sampling_site = factor(concurrent_sampling_site, levels = sites$concurrent_sampling_site, labels = gsub("Concurrent ", "", sites$concurrent_sampling_site))) %>%
-    mutate(site_name = factor(new, levels = sites$new)) %>%
+    ungroup() %>%
+    mutate(concurrent_sampling_site = fct_reorder(concurrent_sampling_site, order)) %>%
+    mutate(site_name = fct_reorder(new, order)) %>%
     select(-new) %>%
     group_by(concurrent_sampling_site, site_name) %>%
-    mutate(n_taxa = n_distinct(taxa_group),
-           total_by_site = sum(n)) %>%
+    mutate(n_taxa = n_distinct(taxa_group)) %>%
     group_by(concurrent_sampling_site, site_name, taxa_group) %>%
     mutate(total_by_taxa_site = sum(n)) %>%
     ungroup()
@@ -68,7 +61,7 @@ for(cntry in eha_countries()){
 
   # Tibble for placing site labels
   site_labs <- cdat %>%
-    mutate(season = "Dry", max_count = max(total_by_site)) %>%
+    mutate(season = "Dry", max_count = 1.1*max(total_by_taxa_site) ) %>%
     select(-n, -total_by_taxa_site, -taxa_group) %>%
     distinct()
 
@@ -79,7 +72,7 @@ for(cntry in eha_countries()){
     geom_bar(stat = "identity") +
     geom_text(size = 4, position = position_stack(vjust = 0.5),  family =  "sans") +
     geom_text(data = site_labs, aes(x = n_taxa, y = max_count, label = site_name), hjust = 1, size = 4) +
-    scale_y_continuous(expand = c(0.01,0.01), limits = c(0, max(cdat$total_by_site))) +
+    scale_y_continuous(expand = c(0.01,0.01), limits = c(0, unique(site_labs$max_count))) +
     scale_x_discrete(breaks = dummy_vars$dummy_var, labels = dummy_vars$taxa_group) +
     coord_flip() +
     scale_fill_manual(values = c("Wet" = "dodgerblue1", "Dry" = "goldenrod1")) +
