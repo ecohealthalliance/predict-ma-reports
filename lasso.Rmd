@@ -123,62 +123,64 @@ map(viral_species_include, function(virus){
     mutate_all(~as.integer(.)) %>% 
     mutate(outcome_var = ifelse(outcome_var==1, "detect", "nondetect"))
   
-  # Test/train split
-  # train_test_split <- initial_split(model_tibble, strata = "outcome_var")
-  # train <- training(train_test_split)
-  # test <- testing(train_test_split)
+  # Formula 
+  formula <- outcome_var ~ .
   
-  # Define formula + recipe
-  model_recipe <- recipe(outcome_var ~ ., data = model_tibble) %>% 
+  # Set recipe
+  lasso_recipe <- recipe(formula, data = model_tibble) %>% 
     step_smote(outcome_var) 
   
-  cctrl1 <- trainControl(method = "cv", number = 10, returnResamp = "all",
-                       classProbs = TRUE, summaryFunction = twoClassSummary)
+  # Set engine
+  lasso_model <- logistic_reg(
+    penalty = tune(),
+    mixture = 1,
+  ) %>% 
+    set_engine("glmnet", family = "binomial", type.measure = "deviance", standardize = FALSE,
+               thresh = 1e-08, lower.limits = -1e+06, upper.limits = 1e+06)
   
-  test_class_rec <- train(x = model_recipe,
-                        data = model_tibble,
-                        method = "glmnet", 
-                        family = "binomial",
-                        type.measure = "deviance", 
-                        standardize = FALSE,
-                        trControl = cctrl1,
-                        metric = "ROC",
-                        tuneGrid = expand.grid(alpha = seq(.05, 1, length = 15),
-                                               lambda = c((1:5)/10)))
-
-  ### ^ uhh did this work? - read SO question about this approach. 
-  ###   also, understand caret versus parsnip. could this have been done with parsnip?
-  ###   could it be done with tune?
-  
-  
-  # old method
-    lambda.fit <- glmnet::cv.glmnet(x =  model_matrix$intermediate_matrix,
-                                  y = matrices$outcome_matrix ,
-                                  nfolds = 20, #5-fold CV
-                                  family = 'binomial',
-                                  type.measure = "deviance",
-                                  alpha = 1,
-                                  standardize = FALSE)
-  
-  lambda.fit$lambda.min
-  
-  
-
-  
-  # Parsnip Define model
-  lasso_mod <- linear_reg() %>% 
-    set_engine("glmnet", family = "binomial", type.measure = "deviance", standardize = FALSE)
-  
-  # Create CV splits
+  # CV splits
   cv_splits <- vfold_cv(model_tibble, v = 10, strata = "outcome_var")
   
-  # tune
-  ames_res <- tune_grid(model_recipe, model = lasso_mod, resamples = cv_splits)
+  # Grid for penalty tuning
+  grid <- tibble(penalty = seq(0.0001, 1, length = 30))
   
-  # eha function approach:
+  # Wrap recipe and model into workflow
+  # lasso_workflow <- workflow() %>% 
+  #   add_recipe(lasso_recipe) %>% 
+  #   add_model(lasso_engine) 
   
-  lasso_fit <- fit_lasso_model(model_matrix$intermediate_matrix,
-                               matrices$outcome_matrix)
+  # Perform penalty tuning
+  lasso_params <- tune_grid(object = lasso_recipe, model = lasso_model, resamples = cv_splits, grid = grid)
+  
+  # Get optimized lambda
+  lambda <- select_best(lasso_params, metric = "roc_auc")
+  assertthat::assert_that(lambda$penalty < max(grid$penalty))
+  assertthat::assert_that(lambda$penalty > min(grid$penalty))
+  
+  # Update Penalty in the model
+  lasso_model <- update(lasso_model, lambda)
+  # lasso_workflow <- finalize_workflow(lasso_workflow, lambda) 
+  
+  # Bootstrap fit
+  b <- 250
+  lasso_boot <- bootstraps(model_tibble, times = b)
+  lasso_boot$recipes <- map(lasso_boot$splits, prepper, recipe = lasso_recipe)
+  lasso_boot$juiced <- map(lasso_boot$recipes, juice)
+  lasso_boot$fit <- map(lasso_boot$juiced, ~fit(object = lasso_model, formula = formula, data = .))
+  
+  lasso_coefs <- map_dfr(lasso_boot$fit, function(fx){
+    coef(fx$fit)[,ncol(coef(fx$fit))] %>% # selecting last lambda
+      t() %>% 
+      as_tibble()
+  }) %>% 
+    select(-`(Intercept)`)
+  
+  lasso_coef_summary <- lasso_coefs %>% 
+    gather() %>% 
+    group_by(key) %>% 
+    summarize(median_coef = median(value[value!=0]),
+              support = length(value[value!=0])/b) %>% 
+    ungroup()
   
   write_rds(lasso_fit, h("lassos", paste0(report_country, "_", virus, ".rds")))
 })
