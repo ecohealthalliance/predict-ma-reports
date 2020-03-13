@@ -25,6 +25,7 @@ library(tidymodels)
 library(parsnip)
 library(tune)
 library(rsample)
+library(HDInterval)
 
 h <- here::here
 walk(list.files(h("R/"), full.names = TRUE), source, echo = FALSE, verbose = FALSE)
@@ -91,7 +92,7 @@ lasso_dat_split <- map(viral_species_include, function(virus){
   
   names(d2_lasso)[-1] <- str_remove_all(names(d2_lasso)[-1], "scientific_name_|concurrent_sampling_site_")
   names(d2_lasso)[-1] <- str_replace_all(names(d2_lasso)[-1], "_", " ")
-
+  
   d2_lasso %>% 
     summarise_at(vars(!!virus), ~sum(., na.rm = T))  %>% 
     pull(1) %>% 
@@ -110,6 +111,7 @@ for(virus in viral_species_include){
   
   # Make model matrix with interactions
   matrices <-  lasso_dat_split[[virus]] %>% 
+    select(-matches("unknown")) %>% 
     make_matrix(., outcome_var = virus,  interactions = TRUE)
   
   # Remove colinear columns prior to running the model
@@ -121,19 +123,36 @@ for(virus in viral_species_include){
   names(clean_names) <- model_names
   
   # Final data processing before modelling 
-  model_tibble <- model_matrix$intermediate_matrix %>% 
+  model_dat <- model_matrix$intermediate_matrix %>% 
     as_tibble() %>% 
     mutate(outcome_var = matrices$outcome_matrix[,virus]) %>% 
     janitor::clean_names() %>% 
     mutate_all(~as.integer(.)) %>% 
-    mutate(outcome_var = ifelse(outcome_var==1, "detect", "nondetect"))
+    mutate(outcome_var = ifelse(outcome_var==1, "detect", "nondetect")) %>% 
+    mutate(outcome_var = factor(outcome_var, levels = c("detect", "nondetect"))) # does not converge when set as nondetect, detect 
+  
+  var_counts <- model_dat %>% 
+    mutate(outcome_var = ifelse(outcome_var=="detect", 1, 0)) %>% 
+    summarize_all(~sum(.)) %>% 
+    gather(value = "denom")
+  
+  var_counts_pos <- model_dat %>% 
+    mutate(outcome_var = ifelse(outcome_var=="detect", 1, 0)) %>% 
+    filter(outcome_var == 1) %>% 
+    gather() %>% 
+    group_by(key) %>% 
+    summarize(numer = sum(value)) %>% 
+    ungroup() %>% 
+    left_join(var_counts) %>% 
+    mutate(total_samples = nrow(model_dat))
   
   # Formula 
   formula <- outcome_var ~ .
   
   # Set recipe
-  lasso_recipe <- recipe(formula, data = model_tibble) %>% 
-    step_smote(outcome_var) 
+  lasso_recipe <- recipe(formula, data = model_dat) %>% 
+    step_smote(outcome_var) %>% 
+    step_mutate_at(all_predictors(), fn = ~round(.))
   
   # Set engine
   lasso_model <- logistic_reg(
@@ -144,74 +163,108 @@ for(virus in viral_species_include){
                thresh = 1e-08, lower.limits = -1e+06, upper.limits = 1e+06)
   
   # CV splits
-  cv_splits <- vfold_cv(model_tibble, v = 10, strata = "outcome_var")
+  cv_splits <- vfold_cv(model_dat, v = 10, strata = "outcome_var")
   
   # Grid for penalty tuning
   grid <- tibble(penalty = seq(0.00001, 1, length = 40))
-  
-  # Wrap recipe and model into workflow
-  # lasso_workflow <- workflow() %>% 
-  #   add_recipe(lasso_recipe) %>% 
-  #   add_model(lasso_engine) 
   
   # Perform penalty tuning
   lasso_params <- tune_grid(object = lasso_recipe, model = lasso_model, resamples = cv_splits, grid = grid)
   
   # Get optimized lambda
-  lambda <- select_best(lasso_params, metric = "roc_auc")
+  lambda <- select_best(lasso_params, metric = "roc_auc") 
   if(lambda$penalty == max(grid$penalty) || lambda$penalty == min(grid$penalty)){next()}
   assertthat::assert_that(lambda$penalty < max(grid$penalty))
   assertthat::assert_that(lambda$penalty > min(grid$penalty))
   
   # Update Penalty in the model
   lasso_model <- update(lasso_model, lambda)
-  # lasso_workflow <- finalize_workflow(lasso_workflow, lambda) 
   
   # Bootstrap fit
   b <- 250
-  lasso_boot <- bootstraps(model_tibble, times = b)
+  lasso_boot <- bootstraps(model_dat, times = b)
   lasso_boot$recipes <- map(lasso_boot$splits, prepper, recipe = lasso_recipe)
   lasso_boot$juiced <- map(lasso_boot$recipes, juice)
-  lasso_boot$fit <- map(lasso_boot$juiced, ~fit(object = lasso_model, formula = formula, data = .))
+  lasso_boot$fit <- map(lasso_boot$juiced, ~fit(object = lasso_model, formula = formula, data = .)) # lambda is not fixed here, but we can select the optimized lambda below.
   
   lasso_coefs <- map_dfr(lasso_boot$fit, function(fx){
-    coef(fx$fit)[,ncol(coef(fx$fit))] %>% # selecting last lambda
+    lambda_index <- which.min(abs(fx$fit$lambda - lambda$penalty))[1]
+    coef(fx$fit)[,lambda_index] %>%
       t() %>% 
       as_tibble()
-  }) %>% 
-    select(-`(Intercept)`)
+  })
   
-  lasso_coef_summary <- lasso_coefs %>% 
-    gather() %>% 
-    group_by(key) %>% 
-    summarize(median_coef = median(value[value!=0]),
-              support = length(value[value!=0])/b) %>% 
-    ungroup() %>% 
-    mutate(key = clean_names[key])
-  
-  write_rds(lasso_coef_summary, h("lassos", paste0(report_country, "_", virus, ".rds")))
+  # lasso_coef_summary <- lasso_coefs %>% 
+  # gather() %>% 
+  # group_by(key) %>% 
+  # summarize(support = length(value[value!=0])/b,
+  #           hdi_lower = hdi(value, 0.9)[1],
+  #           hdi_upper = hdi(value, 0.9)[2]) %>% 
+  # ungroup() %>% 
+  # left_join(var_counts_pos) %>% 
+  # mutate(key = paste0(clean_names[key],  "  (s = ", round(support, 2), "; pos = ", numer, "/", denom, ")"))
+  # 
+  write_rds(list(lasso_coefs, var_counts_pos, clean_names), h("lassos", paste0(report_country, "_", virus, ".rds")))
 }
 ```
 
 ```{r plots}
 
-walk(c( "Murine coronavirus", "PREDICT_CoV-17",  "PREDICT_CoV-82"), function(virus){
+files <- list.files(h("lassos"))
+files <- files[str_detect(files, report_country)]
+
+for(file in files){
   
-  lasso_coef_summary <- read_rds(h("lassos", paste0(report_country, "_", virus, ".rds")))
+  lasso_coefs <- read_rds(h("lassos", file))[[1]]
+  var_counts_pos <- read_rds(h("lassos", file))[[2]]
+  clean_names <- read_rds(h("lassos", file))[[3]]
+  
+  virus <- str_remove_all(file, paste0(report_country, "|.rds"))
+  virus <- trimws(str_replace_all(virus, "_", " "))
+  
+  lasso_coef_summary <- lasso_coefs %>%
+    gather() %>%
+    mutate(value = value * -1) %>% 
+    group_by(key) %>%
+    summarize(support = length(value[value!=0])/b,
+              hdi_lower = hdi(value, 0.5)[1],
+              hdi_upper = hdi(value, 0.5)[2]) %>%
+    ungroup() 
+  
+  title <- var_counts_pos %>% 
+    filter(key == "outcome_var") %>% 
+    mutate(title_lab = paste0(virus, "\n(", numer, "/", total_samples, ")")) %>% 
+    pull(title_lab)
+  
+  intercept <- lasso_coef_summary %>% 
+    filter(key == "(Intercept)") %>% 
+    mutate(hdi_lab = paste0("Intercept OR = ", signif(exp(hdi_lower), 2), " - ", signif(exp(hdi_upper), 2))) %>% 
+    pull(hdi_lab)
   
   coefs <- lasso_coef_summary %>% 
-    filter(support > 0.5) %>% 
-    mutate(key = paste0(key, " (s = ", round(support, 2), ")")) %>% 
-    arrange(desc(median_coef)) %>%
-    mutate(key = fct_reorder(key, median_coef)) %>%
-    mutate(positive = median_coef > 0)
-
-  ggplot(coefs, aes(x = key, y = median_coef, fill=positive)) +
+    filter(key != "(Intercept)") %>% 
+    left_join(var_counts_pos) %>% 
+    mutate(key = paste0(clean_names[key],  "  (s = ", round(support, 2), "; pos = ", numer, "/", denom, ")")) %>% 
+    rowwise() %>% 
+    mutate(hdi_median = median(c(hdi_lower, hdi_upper))) %>% 
+    ungroup() %>% 
+    filter(support >= 0.6) %>% 
+    arrange(desc(hdi_median)) %>%
+    mutate(key = fct_reorder(key, hdi_median))  %>% 
+    mutate(positive = hdi_median > 0) 
+  
+  ggplot(coefs, aes(x = key, fill = positive, color = positive)) +
+    geom_segment(aes(y = hdi_lower, yend = hdi_upper, xend = key), size = 1.5)+
+    geom_point(aes(y = hdi_median),  pch = 21, stroke = 0.75, size = 4) +
     geom_hline(yintercept = 0, lty=2, lwd=1, color = "gray50") +
-    geom_point(pch = 21, stroke = 0.75, size = 4) +
+    #annotate("text", y = 0.1, x = nrow(coefs) + 0.5, label = intercept, hjust = 0) +
+    scale_color_manual(values = c(`FALSE` = "#7E03A8FF", `TRUE` = "#F89441FF")) +
     scale_fill_manual(values = c(`FALSE` = "#7E03A8FF", `TRUE` = "#F89441FF")) +
+    scale_y_continuous(breaks = log(c( 0.1, 0.2, 0.5, 1, 2, 5, 10)), 
+                        limits = log(c(0.05, 11)),
+                       labels = exp) +
     coord_flip() +
-    labs(x = "", y = "Odds Ratios", title = str_replace(virus, "_", " ")) +
+    labs(x = "", y = "Odds Ratios (log-odds scale)", title = title, subtitle = intercept) +
     theme_minimal() +
     theme(legend.position = "none", 
           panel.grid = element_blank(),
@@ -221,8 +274,13 @@ walk(c( "Murine coronavirus", "PREDICT_CoV-17",  "PREDICT_CoV-82"), function(vir
           axis.line.x.bottom =  element_line()
     ) 
   
-  ggsave(h("lassos", "plots", paste0(report_country, "_", virus, ".png")), width = 12)
-})
+  ggsave(h("lassos", "plots", str_replace(file, ".rds", ".png")), width = 12)
+  
+  supp <- coefs %>% 
+    select(key, hdi_lower_odds_ratio = hdi_lower, hdi_median_odds_ratio = hdi_median, hdi_upper_odds_ratio = hdi_upper) %>% 
+    mutate_if(is.numeric, ~exp(.))
+  write_csv(supp, h("lassos", "plots", str_replace(file, ".rds", ".csv")))
+}
 
 ```
 

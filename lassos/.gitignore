@@ -1,0 +1,3 @@
+*.rds
+plots/
+.Rapp.history
