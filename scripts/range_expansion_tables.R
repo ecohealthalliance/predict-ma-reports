@@ -9,10 +9,7 @@ library(jsonlite)
 library(here)
 h <- here::here
 
-
-# Upfront data processing -------------------------------------------------
-
-# Get species-country lists from IUCN, requires API key (for host ranges)
+# Get species-country lists from IUCN, requires API key
 download_wildlife <- function(){
   token <- Sys.getenv("IUCN_REDLIST_KEY")
   countries <- fromJSON(paste0("https://apiv3.iucnredlist.org/api/v3/country/list?token=", token))$results
@@ -46,7 +43,7 @@ hp3.associations <- read_csv(h("data", "associations.csv")) %>%
   unnest(host_name) %>%
   mutate(project = "Previously known")
 
-# Get P2 mammal-virus associations, standardize virus name with HP3, summarize by country
+# Get P2 mammal-virus associations, summaraizz by country and standardize virus name with HP3
 p2.associations <- read_csv(h("data", "P2_virus_mammal_host_associations.csv")) %>%
   rename(p2_virus_name = viral_species, host_name = scientific_name) %>%
   group_by(p2_virus_name, host_name) %>%
@@ -55,6 +52,7 @@ p2.associations <- read_csv(h("data", "P2_virus_mammal_host_associations.csv")) 
   mutate(project = "PREDICT 2") %>%
   left_join(harmonization, by = "p2_virus_name") %>%
   select(-additional_hosts)
+
 
 # Gather alll associations, determine which P2 associations are novel
 full.association.table <- hp3.associations %>%
@@ -77,6 +75,7 @@ wildlife <- read_rds(here("data/iucn-wildlife.rds")) %>%
   filter(country != "DT") %>% # disputed territory
   mutate(country = countrycode(country, origin = "iso2c", destination = "country.name"))
 
+
 # Create table of host species expansions
 expansion <- full.association.table %>%
   group_by(hp3_virus_name) %>%
@@ -87,7 +86,7 @@ expansion <- full.association.table %>%
   mutate(Virus = stri_replace_all_fixed(Virus, "_", " "))
 
 # Print table of species expansions
-pandoc.table(expansion, split.table = Inf, table.split.cells = Inf)
+pandoc.table(expansion[3,], split.table = Inf, table.split.cells = Inf)
 
 # Print table of country expansions
 left_join(full.association.table, wildlife, by = c("host_name" = "scientific_name")) %>%
@@ -98,37 +97,3 @@ left_join(full.association.table, wildlife, by = c("host_name" = "scientific_nam
             detected_in = paste(unique(na.omit(unlist(stri_split_fixed(country_list, ", ")))), collapse = ", "),
             expansion_countries = paste(unique(country[expansion]), collapse = ", ")) %>%
   pandoc.table(split.table = Inf, table.split.cells = Inf)
-
-# Expansion figure
-expansion_counts <- full.association.table %>%
-  mutate(
-    project = case_when(
-      project == "Previously known" ~ "Previously known",
-      str_detect(country_list, ",") ~ "Multiple P2 Partners",
-      TRUE ~ paste("P2", country_list)
-    )
-  ) %>%
-  select(-country_list) %>%
-  mutate(
-    project = factor(project, levels = c(paste("P2",unique(unlist(strsplit(p2.associations$country_list, ", ")))),
-                                         "Multiple P2 Partners",
-                                         "Previously known"))
-  )
-
-axis.title.size <- 22
-axis.text.size <- 18
-legend.text.size <- 20
-
-expansion_counts %>%
-  mutate(hp3_virus_name = str_replace(hp3_virus_name, " \\(", "\n\\(")) %>%
-  ggplot(aes(x = hp3_virus_name, fill = project)) +
-  ylab("Number of known host species") +
-  geom_bar() +
-  theme_minimal() +
-  theme(axis.title = element_text(size = axis.title.size),
-        axis.title.x = element_blank(),
-        axis.text = element_text(size = axis.text.size),
-        axis.text.x = element_text(size = axis.text.size - 4, face = "bold"),
-        legend.title = element_blank(),
-        legend.text = element_text(size = legend.text.size),
-        legend.position = "bottom")
