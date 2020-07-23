@@ -8,6 +8,7 @@ h <- here::here
 animal_eidith <- read_rds(h("data", "animal.rds"))
 human_eidith <- read_rds(h("data", "human.rds"))
 site_names <- read_csv(h("site-name-lookup.csv")) %>%
+  mutate(new = str_remove_all(new, " Concurrent Site [1-9]")) %>%
   group_by(country) %>%
   mutate(order = row_number())
 countries <- recode(eidith::eha_countries(), "Malaysia, Peninsular" =  "Malaysia", "Malaysia, Sabah" = "Malaysia") %>% unique()
