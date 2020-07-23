@@ -6,6 +6,18 @@ h <- here::here
 countries <- recode(eidith::eha_countries(), "Malaysia, Peninsular" =  "Malaysia", "Malaysia, Sabah" = "Malaysia") %>% unique()
 animal_reports <- list()
 human_reports <- list()
+lasso_reports <- list()
+
+for(country in countries){
+  lasso_reports[[country]] <- safely(rmarkdown::render, quiet = FALSE)(
+    "lasso.Rmd",
+    output_file = paste0(country, "-ma-report-lasso.html"),
+    output_dir = h("outputs"),
+    params = list(country = country)
+  )
+
+}
+
 
 for(country in countries) {
   human_reports[[country]] <- safely(rmarkdown::render, quiet = FALSE)(
