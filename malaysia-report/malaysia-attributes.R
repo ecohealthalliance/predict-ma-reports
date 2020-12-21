@@ -235,3 +235,45 @@ map_gvp <- plot_malaysia_raster(rast = gvp,
   compress_malaysia_raster(.,  main_title = "Geographic Sampling Prioritization Based on Global Virome Project Spatial Analyses")
 
 ggsave(h("malaysia-report/malaysia_gvp.pdf"), map_gvp, width = 11, height = 8.5, units = "in")
+
+
+# Cov and Pmx sampling ----------------------------------------------------
+
+d2 <- read_rds(h("data", "animal.rds"))
+
+virus_lookup <- d2 %>%
+  select(test_requested, viral_species) %>%
+  drop_na() %>%
+  distinct() %>%
+  filter(test_requested %in% c("Coronaviruses", "Paramyxoviruses"))
+
+virus <- readr::read_csv(h("data", "animal_viral_pairs", "Malaysia_animal_viral_pairs.csv")) %>%
+  inner_join(virus_lookup) %>%
+  arrange(-n_animals_w_detections) %>%
+  mutate(detected = ifelse(n_animals_w_detections > 0, "Detect", "Non-detect")) %>%
+  mutate(detected = factor(detected, levels = c("Non-detect", "Detect"))) %>%
+  st_as_sf(coords = c("site_longitude", "site_latitude"), crs = 4326)
+
+map_viruses <- purrr::map(c("Coronaviruses",  "Paramyxoviruses"), function(tr){
+  plot_malaysia <- ggplot() +
+    layer_spatial(virus %>% filter(test_requested == tr), aes(color = detected, alpha = detected, size = detected)) +
+    layer_mapbox(bbox_malaysia,
+                 map_style = "mapbox://styles/emmamendelsohn/ckiyr0xe00mqu19ob4r17xuom",
+                 mapbox_logo = FALSE,
+                 attribution = FALSE,
+                 purge_cache = TRUE) + # doesn't seem to work
+    scale_y_continuous(expand = c(0,0)) +
+    scale_x_continuous(expand = c(0,0)) +
+    scale_color_manual(values = c("Detect" = "#5f3cc7", "Non-detect" = "#a5cf9b"), guide = guide_legend(reverse = TRUE) ) +
+    scale_alpha_manual(values = c("Detect" = 1, "Non-detect" = 0.5), guide = guide_legend(reverse = TRUE)) +
+    scale_size_manual(values = c("Detect" = 4, "Non-detect" = 2), guide = guide_legend(reverse = TRUE)) +
+    theme_void() +
+    theme(panel.background = element_rect(fill = "gray50"),
+          plot.margin = margin(),
+          legend.title = element_blank())
+  compress_malaysia_raster(plot_malaysia,  main_title =  paste("PREDICT-2", tr, "Detections"))
+
+})
+
+ggsave(h("malaysia-report/malaysia_coronaviruses.pdf"), map_viruses[[1]], width = 11, height = 8.5, units = "in")
+ggsave(h("malaysia-report/malaysia_paramyxoviruses.pdf"), map_viruses[[2]], width = 11, height = 8.5, units = "in")
