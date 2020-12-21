@@ -1,2 +1,4 @@
 *.tif
 TERRESTRIAL_MAMMALS
+2kcor/*
+land_use/*

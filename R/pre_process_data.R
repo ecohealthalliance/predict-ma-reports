@@ -5,25 +5,25 @@ pre_process_data <- function(){
   # Load EIDITH data tables
   e2 <- ed2_events() %>%
     mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
-    arrange(desc(integer_id)) %>%
-    distinct(event_name, .keep_all = TRUE) %>%
-    dplyr::select(-c(integer_id))
+    distinct(event_name, .keep_all = TRUE)
   a2 <- ed2_animals() %>%
-    dplyr::select(-integer_id)
+    mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country))
   s2 <- ed2_specimens() %>%
-    dplyr::select(-integer_id, -starts_with("season"))
+    mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
+    dplyr::select(-starts_with("season"))
   t2 <- ed2_tests() %>%
-    dplyr::select(-c(integer_id))
+    mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country))
   ti <- ed2_test_interpreted() %>%
-    arrange(desc(integer_id)) %>%
+    mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country)) %>%
     distinct(gains4_test_id, .keep_all = TRUE) %>%
     dplyr::select(
-      -c(integer_id, is_outbreak_testing,
+      -c(is_outbreak_testing,
          lab_name, real_time_positive_control_value_1, real_time_positive_control_value_2,
          real_time_internal_control_value, real_time_ct_value, lab_name_confirmation,
          test_status, date_govt_approved_release)
     )
-  h2 <- ed2_human()
+  h2 <- ed2_human() %>%
+    mutate(country = ifelse(country %in% c("Malaysia, Peninsular", "Malaysia, Sabah"), "Malaysia", country))
 
   # Modify animal taxonomy information
   a2 <- a2 %>%
@@ -59,8 +59,11 @@ pre_process_data <- function(){
       )
     )
 
-  t2 <- separate_rows(t2, virus, sequence, sep = "\\|") %>%
-    separate_rows(specimen_id, sep = ",")
+  t2 <- t2 %>%
+    select(-sequence) %>% # issues with separating rows for thailand
+    separate_rows(virus, sep = "\\|") %>%
+    separate_rows(specimen_id, sep = ",") %>%
+    mutate(specimen_id = trimws(specimen_id))
 
   t2 <- t2 %>%
     mutate(
@@ -81,7 +84,7 @@ pre_process_data <- function(){
     mutate(viral_species = ifelse(!is.na(viral_species_mod), viral_species_mod, viral_species)) %>%
     dplyr::select(-viral_species_mod)
 
-  return(list(e2 = e2,
+    return(list(e2 = e2,
               a2 = a2,
               h2 = h2,
               s2 = s2,
@@ -96,18 +99,16 @@ merge_data <- function(report, eidith){
   })
 
   if(report == "animal"){
-    d2 <- left_join(e2, a2, by = c("event_name", "project")) %>% # excluding gains4_event_id because of inconsistencies
-      left_join(s2, by = c("gains4_sample_unit_id", "animal_id" = "animal_human_id", "project")) %>%
-      left_join(t2, by = c("specimen_id", "animal_id", "project")) %>%  # excluding gains4_specimen_id because of inconsistencies
-      left_join(ti, by = c("gains4_test_id", "project")) # excluding gains4_specimen_id because of inconsistencies
-  d2 <- d2 %>%
-    dplyr::select(-starts_with("gains4_specimen_id"), -starts_with("gains4_event_id"))
+    d2 <- left_join(e2, a2,by = c("project", "country", "gains4_event_id", "event_name")) %>%
+      left_join(s2, by = c("project", "country", "gains4_sample_unit_id", "animal_id" = "animal_human_id")) %>%
+      left_join(t2, by = c("project", "country", "gains4_specimen_id", "specimen_id", "animal_id")) %>% # gains4_specimen_id is not unique for pooled sampled
+      left_join(ti, by = c("project", "country", "gains4_test_id", "gains4_specimen_id"))
     }
   if(report == "human"){
-    d2 <- left_join(e2, h2, by = c("gains4_event_id", "event_name")) %>%
-      left_join(s2, by = c("gains4_sample_unit_id", "participant_id" = "animal_human_id", "project")) %>%
-      left_join(t2, by = c("specimen_id",  "participant_id" = "animal_id", "project")) %>% # excluding gains4_specimen_id because of inconsistencies
-      left_join(ti, by = c("gains4_test_id", "project")) # excluding gains4_specimen_id because of inconsistencies
+    d2 <- left_join(e2, h2, by = c("gains4_event_id", "event_name", "project", "country")) %>%
+      left_join(s2, by = c("gains4_sample_unit_id", "participant_id" = "animal_human_id", "project", "country")) %>%
+      left_join(t2, by = c("specimen_id",  "participant_id" = "animal_id", "project", "country")) %>% # excluding gains4_specimen_id because of inconsistencies
+      left_join(ti, by = c("gains4_test_id", "project", "country")) # excluding gains4_specimen_id because of inconsistencies
     d2 <- d2 %>%
       dplyr::select(-starts_with("gains4_specimen_id"))
   }
@@ -118,9 +119,9 @@ merge_data <- function(report, eidith){
 
 # ### in animal but not event
 # setdiff(unique(a2$gains4_event_id), unique(e2$gains4_event_id))
-# a2 %>% filter(gains4_event_id == 363) %>% pull(event_name)
-# e2 %>% filter(event_name == "ID-Bolaang Mongondow-Barat-Tengah-2016Mar09") %>% pull(gains4_event_id)
-# a2 %>% filter(gains4_event_id == 387) %>% pull(event_name)
+# a2 %>% filter(gains4_event_id == 360) %>% pull(event_name)
+# e2 %>% filter(event_name == "Loungou-2010-08-10") %>% pull(gains4_event_id)
+# a2 %>% filter(gains4_event_id == 359) %>% pull(event_name)
 #
 # setdiff(unique(h2$gains4_event_id), unique(e2$gains4_event_id))
 #
@@ -134,8 +135,8 @@ merge_data <- function(report, eidith){
 # setdiff(unique(t2$gains4_specimen_id), unique(s2$gains4_specimen_id))
 # setdiff(unique(t2$specimen_id), unique(s2$specimen_id))
 #
-# diffs = setdiff(unique(t2$gains4_specimen_id), unique(s2$gains4_specimen_id))
-# t2 %>% filter(gains4_specimen_id %in% diffs) %>% pull(specimen_id)
+# diffs = setdiff(unique(t2$specimen_id), unique(s2$specimen_id))
+# t2 %>% filter(specimen_id %in% diffs) %>% pull(specimen_id)
 # t2_unfiltered <- ed2_tests()
 # t2_unfiltered %>%
 #   filter(gains4_specimen_id %in% diffs) %>%

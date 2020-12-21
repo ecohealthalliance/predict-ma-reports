@@ -1,6 +1,6 @@
 ---
 params:
-  country:   "Thailand"
+  country:   "Malaysia"
 title: 'EcoHealth Alliance PREDICT M&A Report: `r params$country`'
 date: "`r Sys.Date()`"
 output:
@@ -58,7 +58,8 @@ $('[data-toggle="tooltip"]').tooltip()
 eidith <- read_rds(h("data", "eidith.rds"))
 t2 <- eidith[["t2"]]
 
-d2 <- read_rds(h("data", "animal.rds"))
+d2 <- read_rds(h("data", "animal.rds")) %>% 
+  filter(project == "P2")
 
 d2_country <- d2 %>% 
   filter(country == !!report_country) # events filtered to country
@@ -136,7 +137,7 @@ animal_virus_summary %>%
     `Concurrent Detections` = str_replace(`Concurrent Detections`, "\nNA", ""),
     human_threat = ifelse(human_threat == "yes", "yes\n(scroll over for details)", human_threat)
   ) %>%
-    arrange(test_requested, viral_species) %>%
+  arrange(test_requested, viral_species) %>%
   rename("Other PREDICT Detections\n(Gov. Approved)" = `Concurrent Detections`,
          "Viral Test Type" = test_requested,
          "Virus Name" = viral_species,
@@ -537,10 +538,10 @@ if(nrow(tmp) > 0) {
 
 viral.name.harmonization <- read_csv(h("data", "hp3_to_p2_viral_name_harmonization.csv"))
 
-all_equal(
-  grep("PREDICT", sort(unique(t2$viral_species)), invert = TRUE, value = TRUE), 
-  viral.name.harmonization$p2_virus_name
-)
+# all_equal(
+#   grep("PREDICT", sort(unique(t2$viral_species)), invert = TRUE, value = TRUE), 
+#   viral.name.harmonization$p2_virus_name
+# )
 
 hp3.associations <- read_csv(h("data", "associations.csv")) %>%
   rename(
@@ -821,6 +822,7 @@ viral.species.detected.in.country <- animal_viral_pairs %>% # identify specues w
   unique()
 
 animal_viral_pairs <- filter(animal_viral_pairs, viral_species %in% viral.species.detected.in.country)
+write_csv(animal_viral_pairs, h("data", "animal_viral_pairs", paste0(report_country, "_animal_viral_pairs.csv")))
 ```
 
 <style>
@@ -966,7 +968,8 @@ mz <- read_csv(h("data", "hp3_zoo_predictions.csv")) %>%
       pred_mean > quantile(pred_mean, 0.1) ~ "Bottom 20% of all mammals",
       pred_mean > quantile(pred_mean, 0) ~ "Bottom 10% of all mammals"
     )
-  )
+  ) %>% 
+    filter(relative_zoonoses == "Top 10% of all mammals")
 
 mammals.in.country <- read_csv(h("data", "mammal_country_lookup.csv")) %>%
   filter(country == !!report_country) %>%
@@ -993,6 +996,7 @@ specimen.count <- d2_country %>%
 assertthat::assert_that(length(species.sampled.in.country) == nrow(specimen.count))
 
 mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "scientific_name"))
+write_csv(mz.subset, h("data", "viral_prioritization", paste0(report_country, "_viral_prioritization.csv")))
 ```
 
 #### Host Sampling Prioritization Based on Predicted "Missing" Zoonoses

@@ -3,20 +3,22 @@ library(eidith)
 library(tidyverse)
 h <- here::here
 
-# Download EIDITH database locally to "db" subdirectory
-# (will download into the working directory but delete later)
-if(file.exists(h("db", "eidith.sqlite")) &&
-   file.exists(h("db", "last_dl_date.txt")) &&
-   readLines(h("db", "last_dl_date.txt"), warn = FALSE)[1] == as.character(Sys.Date())) {
+#import_local_db("eha_with_malaysia")
 
-  cat("Database is current")
-} else {
-  ed_db_delete(path = normalizePath(file.path("db", "eidith.sqlite"))) # May throw a warning if no database is present
-  ed_db_download(verbose = FALSE,
-                 country = predict_countries(),
-                 p2_tables = c("Event", "Animal", "Specimen", "Test", "TestDataInterpreted", "Human"))
-  cat(as.character(Sys.Date()), file = h("db", "last_dl_date.txt"))
-}
+# # Download EIDITH database locally to "db" subdirectory
+# # (will download into the working directory but delete later)
+# if(file.exists(h("db", "eidith.sqlite")) &&
+#    file.exists(h("db", "last_dl_date.txt")) &&
+#    readLines(h("db", "last_dl_date.txt"), warn = FALSE)[1] == as.character(Sys.Date())) {
+#
+#   cat("Database is current")
+# } else {
+#   ed_db_delete(path = normalizePath(file.path("db", "eidith.sqlite"))) # May throw a warning if no database is present
+#   ed_db_download(verbose = FALSE,
+#                  country = predict_countries(),
+#                  p2_tables = c("Event", "Animal", "Specimen", "Test", "TestDataInterpreted", "Human"))
+#   cat(as.character(Sys.Date()), file = h("db", "last_dl_date.txt"))
+# }
 
 # Pre-process eidith data
 source(h("R", "pre_process_data.R"))
