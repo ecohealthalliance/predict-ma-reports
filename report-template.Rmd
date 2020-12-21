@@ -996,6 +996,7 @@ specimen.count <- d2_country %>%
 assertthat::assert_that(length(species.sampled.in.country) == nrow(specimen.count))
 
 mz.subset <- left_join(mz.subset, specimen.count, by = c("species" = "scientific_name"))
+write_csv(mz.subset, h("data", "viral_prioritization", paste0(report_country, "_viral_prioritization.csv"))
 ```
 
 #### Host Sampling Prioritization Based on Predicted "Missing" Zoonoses

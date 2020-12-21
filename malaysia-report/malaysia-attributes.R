@@ -18,6 +18,7 @@ library(tidyr)
 library(dplyr)
 library(affinity) #devtools::install_github("hypertidy/affinity")
 library(ggnewscale)
+library(gt)
 
 h <- here::here
 
@@ -277,3 +278,26 @@ map_viruses <- purrr::map(c("Coronaviruses",  "Paramyxoviruses"), function(tr){
 
 ggsave(h("malaysia-report/malaysia_coronaviruses.pdf"), map_viruses[[1]], width = 11, height = 8.5, units = "in")
 ggsave(h("malaysia-report/malaysia_paramyxoviruses.pdf"), map_viruses[[2]], width = 11, height = 8.5, units = "in")
+
+# Viral prioritization table ----------------------------------------------
+mz.subset <- readr::read_csv(h("data", "viral_prioritization", "Malaysia_viral_prioritization.csv"))
+
+viral_prior <- mz.subset %>%
+  dplyr::select(species, specimen_count, viruses_detected) %>%
+  mutate(
+    specimen_count = ifelse(is.na(specimen_count), 0, specimen_count),
+    viruses_detected = ifelse(is.na(viruses_detected), "--", viruses_detected)) %>%
+  rename(
+    `Host Species` = species,
+    `No. of Specimens Collected` = specimen_count,
+    `Viruses Detected In-Country?` = viruses_detected
+  ) %>%
+  arrange(- `No. of Specimens Collected`)
+
+viral_prior %>%
+  gt() %>%
+  tab_header(
+    title = "Host Sampling Prioritization Based on Predicted Missing Zoonoses: top 10% of all mammals"  ) %>%
+  cols_align(
+    align = "left") %>%
+  gtsave(h("malaysia-report/malaysia_sample_prioritization.html"))
