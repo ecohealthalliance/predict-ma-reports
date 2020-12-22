@@ -18,8 +18,7 @@ library(tidyr)
 library(dplyr)
 library(affinity) #devtools::install_github("hypertidy/affinity")
 library(ggnewscale)
-library(gt)
-
+library(flextable)
 h <- here::here
 
 # Setup -------------------------------------------------------------------
@@ -162,7 +161,6 @@ land_use <- purrr::map2(c(current_urban, current_crops, new_urban, new_crops),
                             mutate(land_type = dname)
                         })
 
-
 current_land_use <- purrr::reduce(land_use[c(1,2)], bind_rows)
 new_land_use <- purrr::reduce(land_use[c(3,4)], bind_rows)
 
@@ -243,24 +241,42 @@ ggsave(h("malaysia-report/malaysia_gvp.pdf"), map_gvp, width = 11, height = 8.5,
 
 # Cov and Pmx sampling ----------------------------------------------------
 
-d2 <- read_rds(h("data", "animal.rds"))
+d2 <- readr::read_rds(h("data", "animal.rds"))
 
 virus_lookup <- d2 %>%
-  select(test_requested, viral_species) %>%
+  distinct(test_requested, viral_species) %>%
   drop_na() %>%
-  distinct() %>%
   filter(test_requested %in% c("Coronaviruses", "Paramyxoviruses"))
+
+taxa_lookup <- d2 %>%
+  distinct(taxa_group, scientific_name)
 
 virus <- readr::read_csv(h("data", "animal_viral_pairs", "Malaysia_animal_viral_pairs.csv")) %>%
   inner_join(virus_lookup) %>%
+  left_join(taxa_lookup) %>%
   arrange(-n_animals_w_detections) %>%
   mutate(detected = ifelse(n_animals_w_detections > 0, "Detect", "Non-detect")) %>%
-  mutate(detected = factor(detected, levels = c("Non-detect", "Detect"))) %>%
+  mutate(detected = factor(detected, levels = c("Non-detect", "Detect")))
+
+# virus_detect <- virus %>%
+#   filter(detected == "Detect") %>%
+#   mutate_at(.vars = c("site_latitude", "site_longitude"), .funs = ~round(.,0)) %>%
+#   distinct(test_requested, viral_species, site_longitude, site_latitude)
+#
+# virus_detect_locs <- distinct(virus_detect, site_latitude, site_longitude) %>% mutate(site = row_number())
+#
+# virus_detect <- virus_detect %>%
+#   left_join(virus_detect_locs) %>%
+#   arrange(test_requested, site, viral_species) %>%
+#   select(test_requested, site, viral_species, everything())
+
+virus_sf <- virus %>%
   st_as_sf(coords = c("site_longitude", "site_latitude"), crs = 4326)
 
 map_viruses <- purrr::map(c("Coronaviruses",  "Paramyxoviruses"), function(tr){
+
   plot_malaysia <- ggplot() +
-    layer_spatial(virus %>% filter(test_requested == tr), aes(color = detected, alpha = detected, size = detected)) +
+    layer_spatial(virus_sf %>% filter(test_requested == tr), aes(color = detected, alpha = detected, size = detected)) +
     layer_mapbox(bbox_malaysia,
                  map_style = "mapbox://styles/emmamendelsohn/ckiyr0xe00mqu19ob4r17xuom",
                  mapbox_logo = FALSE,
@@ -282,6 +298,34 @@ map_viruses <- purrr::map(c("Coronaviruses",  "Paramyxoviruses"), function(tr){
 ggsave(h("malaysia-report/malaysia_coronaviruses.pdf"), map_viruses[[1]], width = 11, height = 8.5, units = "in")
 ggsave(h("malaysia-report/malaysia_paramyxoviruses.pdf"), map_viruses[[2]], width = 11, height = 8.5, units = "in")
 
+animal_virus_summary_table <- readr::read_csv(h("data/animal_viral_pairs/Malaysia_animal_virus_summary_table.csv"))
+
+animal_virus_summary_table <- animal_virus_summary_table %>%
+  mutate(`Virus Name` = ifelse(!is.na(interpretation), paste0(`Virus Name`, "*"), `Virus Name`))
+
+for(tr in c("Coronaviruses",  "Paramyxoviruses")){
+  ft <- animal_virus_summary_table %>%
+    filter(`Viral Test Type` == tr) %>%
+    select(-`Viral Test Type`)
+
+  if(all(is.na(unique(ft$interpretation)))) footer <- ""
+  if(length(na.omit(unique(ft$interpretation))) == 1) footer <- paste("*", na.omit(unique(ft$interpretation)))
+
+  ft <- ft %>%
+    select(-interpretation)
+
+  ft %>%
+    flextable() %>%
+    theme_vanilla() %>%
+    width(j = NULL, 1.3) %>%
+    width(j = 2:4, 0.75) %>%
+    align(i = NULL, j = 2:4, "center") %>%
+    add_header_lines(values = paste("PREDICT-2", tr, "Detections"), top = TRUE) %>%
+    add_footer_lines(values = footer) %>%
+    save_as_docx(path = h(paste0("malaysia-report/malaysia_", tr, "_detects.docx")),
+                 pr_section =  officer::prop_section(page_size =  officer::page_size(orient = "landscape")))
+}
+
 # Viral prioritization table ----------------------------------------------
 mz.subset <- readr::read_csv(h("data", "viral_prioritization", "Malaysia_viral_prioritization.csv"))
 
@@ -298,9 +342,10 @@ viral_prior <- mz.subset %>%
   arrange(- `No. of Specimens Collected`)
 
 viral_prior %>%
-  gt() %>%
-  tab_header(
-    title = "Host Sampling Prioritization Based on Predicted Missing Zoonoses: top 10% of all mammals"  ) %>%
-  cols_align(
-    align = "left") %>%
-  gtsave(h("malaysia-report/malaysia_sample_prioritization.html"))
+  flextable() %>%
+  theme_vanilla() %>%
+  width(j = NULL, 1.5) %>%
+  align(i = NULL, j = 2:3, "center") %>%
+  add_header_lines(values = paste("Geographic Sampling Prioritization Based on Global Virome Project Spatial Analyses"), top = TRUE) %>%
+  save_as_docx(path = h(paste0("malaysia-report/malaysia_sample_prioritization.docx")))
+
