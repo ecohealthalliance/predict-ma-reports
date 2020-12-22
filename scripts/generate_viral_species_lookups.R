@@ -45,14 +45,14 @@ virus_test_pairs <- d2 %>%
 # detected for each species at each site
 
 viral_testing_by_species_and_site <- d2 %>%
-  distinct(country, scientific_name, animal_id,
+  distinct(country, site_name, scientific_name, animal_id,
            site_latitude, site_longitude, test_requested) %>%
   left_join(virus_test_pairs, ., by = "test_requested") %>%
   # roll up viral testing summary to animal level
-  distinct(viral_species, country, scientific_name, animal_id,
+  distinct(viral_species, country, site_name, scientific_name, animal_id,
            site_latitude, site_longitude) %>%
   # roll up viral testing summary to virus by country by species by site level
-  group_by(viral_species, country, scientific_name, site_latitude, site_longitude) %>%
+  group_by(viral_species, country, site_name, scientific_name, site_latitude, site_longitude) %>%
   summarize(n_animals_tested = n()) %>%
   ungroup() %>%
   arrange(country, viral_species, scientific_name, site_latitude, site_longitude)

@@ -91,8 +91,7 @@ This table provides an overview of all `r report_country` viral findings in anim
 ```{r tables-1}
 
 animal.grouping.vars <-
-  c("country", "concurrent_sampling_site", "site_name", "disease_transmission_interfaces", "human_density_impact", 
-    "class", "taxa_group_mod", "scientific_name", "test_requested", "viral_species", "human_threat", "specimen_type")
+  c("country", "concurrent_sampling_site", "site_name", "district", "disease_transmission_interfaces", "human_density_impact", "class", "taxa_group_mod", "scientific_name", "test_requested", "viral_species", "human_threat", "specimen_type")
 
 animal_virus_summary <- d2_country %>%
   filter(!is.na(viral_species)) %>%
@@ -115,7 +114,8 @@ threat.interpretation <- d2_country %>%
 
 text.color <- "#787272"
 
-animal_virus_summary %>%
+animal_virus_summary_table <- animal_virus_summary %>%
+  mutate(site_name = paste0(site_name, " (", district, ")")) %>% 
   group_by(test_requested, viral_species, human_threat) %>%
   summarize(
     n_detections = sum(n_positives),
@@ -146,7 +146,11 @@ animal_virus_summary %>%
          "Number of Detections" = n_detections,
          "Taxa Groups" = taxa_groups,
          "Species Names" = species,
-         "Site Names" = site_names) %>%
+         "Site Names" = site_names) 
+
+write_csv(animal_virus_summary_table, h(paste0("data/animal_viral_pairs/", report_country, "_animal_virus_summary_table.csv")))
+
+animal_virus_summary_table %>% 
   mutate_at(
     vars(-interpretation),
     cell_spec, format = "html", 
@@ -158,9 +162,7 @@ animal_virus_summary %>%
              str_replace(`Known Human Threat?`, "<span ", paste("<span data-toggle = 'tooltip' data-placement = 'top' title = '", interpretation, "' ")),
              `Known Human Threat?`)
   ) %>%
-  dplyr::select(-interpretation) %>%
-  # kable(escape = FALSE, align = "c") %>%
-  # kable_styling(fixed_thead = TRUE)
+  dplyr::select(-interpretation) %>% 
   datatable(class = "row-border", escape = FALSE, rownames = FALSE, extensions = "Buttons",
             options = list(
               columnDefs = list(list(className = 'dt-center', targets = 0:(dim(.)[2] - 1))),
@@ -822,7 +824,7 @@ viral.species.detected.in.country <- animal_viral_pairs %>% # identify specues w
   unique()
 
 animal_viral_pairs <- filter(animal_viral_pairs, viral_species %in% viral.species.detected.in.country)
-write_csv(animal_viral_pairs, h("data", "animal_viral_pairs", paste0(report_country, "_animal_viral_pairs.csv")))
+write_csv(animal_viral_pairs, h(paste0("data/animal_viral_pairs/", report_country, "_animal_viral_pairs.csv")))
 ```
 
 <style>
