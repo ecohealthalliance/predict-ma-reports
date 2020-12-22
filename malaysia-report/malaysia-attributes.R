@@ -28,7 +28,7 @@ bbox_malaysia <- st_bbox(c(xmin =  99.39, xmax = 119.41, ymin = 0.73, ymax = 7.5
 
 layout <- c(
   area(t = 2, l = 2, b = 7, r = 4),
-  area(t = 1, l = 0, b = 5, r = 2)
+  area(t = 1, l = 0, b = 4.5, r = 2)
 )
 
 admin <- ne_countries(country = "Malaysia", type='countries', scale = 'large')
@@ -67,8 +67,8 @@ plot_malaysia_raster <- function(rast, legend_title = "", trans = "identity", sc
                  mapbox_logo = FALSE,
                  attribution = FALSE,
                  purge_cache = TRUE) + # doesn't seem to work
-    scale_y_continuous(expand = c(0,0)) +
     scale_x_continuous(expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0)) +
     labs(fill = legend_title) +
     theme_void() +
     theme(panel.background = element_rect(fill = "gray50"), plot.margin = margin())
@@ -135,8 +135,10 @@ ggsave(h("malaysia-report/malaysia_poultry_livestock_density.pdf"), map_poultry_
 hp2 <- get_layers("hotspots2_clipped_hires.tif")
 
 map_hp2 <- plot_malaysia_raster(rast = hp2,
-                                scale_fill = "viridis") %>%
-  compress_malaysia_raster(.,  main_title = "Hotspots 2.0: Risk of New Zoonotic Spillover")
+                                scale_fill = "viridis")  +
+  scale_y_continuous(limits = c(0.75, 7.5), expand = c(0,0))
+
+map_hp2 <- compress_malaysia_raster(map_hp2,  main_title = "Hotspots 2.0: Risk of New Zoonotic Spillover")
 
 ggsave(h("malaysia-report/malaysia_hp2.pdf"), map_hp2, width = 11, height = 8.5, units = "in")
 
@@ -163,7 +165,6 @@ land_use <- purrr::map2(c(current_urban, current_crops, new_urban, new_crops),
 
 current_land_use <- purrr::reduce(land_use[c(1,2)], bind_rows)
 new_land_use <- purrr::reduce(land_use[c(3,4)], bind_rows)
-
 
 map_land_use <- purrr::map2(list(current_land_use, new_land_use),
                             c("Current Land-use (2005)",  "Land-use change (1970 - 2005)"),
@@ -232,8 +233,10 @@ gvp <- assignproj(
   proj = "+proj=longlat +datum=WGS84")
 
 map_gvp <- plot_malaysia_raster(rast = gvp,
-                                scale_fill = "viridis") %>%
-  compress_malaysia_raster(.,  main_title = "Geographic Sampling Prioritization Based on Global Virome Project Spatial Analyses")
+                                scale_fill = "viridis") +
+  scale_y_continuous(limits = c(0.75, 7.5), expand = c(0,0))
+
+map_gvp <- compress_malaysia_raster(map_gvp,  main_title = "Geographic Sampling Prioritization Based on Global Virome Project Spatial Analyses")
 
 ggsave(h("malaysia-report/malaysia_gvp.pdf"), map_gvp, width = 11, height = 8.5, units = "in")
 
