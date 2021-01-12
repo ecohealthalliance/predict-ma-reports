@@ -815,8 +815,9 @@ iucn <- iucn %>%
 
 # Viral-species pairs
 animal_viral_pairs <- read_csv(h("data", "viral_species_testing_by_host_and_site.csv")) %>%
-  filter(country == !!report_country,
-         scientific_name %in% unique(iucn$binomial)) # only keep host species that have ranges
+  filter(country == !!report_country
+        # scientific_name %in% unique(iucn$binomial) # only keep host species that have ranges
+  )
 
 viral.species.detected.in.country <- animal_viral_pairs %>% # identify specues with detects
   filter(n_animals_w_detections > 0) %>%
@@ -825,6 +826,9 @@ viral.species.detected.in.country <- animal_viral_pairs %>% # identify specues w
 
 animal_viral_pairs <- filter(animal_viral_pairs, viral_species %in% viral.species.detected.in.country)
 write_csv(animal_viral_pairs, h(paste0("data/animal_viral_pairs/", report_country, "_animal_viral_pairs.csv")))
+
+animal_viral_pairs <- animal_viral_pairs %>% 
+  filter(scientific_name %in% unique(iucn$binomial)) # only keep host species that have ranges
 ```
 
 <style>
@@ -903,7 +907,7 @@ for(vir in viral.species.detected.in.country) {
   # add points
   lf <- lf %>%
     addCircleMarkers(data = species_dat, radius = rad,
-                     lng = ~jitter(site_longitude), lat = ~jitter(site_latitude), 
+                     lng = ~jitter(event_longitude), lat = ~jitter(event_latitude), 
                      stroke = TRUE, color = ~color, weight = 1.5, opacity = 1,
                      fill = TRUE, fillColor = ~color, fillOpacity = 1,
                      label = ~lab,

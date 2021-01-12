@@ -245,8 +245,8 @@ d2 <- readr::read_rds(h("data", "animal.rds"))
 
 virus_lookup <- d2 %>%
   distinct(test_requested, viral_species) %>%
-  drop_na() %>%
-  filter(test_requested %in% c("Coronaviruses", "Paramyxoviruses"))
+  filter(test_requested %in% c("Coronaviruses", "Paramyxoviruses")) %>%
+  drop_na()
 
 taxa_lookup <- d2 %>%
   distinct(taxa_group, scientific_name)
@@ -260,10 +260,10 @@ virus <- readr::read_csv(h("data", "animal_viral_pairs", "Malaysia_animal_viral_
 
 # virus_detect <- virus %>%
 #   filter(detected == "Detect") %>%
-#   mutate_at(.vars = c("site_latitude", "site_longitude"), .funs = ~round(.,0)) %>%
-#   distinct(test_requested, viral_species, site_longitude, site_latitude)
+#   mutate_at(.vars = c("event_latitude", "event_longitude"), .funs = ~round(.,0)) %>%
+#   distinct(test_requested, viral_species, event_longitude, event_latitude)
 #
-# virus_detect_locs <- distinct(virus_detect, site_latitude, site_longitude) %>% mutate(site = row_number())
+# virus_detect_locs <- distinct(virus_detect, event_latitude, event_longitude) %>% mutate(site = row_number())
 #
 # virus_detect <- virus_detect %>%
 #   left_join(virus_detect_locs) %>%
@@ -271,7 +271,7 @@ virus <- readr::read_csv(h("data", "animal_viral_pairs", "Malaysia_animal_viral_
 #   select(test_requested, site, viral_species, everything())
 
 virus_sf <- virus %>%
-  st_as_sf(coords = c("site_longitude", "site_latitude"), crs = 4326)
+  st_as_sf(coords = c("event_longitude", "event_latitude"), crs = 4326)
 
 map_viruses <- purrr::map(c("Coronaviruses",  "Paramyxoviruses"), function(tr){
 

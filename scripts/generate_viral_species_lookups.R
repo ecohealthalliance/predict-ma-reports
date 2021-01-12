@@ -24,13 +24,13 @@ viral_detections_by_species_and_site <- d2 %>%
     !is.na(viral_species)
   ) %>%
   group_by(country, viral_species, scientific_name, gains4_sample_unit_id,
-           site_latitude, site_longitude) %>%
+           event_latitude, event_longitude) %>%
   summarize(virus_detected = ifelse(sum(virus_detected) > 0, 1, 0)) %>%
   group_by(country, viral_species, scientific_name,
-           site_latitude, site_longitude) %>%
+           event_latitude, event_longitude) %>%
   summarize(n_animals_w_detections = sum(virus_detected)) %>%
   ungroup() %>%
-  arrange(country, viral_species, scientific_name, site_latitude, site_longitude)
+  arrange(country, viral_species, scientific_name, event_latitude, event_longitude)
 
 # Generate a table showing the viral test types that could result in detection of a given
 # virus
@@ -46,22 +46,22 @@ virus_test_pairs <- d2 %>%
 
 viral_testing_by_species_and_site <- d2 %>%
   distinct(country, site_name, scientific_name, animal_id,
-           site_latitude, site_longitude, test_requested) %>%
+           event_latitude, event_longitude, test_requested) %>%
   left_join(virus_test_pairs, ., by = "test_requested") %>%
   # roll up viral testing summary to animal level
   distinct(viral_species, country, site_name, scientific_name, animal_id,
-           site_latitude, site_longitude) %>%
+           event_latitude, event_longitude) %>%
   # roll up viral testing summary to virus by country by species by site level
-  group_by(viral_species, country, site_name, scientific_name, site_latitude, site_longitude) %>%
+  group_by(viral_species, country, site_name, scientific_name, event_latitude, event_longitude) %>%
   summarize(n_animals_tested = n()) %>%
   ungroup() %>%
-  arrange(country, viral_species, scientific_name, site_latitude, site_longitude)
+  arrange(country, viral_species, scientific_name, event_latitude, event_longitude)
 
 left_join(viral_testing_by_species_and_site, viral_detections_by_species_and_site,
           by = c("viral_species", "country", "scientific_name",
-                 "site_latitude", "site_longitude")) %>%
+                 "event_latitude", "event_longitude")) %>%
   mutate(n_animals_w_detections = ifelse(is.na(n_animals_w_detections), 0, n_animals_w_detections)) %>%
-  mutate_at(.vars = c("site_latitude", "site_longitude"), ~as.numeric(.)) %>%
+  mutate_at(.vars = c("event_latitude", "event_longitude"), ~as.numeric(.)) %>%
   write_csv(., h("data", "viral_species_testing_by_host_and_site.csv"))
 
 
