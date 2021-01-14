@@ -105,12 +105,10 @@ merge_data <- function(report, eidith){
       left_join(ti, by = c("project", "country", "gains4_test_id", "gains4_specimen_id"))
     }
   if(report == "human"){
-    d2 <- left_join(e2, h2, by = c("gains4_event_id", "event_name", "project", "country")) %>%
-      left_join(s2, by = c("gains4_sample_unit_id", "participant_id" = "animal_human_id", "project", "country")) %>%
-      left_join(t2, by = c("specimen_id",  "participant_id" = "animal_id", "project", "country")) %>% # excluding gains4_specimen_id because of inconsistencies
-      left_join(ti, by = c("gains4_test_id", "project", "country")) # excluding gains4_specimen_id because of inconsistencies
-    d2 <- d2 %>%
-      dplyr::select(-starts_with("gains4_specimen_id"))
+    d2 <- left_join(e2, h2, by = c("project", "country", "gains4_event_id", "event_name")) %>%
+      left_join(s2, by = c("project", "country", "gains4_sample_unit_id", "participant_id" = "animal_human_id")) %>%
+      left_join(t2, by = c("project", "country", "gains4_specimen_id", "specimen_id",  "participant_id" = "animal_id")) %>% #gains4_specimen_id is not unique for pooled sampled
+      left_join(ti, by = c("project", "country", "gains4_test_id", "gains4_specimen_id"))
   }
   return(d2)
 }
