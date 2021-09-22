@@ -65,7 +65,7 @@ plot_malaysia_raster <- function(rast, legend_title = "", trans = "identity", sc
                  map_style = "mapbox://styles/emmamendelsohn/ckiyr0xe00mqu19ob4r17xuom",
                  mapbox_logo = FALSE,
                  attribution = FALSE,
-                 purge_cache = TRUE) + # doesn't seem to work
+                 purge_cache = TRUE) +
     scale_x_continuous(expand = c(0,0)) +
     scale_y_continuous(expand = c(0,0)) +
     labs(fill = legend_title) +
@@ -182,7 +182,7 @@ map_land_use <- purrr::map2(list(current_land_use, new_land_use),
                                              map_style = "mapbox://styles/emmamendelsohn/ckiyr0xe00mqu19ob4r17xuom",
                                              mapbox_logo = FALSE,
                                              attribution = FALSE,
-                                             purge_cache = TRUE) + # doesn't seem to work
+                                             purge_cache = TRUE) +
                                 scale_y_continuous(expand = c(0,0)) +
                                 scale_x_continuous(expand = c(0,0)) +
                                 theme_void() +
@@ -241,52 +241,61 @@ ggsave(h("malaysia-report/malaysia_gvp.pdf"), map_gvp, width = 11, height = 8.5,
 
 # Cov and Pmx sampling ----------------------------------------------------
 
-d2 <- readr::read_rds(h("data", "animal.rds"))
+animals <- readr::read_rds(h("data", "animal.rds"))
+humans <- readr::read_rds(h("data", "human.rds"))
 
-virus_lookup <- d2 %>%
-  distinct(test_requested, viral_species) %>%
-  drop_na() %>%
-  filter(test_requested %in% c("Coronaviruses", "Paramyxoviruses"))
 
-taxa_lookup <- d2 %>%
-  distinct(taxa_group, scientific_name)
+dat <- purrr::imap_dfr(list(animals, humans), function(x, y){
+  x %>%
+    filter(country == "Malaysia") %>%
+    filter(test_requested %in% c("Coronaviruses", "Paramyxoviruses")) %>%
+    distinct(event_latitude, event_longitude, test_requested, virus_detected) %>%
+    group_by(event_latitude, event_longitude, test_requested) %>%
+    summarize(virus_detected = sum(virus_detected)) %>%
+    ungroup() %>%
+    mutate(host = if_else(y == 1, "Animal Detect", "Human Detect"))
+})
 
-virus <- readr::read_csv(h("data", "animal_viral_pairs", "Malaysia_animal_viral_pairs.csv")) %>%
-  inner_join(virus_lookup) %>%
-  left_join(taxa_lookup) %>%
-  arrange(-n_animals_w_detections) %>%
-  mutate(detected = ifelse(n_animals_w_detections > 0, "Detect", "Non-detect")) %>%
-  mutate(detected = factor(detected, levels = c("Non-detect", "Detect")))
+# manual change to be able to see point by label
+dat$event_longitude[dat$host == "Human Detect" & dat$test_requested=="Paramyxoviruses" & dat$virus_detected == 1] <- "116.2"
+dat$event_latitude[dat$host == "Human Detect" & dat$test_requested=="Paramyxoviruses" & dat$virus_detected == 1] <- "5.9"
 
-# virus_detect <- virus %>%
-#   filter(detected == "Detect") %>%
-#   mutate_at(.vars = c("site_latitude", "site_longitude"), .funs = ~round(.,0)) %>%
-#   distinct(test_requested, viral_species, site_longitude, site_latitude)
-#
-# virus_detect_locs <- distinct(virus_detect, site_latitude, site_longitude) %>% mutate(site = row_number())
-#
-# virus_detect <- virus_detect %>%
-#   left_join(virus_detect_locs) %>%
-#   arrange(test_requested, site, viral_species) %>%
-#   select(test_requested, site, viral_species, everything())
-
-virus_sf <- virus %>%
-  st_as_sf(coords = c("site_longitude", "site_latitude"), crs = 4326)
+virus_sf <- dat %>%
+  mutate(virus_detected = if_else(virus_detected==0, "Non-Detect", host)) %>%
+  mutate(virus_detected = factor(virus_detected, levels = c("Non-Detect", "Animal Detect",  "Human Detect"))) %>%
+  select(-host) %>%
+  distinct() %>%
+  st_as_sf(coords = c("event_longitude", "event_latitude"), crs = 4326)
 
 map_viruses <- purrr::map(c("Coronaviruses",  "Paramyxoviruses"), function(tr){
 
   plot_malaysia <- ggplot() +
-    layer_spatial(virus_sf %>% filter(test_requested == tr), aes(color = detected, alpha = detected, size = detected)) +
+    layer_spatial(virus_sf %>% filter(test_requested == tr),
+                  aes(fill = virus_detected, color = virus_detected,
+                      alpha = virus_detected,
+                      size = virus_detected, shape = virus_detected)) +
     layer_mapbox(bbox_malaysia,
-                 map_style = "mapbox://styles/emmamendelsohn/ckiyr0xe00mqu19ob4r17xuom",
+                 map_style = "mapbox://styles/emmamendelsohn/ckiyr0xe00mqu19ob4r17xuom/draft",
                  mapbox_logo = FALSE,
                  attribution = FALSE,
-                 purge_cache = TRUE) + # doesn't seem to work
+                 purge_cache = TRUE) +
     scale_y_continuous(expand = c(0,0)) +
     scale_x_continuous(expand = c(0,0)) +
-    scale_color_manual(values = c("Detect" = "#5f3cc7", "Non-detect" = "#a5cf9b"), guide = guide_legend(reverse = TRUE) ) +
-    scale_alpha_manual(values = c("Detect" = 1, "Non-detect" = 0.5), guide = guide_legend(reverse = TRUE)) +
-    scale_size_manual(values = c("Detect" = 4, "Non-detect" = 2), guide = guide_legend(reverse = TRUE)) +
+    scale_fill_manual(values = c("Human Detect" = "#d467ff",
+                                  "Animal Detect" = "#ff9f67",
+                                  "Non-Detect" = "#a5cf9b"), guide = guide_legend(reverse = TRUE) ) +
+    scale_color_manual(values = c("Human Detect" = "gray30",
+                                 "Animal Detect" = "gray30",
+                                 "Non-Detect" = "#a5cf9b"), guide = guide_legend(reverse = TRUE) ) +
+    scale_alpha_manual(values = c("Human Detect" = 1,
+                                  "Animal Detect" = 1,
+                                  "Non-Detect" = 0.9), guide = guide_legend(reverse = TRUE)) +
+    scale_size_manual(values = c("Human Detect" = 4,
+                                 "Animal Detect" = 4,
+                                 "Non-Detect" = 4), guide = guide_legend(reverse = TRUE)) +
+    scale_shape_manual(values = c("Human Detect" = 22,
+                                 "Animal Detect" = 21,
+                                 "Non-Detect" = 20), guide = guide_legend(reverse = TRUE)) +
     theme_void() +
     theme(panel.background = element_rect(fill = "gray50"),
           plot.margin = margin(),

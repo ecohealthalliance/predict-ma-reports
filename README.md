@@ -7,7 +7,7 @@ To use, clone this repository and set it as your working directory. (You may ope
 1. First run devtools::install_deps(upgrade = "always") in R to get all packages required to run this code and ensure that they are up to date. These packages are listed in the DESCRIPTION file. You should in general keep up to date with the latest version of the eidith package, which tracks changes made upstream in the EIDITH database.
 
 2. Run `00-get-data.R` 
-  - This will download EIDITH data into the (currently empty) db/ folder. Set all countries of interest in the `ed_db_download()` call. Make sure you have set your EIDITH_USERNAME and EIDITH_PASSWORD environment variables. See ?eidith::ed_auth in the eidith R package for details. 
+  - This will download EIDITH data from EHA's static backup.
   - This will also download supporting data (IUCN species, population and mammal density map layers) from a public AWS repository.
   
 3. Run `scripts/generate_viral_species_lookups.R`. 
